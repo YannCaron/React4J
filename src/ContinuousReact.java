@@ -1,5 +1,10 @@
+
+import fr.cyann.functor.Procedure1;
+import fr.cyann.react.MouseReact;
+import fr.cyann.react.TimeReact;
+
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -21,6 +26,17 @@ public class ContinuousReact {
 	 * @param args the command line arguments.
 	 */
 	public static void main(String[] args) {
-		// TODO code application logic here
+		
+		final long start = System.currentTimeMillis();
+		
+		TimeReact.once(50L).mergeHeterogenous(MouseReact.once(150L)).subscribe(new Procedure1() {
+
+			@Override
+			public void invoke(Object arg1) {
+				System.out.println("Time " + (System.currentTimeMillis() - start));
+				System.out.println(arg1);
+			}
+		});
+		
 	}
 }

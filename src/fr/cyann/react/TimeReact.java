@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -16,24 +16,44 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.react.data.TimeEvent;
-
 /**
  * The TimeReact class.
  * Creation date: 12 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public class TimeReact extends Signal<TimeEvent> {
 
+	protected final TimeEvent event;
 	private Thread thread;
-	private final TimeEvent event;
 
 	// constructor
 	private TimeReact() {
 		event = new TimeEvent();
 	}
+	
+	// attributes
+	/**
+	Get the signal event value
+	@return the signal event
+	*/
+	@Override
+	public TimeEvent getValue() {
+		return event;
+	}
+	
+	@Override
+	public void emit(TimeEvent value) {
+		event.increment();
+		super.emit(getValue());
+	}
 
+	/**
+	Factory to create a time based react.
+	Emit a signal only one time after timeout.
+	@param timeout time to wait before emitting message
+	@return the time react
+	 */
 	public static TimeReact once(final long timeout) {
 		final TimeReact react = new TimeReact();
 
@@ -43,8 +63,7 @@ public class TimeReact extends Signal<TimeEvent> {
 			public void run() {
 				try {
 					Thread.sleep(timeout);
-					react.event.increment();
-					react.react.emit(react.event);
+					react.emit(react.event);
 				} catch (InterruptedException ex) {
 					// do nothing
 				}
@@ -57,9 +76,75 @@ public class TimeReact extends Signal<TimeEvent> {
 		return react;
 	}
 
-	// attributes
-	@Override
-	public TimeEvent getValue() {
-		return event;
+	/**
+	Factory to create a time based react.
+	Emit a signal whenever the time interval has elapsed.
+	@param timeout time to wait before emitting message
+	@return the time react
+	 */
+	public static TimeReact every(final long timeout) {
+		final TimeReact react = new TimeReact();
+
+		react.thread = new Thread() {
+
+			@Override
+			public void run() {
+				try {
+
+					while (!isInterrupted()) {
+						Thread.sleep(timeout);
+						react.emit(react.event);
+					}
+				} catch (InterruptedException ex) {
+					// do nothing
+				}
+
+			}
+		};
+
+		react.thread.start();
+
+		return react;
 	}
+
+	/**
+	Factory to create a time based react.
+	Emit a signal at regular time interval (consider the observer function elapsed time).
+	@param timeout time to wait before emitting message
+	@return the time react
+	 */
+	public static TimeReact framePerSecond(final int fps) {
+		final TimeReact react = new TimeReact();
+		final long timeout = 1000L / fps;
+
+		react.thread = new Thread() {
+
+			@Override
+			public void run() {
+				try {
+
+					while (!isInterrupted()) {
+						long start = System.currentTimeMillis();
+
+						react.emit(react.event);
+
+						long elapsed = System.currentTimeMillis() - start;
+
+						if (timeout > elapsed) {
+							Thread.sleep(timeout - elapsed);
+						}
+
+					}
+				} catch (InterruptedException ex) {
+					// do nothing
+				}
+
+			}
+		};
+
+		react.thread.start();
+
+		return react;
+	}
+
 }

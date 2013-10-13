@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -19,7 +19,7 @@ package fr.cyann.functor;
 /**
  * The Predicate1 interface.
  * Creation date: 9 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public interface Predicate1<A1> {

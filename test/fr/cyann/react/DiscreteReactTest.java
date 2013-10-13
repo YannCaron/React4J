@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -26,7 +26,7 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author CyaNn
+ * @author Yann Caron
  */
 public class DiscreteReactTest extends TestCase {
 

@@ -14,15 +14,47 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.functor;
+package fr.cyann.react;
 
 /**
- * The Function1 interface.
- * Creation date: 9 oct. 2013.
- * @author Yann Caron 
+ * The MouseReact class.
+ * Creation date: 13 oct. 2013.
+ * @author CyaNn 
  * @version v0.1
  */
-public interface Function1<R, A1> {
+public class MouseReact extends Signal<MouseEvent> {
 
-	public R invoke(A1 arg1);
+	protected final MouseEvent event;
+
+	@Override
+	public MouseEvent getValue() {
+		return event;
+	}
+
+	private MouseReact() {
+		event = new MouseEvent();
+	}
+	private Thread thread;
+
+	public static MouseReact once(final long timeout) {
+		final MouseReact react = new MouseReact();
+
+		react.thread = new Thread() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(timeout);
+					react.emit(react.event);
+				} catch (InterruptedException ex) {
+					// do nothing
+				}
+
+			}
+		};
+
+		react.thread.start();
+
+		return react;
+	}
 }

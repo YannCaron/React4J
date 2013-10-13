@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -14,44 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.react.data;
+package fr.cyann.react;
 
 /**
- * The TimeEvent class.
+ * The Event class.
  * Creation date: 12 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
-public class TimeEvent implements Event {
-
-	private int iteration;
-	private final long startTime;
-	private long fromStartTime;
-	private long lastTime;
-
-	public TimeEvent() {
-		iteration = 0;
-		startTime = System.currentTimeMillis();
-		lastTime = startTime;
-	}
-
-	public void increment() {
-		long time = System.currentTimeMillis(); 
-		lastTime = time - lastTime;
-		fromStartTime = time - startTime;
-		iteration++;
-	}
-
-	public int getIteration() {
-		return iteration;
-	}
-
-	public long getTimeElapsedFromStart() {
-		return fromStartTime;
-	}
-	
-	public long getTimeElapsed() {
-		return lastTime;
-	}
-	
+public interface Event {
 }

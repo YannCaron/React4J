@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 CyaNn
+ * Copyright (C) 2013 Yann Caron
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Less General Public License as published by
@@ -17,14 +17,13 @@
 package fr.cyann.react;
 
 import fr.cyann.functor.Procedure1;
-import fr.cyann.react.data.TimeEvent;
 import java.util.ArrayList;
 import java.util.List;
 import junit.framework.TestCase;
 
 /**
  *
- * @author CyaNn
+ * @author Yann Caron
  */
 public class TimeReactTest extends TestCase {
 
@@ -42,11 +41,11 @@ public class TimeReactTest extends TestCase {
 
 	private final static void assertMoreOrLess(long time1, long time2, long tolerance) {
 		if (Math.abs(time1 - time2) > tolerance) {
-			String msg = "Assertion error, range expected [" + (time1 - tolerance) + "-" + (time1 + tolerance)  + "], found " + time2;
+			String msg = "Assertion error, range expected [" + (time1 - tolerance) + "-" + (time1 + tolerance) + "], found " + time2;
 			throw new AssertionError(msg);
 		}
 	}
-	
+
 	/**
 	 * Test of once method, of class TimeReact.
 	 */
@@ -65,9 +64,91 @@ public class TimeReactTest extends TestCase {
 
 		Thread.currentThread().sleep(150L);
 		assertEquals(1, results.size());
-		assertEquals(1, ((TimeEvent)results.get(0)).getIteration());
-		assertMoreOrLess(250, ((TimeEvent)results.get(0)).getTimeElapsed(), 1);
-		assertMoreOrLess(250, ((TimeEvent)results.get(0)).getTimeElapsedFromStart(), 1);
+		assertEquals(1, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+	}
+
+	/**
+	 * Test of every method, of class TimeReact.
+	 */
+	public void testEvery() throws InterruptedException {
+
+		TimeReact.every(250L).subscribe(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent event) {
+				results.add(event);
+				try {
+					Thread.currentThread().sleep(100L);
+				} catch (InterruptedException ex) {
+					// do nothing
+				}
+			}
+		});
+
+		Thread.currentThread().sleep(150L);
+		assertEquals(0, results.size());
+
+		Thread.currentThread().sleep(100L);
+		assertEquals(1, results.size());
+		assertEquals(1, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+		Thread.currentThread().sleep(350L);
+		assertEquals(2, results.size());
+		assertEquals(2, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(350, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(600, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+		Thread.currentThread().sleep(350L);
+		assertEquals(3, results.size());
+		assertEquals(3, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(350, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(950, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+	}
+
+	/**
+	 * Test of framePerSecond method, of class TimeReact.
+	 */
+	public void testFramePerSecond() throws InterruptedException {
+
+		TimeReact.framePerSecond(4).subscribe(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent event) {
+				results.add(event);
+				try {
+					Thread.currentThread().sleep(100L);
+				} catch (InterruptedException ex) {
+					// do nothing
+				}
+			}
+		});
+
+		Thread.currentThread().sleep(150L);
+		assertEquals(0, results.size());
+
+		Thread.currentThread().sleep(100L);
+		assertEquals(1, results.size());
+		assertEquals(2, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+		Thread.currentThread().sleep(350L);
+		assertEquals(2, results.size());
+		assertEquals(3, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(500, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
+
+		Thread.currentThread().sleep(350L);
+		assertEquals(3, results.size());
+		assertEquals(4, ((TimeEvent) results.get(0)).getIteration());
+		assertMoreOrLess(250, ((TimeEvent) results.get(0)).getTimeElapsed(), 1);
+		assertMoreOrLess(750, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
 
 	}
 }
