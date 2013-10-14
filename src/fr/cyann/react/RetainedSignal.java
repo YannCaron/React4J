@@ -16,45 +16,12 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.base.Package;
-
 /**
- * The MouseEvent class.
- * Creation date: 13 oct. 2013.
+ * The RetainedSignal class.
+ * Creation date: 14 oct. 2013.
  * @author CyaNn 
  * @version v0.1
  */
-public class MouseEvent implements Event {
-
-	public enum ButtonAction {
-
-		PRESS, RELEASE;
-	}
-
-	public enum Wheel {
-
-		UP, DOWN;
-	}
+public abstract class RetainedSignal<V> extends Signal<V> {
 	
-	// attributes
-	private int button;
-	private ButtonAction action;
-	private int x, y;
-	private Wheel wheel;
-
-	@Package void setEvent(java.awt.event.MouseEvent ev) {
-		button = ev.getButton();
-		if (ev.getID() == java.awt.event.MouseEvent.MOUSE_PRESSED) {
-			action = ButtonAction.PRESS;
-		} else {
-			action = ButtonAction.RELEASE;
-		}
-	}
-	
-	// methods
-	@Override
-	public String toString() {
-		return "MouseEvent{" + "button=" + button + ", action=" + action + ", x=" + x + ", y=" + y + ", wheel=" + wheel + '}';
-	}
-
 }

@@ -35,9 +35,8 @@ public abstract class Signal<V> {
 	/**
 	Command react to emit a signal.<br>
 	Should be overrided to add automatic behaviours like emit counter time management etc.
-	@param value the value to emit.
 	 */
-	public void emit(V value) {
+	public void emit() {
 		react.emit(getValue());
 	}
 
@@ -74,12 +73,12 @@ public abstract class Signal<V> {
 			}
 		};
 
-		this.react.subscribe(new Procedure1<V>() {
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
 				if (function.invoke(value)) {
-					Signal.this.emit(value);
+					signal.emit();
 				}
 			}
 		});
@@ -106,75 +105,101 @@ public abstract class Signal<V> {
 
 			@Override
 			public void invoke(V value) {
-				signal.emit(function.invoke(value));
+				signal.emit();
 			}
 		});
 		return signal;
 	}
 
-	public final Signal<V> merge(final Signal<V> merge) {
+	public final <W> Signal<V> mergeLeft(final Signal<W> merge) {
 
-		final Signal<V> signal = new Signal<V>() {
+		final Var<V> signal = new Var<V>(getValue());
 
-			private V value;
-
-			@Override
-			public V getValue() {
-				return value;
-			}
-
-			@Override
-			public void emit(V value) {
-				this.value = value;
-				super.emit(value);
-			}
-		};
-
-		final Procedure1 p = new Procedure1<V>() {
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
-				signal.emit(value);
+				signal.setValue(value);
 			}
-		};
+		});
 
-		this.subscribe(p);
-		merge.subscribe(p);
+		merge.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				Signal.this.emit();
+			}
+		});
+
 		return signal;
 	}
 
-	public final <W> Signal<V> merge(final Signal<W> signal, final Function1<V, W> converter) {
-		return merge(signal.map(converter));
+	public final <W> Signal<V> mergeLeft(final Signal<W> merge, final Function1<V, W> converter) {
+
+		final Var<V> signal = new Var<V>(getValue());
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.setValue(value);
+			}
+		});
+
+		merge.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				signal.setValue(converter.invoke(value));
+			}
+		});
+
+		return signal;
 	}
 
-	public final Signal mergeHeterogenous(final Signal merge) {
+	public final <W> Signal<W> mergeRight(final Signal<W> merge) {
 
-		final Signal signal = new Signal() {
+		final Var<W> signal = new Var<W>(merge.getValue());
 
-			private Object value;
-
-			@Override
-			public Object getValue() {
-				return value;
-			}
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
-			public void emit(Object value) {
-				this.value = value;
-				super.emit(value);
+			public void invoke(V value) {
+				merge.emit();
 			}
-		};
+		});
 
-		final Procedure1 p = new Procedure1() {
+		merge.subscribe(new Procedure1<W>() {
 
 			@Override
-			public void invoke(Object value) {
-				signal.emit(value);
+			public void invoke(W value) {
+				signal.setValue(value);
 			}
-		};
+		});
 
-		this.subscribe(p);
-		merge.subscribe(p);
+		return signal;
+	}
+
+	public final <W> Signal<W> mergeRight(final Signal<W> merge, final Function1<W, V> converter) {
+
+		final Var<W> signal = new Var<W>(merge.getValue());
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.setValue(converter.invoke(value));
+			}
+		});
+
+		merge.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				signal.setValue(value);
+			}
+		});
+
 		return signal;
 	}
 }

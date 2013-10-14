@@ -1,7 +1,9 @@
 
 import fr.cyann.functor.Procedure1;
+import fr.cyann.react.MouseEvent;
 import fr.cyann.react.MouseReact;
 import fr.cyann.react.TimeReact;
+import fr.cyann.react.Var;
 
 /*
  * Copyright (C) 2013 Yann Caron
@@ -28,8 +30,10 @@ public class ContinuousReact {
 	public static void main(String[] args) {
 		
 		final long start = System.currentTimeMillis();
+
+		Var<MouseEvent> s = MouseReact.click();
 		
-		TimeReact.once(50L).mergeHeterogenous(MouseReact.once(150L)).subscribe(new Procedure1() {
+		TimeReact.once(50L).mergeRight(MouseReact.click()).subscribe(new Procedure1() {
 
 			@Override
 			public void invoke(Object arg1) {

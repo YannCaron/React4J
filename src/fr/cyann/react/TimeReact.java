@@ -22,30 +22,18 @@ package fr.cyann.react;
  * @author Yann Caron 
  * @version v0.1
  */
-public class TimeReact extends Signal<TimeEvent> {
-
-	protected final TimeEvent event;
+public class TimeReact extends EventReact<TimeEvent> {
 	private Thread thread;
 
 	// constructor
 	private TimeReact() {
-		event = new TimeEvent();
+		super (new TimeEvent());
 	}
-	
-	// attributes
-	/**
-	Get the signal event value
-	@return the signal event
-	*/
+
 	@Override
-	public TimeEvent getValue() {
-		return event;
-	}
-	
-	@Override
-	public void emit(TimeEvent value) {
-		event.increment();
-		super.emit(getValue());
+	public void emit() {
+		value.increment();
+		super.emit();
 	}
 
 	/**
@@ -63,7 +51,7 @@ public class TimeReact extends Signal<TimeEvent> {
 			public void run() {
 				try {
 					Thread.sleep(timeout);
-					react.emit(react.event);
+					react.emit();
 				} catch (InterruptedException ex) {
 					// do nothing
 				}
@@ -93,7 +81,7 @@ public class TimeReact extends Signal<TimeEvent> {
 
 					while (!isInterrupted()) {
 						Thread.sleep(timeout);
-						react.emit(react.event);
+						react.emit();
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -126,7 +114,7 @@ public class TimeReact extends Signal<TimeEvent> {
 					while (!isInterrupted()) {
 						long start = System.currentTimeMillis();
 
-						react.emit(react.event);
+						react.emit();
 
 						long elapsed = System.currentTimeMillis() - start;
 

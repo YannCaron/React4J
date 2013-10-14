@@ -16,6 +16,8 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.base.Package;
+
 /**
  * The TimeEvent class.
  * Creation date: 12 oct. 2013.
@@ -37,7 +39,7 @@ public class TimeEvent implements Event {
 		lastTime = time;
 	}
 
-	public void increment() {
+	@Package void increment() {
 		long time = System.currentTimeMillis(); 
 		fromLastTime = time - lastTime;
 		lastTime = time;

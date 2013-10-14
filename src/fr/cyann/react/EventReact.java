@@ -16,45 +16,49 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functor.Procedure1;
 import fr.cyann.base.Package;
 
 /**
- * The MouseEvent class.
- * Creation date: 13 oct. 2013.
+ * The EventReact class.
+ * Creation date: 14 oct. 2013.
  * @author CyaNn 
  * @version v0.1
  */
-public class MouseEvent implements Event {
-
-	public enum ButtonAction {
-
-		PRESS, RELEASE;
+public abstract class EventReact<V extends Event> extends Var<V> {
+			
+	@Package EventReact(V value) {
+		super(value);
 	}
 
-	public enum Wheel {
+	public final Signal<Event> mergeEvent(final Signal<Event> merge) {
 
-		UP, DOWN;
-	}
-	
-	// attributes
-	private int button;
-	private ButtonAction action;
-	private int x, y;
-	private Wheel wheel;
+		final Var<Event> signal = new Var<Event>(getValue());
 
-	@Package void setEvent(java.awt.event.MouseEvent ev) {
-		button = ev.getButton();
-		if (ev.getID() == java.awt.event.MouseEvent.MOUSE_PRESSED) {
-			action = ButtonAction.PRESS;
-		} else {
-			action = ButtonAction.RELEASE;
-		}
-	}
-	
-	// methods
-	@Override
-	public String toString() {
-		return "MouseEvent{" + "button=" + button + ", action=" + action + ", x=" + x + ", y=" + y + ", wheel=" + wheel + '}';
-	}
+		Procedure1<Event> p = new Procedure1<Event>() {
 
+			@Override
+			public void invoke(Event arg1) {
+				throw new UnsupportedOperationException("Not supported yet.");
+			}
+		};
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.setValue(value);
+			}
+		});
+
+		merge.subscribe(new Procedure1<Event>() {
+
+			@Override
+			public void invoke(Event value) {
+				signal.setValue(value);
+			}
+		});
+
+		return signal;
+	}
 }
