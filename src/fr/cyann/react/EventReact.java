@@ -22,26 +22,19 @@ import fr.cyann.base.Package;
 /**
  * The EventReact class.
  * Creation date: 14 oct. 2013.
- * @author CyaNn 
+ * @author CyaNn
  * @version v0.1
  */
 public abstract class EventReact<V extends Event> extends Var<V> {
-			
-	@Package EventReact(V value) {
+
+	@Package
+	EventReact(V value) {
 		super(value);
 	}
 
 	public final Signal<Event> mergeEvent(final Signal<Event> merge) {
 
 		final Var<Event> signal = new Var<Event>(getValue());
-
-		Procedure1<Event> p = new Procedure1<Event>() {
-
-			@Override
-			public void invoke(Event arg1) {
-				throw new UnsupportedOperationException("Not supported yet.");
-			}
-		};
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -58,6 +51,32 @@ public abstract class EventReact<V extends Event> extends Var<V> {
 				signal.setValue(value);
 			}
 		});
+
+		return signal;
+	}
+
+	public final EventRetained<V> retainUntil(final Signal until) {
+		until.noAutoStart();
+		final EventRetained<V> signal = new EventRetained<V>(getValue());
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V arg1) {
+				signal.emit();
+				until.start();
+			}
+		});
+
+		until.subscribe(new Procedure1() {
+
+			@Override
+			public void invoke(Object arg1) {
+				signal.emitFinish();
+				until.stop();
+			}
+		});
+
 
 		return signal;
 	}

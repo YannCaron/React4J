@@ -19,52 +19,93 @@ package fr.cyann.react;
 import fr.cyann.functor.Function1;
 import fr.cyann.functor.Predicate1;
 import fr.cyann.functor.Procedure1;
+import fr.cyann.base.Package;
+import java.util.ConcurrentModificationException;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
  * Creation date: 11 oct. 2013.
+ *
  * @author Yann Caron
  * @version v0.1
  */
 public abstract class Signal<V> {
 
 	protected final React<V> react;
+	protected boolean running = true;
+	private boolean autoStart = true;
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void start() {
+		running = true;
+	}
+
+	public void stop() {
+		running = false;
+	}
+
+	protected boolean isAutoStart() {
+		return autoStart;
+	}
+
+	protected void noAutoStart() {
+		autoStart = false;
+	}
 
 	public abstract V getValue();
 
 	/**
-	Command react to emit a signal.<br>
-	Should be overrided to add automatic behaviours like emit counter time management etc.
+	 * Command react to emit a signal.<br>
+	 * Should be overrided to add automatic behaviours like emit counter time
+	 * management etc.
 	 */
-	public void emit() {
-		react.emit(getValue());
+	@Package
+	void emit() {
+		try {
+			react.emit(getValue());
+		} catch (ConcurrentModificationException ex) {
+			// avoid concurrent exception
+		}
 	}
 
 	/**
-	Default constructor.
+	 * Default constructor.
 	 */
 	public Signal() {
 		react = new React<V>();
 	}
 
 	/**
-	Register listener first order function to react.
-	Function will be called when event is raised.
-	@param subscriber function to be called in case of event.
-	@return return this.
+	 * Register listener first order function to react. Function will be called
+	 * when event is raised.
+	 *
+	 * @param subscriber function to be called in case of event.
+	 * @return return this.
 	 */
 	public Signal<V> subscribe(Procedure1<V> subscriber) {
+		if (isAutoStart()) {
+			start();
+		}
 		react.subscribe(subscriber);
 		return this;
 	}
 
+	public Signal<V> unSubscribe(Procedure1<V> subscriber) {
+		react.unSubscribe(subscriber);
+		return this;
+	}
+
 	/**
-	Filter the event according a criteria.
-	@param function predicate to filter. If result is true, event pass else it is blocked.
-	@return the new filtered signal.
+	 * Filter the event according a criteria.
+	 *
+	 * @param function predicate to filter. If result is true, event pass else it
+	 * is blocked.
+	 * @return the new filtered signal.
 	 */
 	public final Signal<V> filter(final Predicate1<V> function) {
-
 		final Signal<V> signal = new Signal<V>() {
 
 			@Override
@@ -77,7 +118,7 @@ public abstract class Signal<V> {
 
 			@Override
 			public void invoke(V value) {
-				if (function.invoke(value)) {
+				if (signal.isRunning() && function.invoke(value)) {
 					signal.emit();
 				}
 			}
@@ -86,13 +127,13 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Modify the react data in value and type.
-	@param <R> The new react data type.
-	@param function the function to transform data.
-	@return the new transformed react.
+	 * Modify the react data in value and type.
+	 *
+	 * @param <R> The new react data type.
+	 * @param function the function to transform data.
+	 * @return the new transformed react.
 	 */
 	public final <R> Signal<R> map(final Function1<R, V> function) {
-
 		final Signal<R> signal = new Signal<R>() {
 
 			@Override
@@ -101,11 +142,13 @@ public abstract class Signal<V> {
 			}
 		};
 
-		this.react.subscribe(new Procedure1<V>() {
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
-				signal.emit();
+				if (signal.isRunning()) {
+					signal.emit();
+				}
 			}
 		});
 		return signal;

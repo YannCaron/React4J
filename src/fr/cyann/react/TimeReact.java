@@ -16,18 +16,24 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functor.Procedure1;
+import java.util.ConcurrentModificationException;
+
 /**
- * The TimeReact class.
- * Creation date: 12 oct. 2013.
- * @author Yann Caron 
+ * The TimeReact class. Creation date: 12 oct. 2013.
+ *
+ * @author Yann Caron
  * @version v0.1
  */
 public class TimeReact extends EventReact<TimeEvent> {
+
 	private Thread thread;
+	private Runnable task;
 
 	// constructor
 	private TimeReact() {
-		super (new TimeEvent());
+		super(new TimeEvent());
+		super.running = false;
 	}
 
 	@Override
@@ -36,16 +42,34 @@ public class TimeReact extends EventReact<TimeEvent> {
 		super.emit();
 	}
 
+	@Override
+	public void start() {
+		if (!isRunning()) {
+			super.start();
+			thread = new Thread(task);
+			thread.start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (isRunning()) {
+			super.stop();
+			thread.interrupt();
+		}
+	}
+
 	/**
-	Factory to create a time based react.
-	Emit a signal only one time after timeout.
-	@param timeout time to wait before emitting message
-	@return the time react
+	 * Factory to create a time based react. Emit a signal only one time after
+	 * timeout.
+	 *
+	 * @param timeout time to wait before emitting message
+	 * @return the time react
 	 */
 	public static TimeReact once(final long timeout) {
 		final TimeReact react = new TimeReact();
 
-		react.thread = new Thread() {
+		react.task = new Runnable() {
 
 			@Override
 			public void run() {
@@ -54,64 +78,67 @@ public class TimeReact extends EventReact<TimeEvent> {
 					react.emit();
 				} catch (InterruptedException ex) {
 					// do nothing
+				} finally {
+					react.stop();
 				}
 
 			}
 		};
 
-		react.thread.start();
-
 		return react;
 	}
 
 	/**
-	Factory to create a time based react.
-	Emit a signal whenever the time interval has elapsed.
-	@param timeout time to wait before emitting message
-	@return the time react
+	 * Factory to create a time based react. Emit a signal whenever the time
+	 * interval has elapsed.
+	 *
+	 * @param timeout time to wait before emitting message
+	 * @return the time react
 	 */
 	public static TimeReact every(final long timeout) {
 		final TimeReact react = new TimeReact();
 
-		react.thread = new Thread() {
+		react.task = new Runnable() {
 
 			@Override
 			public void run() {
 				try {
 
-					while (!isInterrupted()) {
-						Thread.sleep(timeout);
+					while (react.isRunning()) {
 						react.emit();
+
+						Thread.sleep(timeout);
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
+				} finally {
+					react.stop();
 				}
 
 			}
 		};
 
-		react.thread.start();
-
 		return react;
 	}
 
 	/**
-	Factory to create a time based react.
-	Emit a signal at regular time interval (consider the observer function elapsed time).
-	@param timeout time to wait before emitting message
-	@return the time react
+	 * Factory to create a time based react. Emit a signal at regular time
+	 * interval (consider the observer function elapsed time).
+	 *
+	 * @param timeout time to wait before emitting message
+	 * @return the time react
 	 */
 	public static TimeReact framePerSecond(final int fps) {
 		final TimeReact react = new TimeReact();
 		final long timeout = 1000L / fps;
 
-		react.thread = new Thread() {
+		react.task = new Runnable() {
 
 			@Override
 			public void run() {
 				try {
 
-					while (!isInterrupted()) {
+					while (react.isRunning()) {
 						long start = System.currentTimeMillis();
 
 						react.emit();
@@ -125,14 +152,13 @@ public class TimeReact extends EventReact<TimeEvent> {
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
+				} finally {
+					react.stop();
 				}
 
 			}
 		};
 
-		react.thread.start();
-
 		return react;
 	}
-
 }

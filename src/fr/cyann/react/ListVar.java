@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 /**
- * The ListVar class.
- * Creation date: 12 oct. 2013.
- * @author Yann Caron 
+ * The ListVar class. Creation date: 12 oct. 2013.
+ *
+ * @author Yann Caron
  * @version v0.1
  */
 public class ListVar<V> extends Signal<List<V>> implements List<V> {
@@ -34,7 +34,9 @@ public class ListVar<V> extends Signal<List<V>> implements List<V> {
 
 		@Override
 		public void invoke(V arg1) {
-			ListVar.this.react.emit(list);
+			if (isRunning()) {
+				ListVar.this.react.emit(list);
+			}
 		}
 	}
 	// decorator design pattern

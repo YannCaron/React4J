@@ -28,12 +28,12 @@ public class ContinuousReact {
 	 * @param args the command line arguments.
 	 */
 	public static void main(String[] args) {
-		
+
 		final long start = System.currentTimeMillis();
 
-		Var<MouseEvent> s = MouseReact.click();
-		
-		TimeReact.once(50L).mergeRight(MouseReact.click()).subscribe(new Procedure1() {
+		Var<MouseEvent> s = MouseReact.press(1);
+
+		TimeReact.once(50L).mergeRight(MouseReact.press(1)).subscribe(new Procedure1() {
 
 			@Override
 			public void invoke(Object arg1) {
@@ -41,6 +41,6 @@ public class ContinuousReact {
 				System.out.println(arg1);
 			}
 		});
-		
+
 	}
 }

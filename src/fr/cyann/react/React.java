@@ -33,9 +33,12 @@ public class React<A> {
 		subscribers = new ArrayList<Procedure1<A>>();
 	}
 	
-	public React<A> subscribe(Procedure1<A> subscriber) {
+	public void subscribe(Procedure1<A> subscriber) {
 		this.subscribers.add(subscriber);
-		return this;
+	}
+	
+	public void unSubscribe(Procedure1<A> subscriber) {
+		this.subscribers.remove(subscriber);
 	}
 
 	@Package React<A> emit(A value) {

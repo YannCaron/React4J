@@ -23,9 +23,9 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.MouseEvent;
 
 /**
- * The MouseReact class.
- * Creation date: 13 oct. 2013.
- * @author CyaNn 
+ * The MouseReact class. Creation date: 13 oct. 2013.
+ *
+ * @author CyaNn
  * @version v0.1
  */
 public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
@@ -33,22 +33,22 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();
 
+	// constructor
 	private MouseReact() {
 		super(new fr.cyann.react.MouseEvent());
 	}
-	private Thread thread;
 
+	// general factory
 	private static MouseReact createListener(final Predicate1<MouseEvent> predicate, long eventMask) {
 		final MouseReact react = new MouseReact();
 
 		AWTEventListener listener = new AWTEventListener() {
-
 			@Override
 			public void eventDispatched(AWTEvent e) {
 				if (e instanceof MouseEvent) {
 					MouseEvent ev = (MouseEvent) e;
 
-					if (ev.getID() == MouseEvent.MOUSE_PRESSED || ev.getID() == MouseEvent.MOUSE_RELEASED) {
+					if (react.isRunning() && predicate.invoke(ev)) {
 						react.value.setEvent(ev);
 						react.emit();
 					}
@@ -63,15 +63,29 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	}
 
 	// factories
-	public static MouseReact click() {
+	/**
+	 * Create a mouse react that emit an event each time user press a mouse button
+	 * on application window
+	 *
+	 * @return the created mouse react instance
+	 */
+	private static MouseReact button(final int id, final int button) {
 
 		return createListener(new Predicate1<MouseEvent>() {
-
 			@Override
 			public boolean invoke(MouseEvent ev) {
-				return ev.getButton() != 0 && (ev.getID() == MouseEvent.MOUSE_PRESSED || ev.getID() == MouseEvent.MOUSE_RELEASED);
+				return ev.getButton() == button && (ev.getID() == id);
 			}
 		}, AWTEvent.MOUSE_EVENT_MASK);
 
 	}
+
+	public static MouseReact press(int button) {
+		return MouseReact.button(MouseEvent.MOUSE_PRESSED, button);
+	}
+
+	public static MouseReact release(int button) {
+		return MouseReact.button(MouseEvent.MOUSE_RELEASED, button);
+	}
+
 }
