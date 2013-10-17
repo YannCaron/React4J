@@ -5,15 +5,19 @@
 
 import fr.cyann.functor.Function1;
 import fr.cyann.functor.Procedure1;
-import fr.cyann.gui.JAutoScrollPane;
 import fr.cyann.react.MouseEvent;
+import fr.cyann.ui.JAutoScrollPane;
 import fr.cyann.react.MouseReact;
-import fr.cyann.react.MouseRetained;
+import fr.cyann.react.Signal;
 import fr.cyann.react.TimeEvent;
 import fr.cyann.react.TimeReact;
-import java.awt.BorderLayout;
+import fr.cyann.react.Var;
+import fr.cyann.react.swing.RLabel;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.util.Date;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.border.Border;
@@ -28,6 +32,7 @@ import javax.swing.border.EmptyBorder;
 public class ReactiveMainFrame {
 
 	private static final JTextArea TEXT = new JTextArea();
+	private static final RLabel LABEL = new RLabel();
 
 	private static void log(String message) {
 		TEXT.append(message + "\n");
@@ -45,7 +50,7 @@ public class ReactiveMainFrame {
 	}
 
 	public static void testReact2() {
-		MouseRetained.hold(1).runDuring(TimeReact.every(50L)).subscribe(new Procedure1<TimeEvent>() {
+		MouseReact.hold(1).runDuring(TimeReact.every(50L)).subscribe(new Procedure1<TimeEvent>() {
 
 			@Override
 			public void invoke(TimeEvent event) {
@@ -81,26 +86,36 @@ public class ReactiveMainFrame {
 	}
 
 	public static void testReact5() {
-		MouseRetained.hold(1).subscribe(new Procedure1<MouseEvent>() {
+		Signal<String> m = MouseReact.hold(1).map(new Function1<String, MouseEvent>() {
 
 			@Override
-			public void invoke(MouseEvent arg1) {
-				log("yes");
+			public String invoke(MouseEvent value) {
+				return "Mouse button 1 pressed";
 			}
-		}).subscribeFinish(new Procedure1<MouseEvent>() {
+		}).otherwise(new Function1<String, String>() {
 
 			@Override
-			public void invoke(MouseEvent arg1) {
-				log("no");
+			public String invoke(String arg1) {
+				return "Mouse button 1 pressed";
+			}
+		}).mergeRight(TimeReact.every(1000)).map(new Function1<String, TimeEvent>() {
+
+			@Override
+			public String invoke(TimeEvent arg1) {
+				System.out.println("GO");
+				return "" + arg1.getTimeElapsedFromStart();
 			}
 		});
+
+		LABEL.setText(m);
 	}
 
 	public static void main(String[] args) {
 
 		JFrame frame = new JFrame();
-		BorderLayout layout = new BorderLayout();
-		frame.setLayout(layout);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
 
 		Border empty = new EmptyBorder(10, 10, 10, 10);
 
@@ -108,12 +123,15 @@ public class ReactiveMainFrame {
 		scroll.forceAutoScroll();
 		scroll.setBorder(empty);
 
+		LABEL.setAlignmentX(Component.CENTER_ALIGNMENT);
+		frame.add(LABEL);
+		LABEL.setText("TEST");
 		frame.add(scroll);
 
 		frame.setPreferredSize(new Dimension(800, 600));
 		frame.pack();
 		frame.setVisible(true);
 
-		testReact4();
+		testReact5();
 	}
 }

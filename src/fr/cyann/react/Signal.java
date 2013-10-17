@@ -32,6 +32,7 @@ import java.util.ConcurrentModificationException;
 public abstract class Signal<V> {
 
 	protected final React<V> react;
+	protected final React<V> finish;
 	protected boolean running = true;
 	private boolean autoStart = true;
 
@@ -62,10 +63,17 @@ public abstract class Signal<V> {
 	 * Should be overrided to add automatic behaviours like emit counter time
 	 * management etc.
 	 */
-	@Package
-	void emit() {
+	public void emit(V value) {
 		try {
-			react.emit(getValue());
+			react.emit(value);
+		} catch (ConcurrentModificationException ex) {
+			// avoid concurrent exception
+		}
+	}
+
+	public void emitFinish(V value) {
+		try {
+			finish.emit(value);
 		} catch (ConcurrentModificationException ex) {
 			// avoid concurrent exception
 		}
@@ -76,6 +84,7 @@ public abstract class Signal<V> {
 	 */
 	public Signal() {
 		react = new React<V>();
+		finish = new React<V>();
 	}
 
 	/**
@@ -93,8 +102,47 @@ public abstract class Signal<V> {
 		return this;
 	}
 
+	public Signal<V> subscribe(final Signal<V> signal) {
+		if (isAutoStart()) {
+			start();
+		}
+		react.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emit(value);
+			}
+		});
+
+		finish.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
+			}
+		});
+		return this;
+	}
+
+	/**
+	 * Register listener first order function to react. Function will be called
+	 * when event is raised.
+	 *
+	 * @param subscriber function to be called in case of event.
+	 * @return return this.
+	 */
+	public Signal<V> subscribeFinish(Procedure1<V> subscriber) {
+		finish.subscribe(subscriber);
+		return this;
+	}
+
 	public Signal<V> unSubscribe(Procedure1<V> subscriber) {
 		react.unSubscribe(subscriber);
+		return this;
+	}
+
+	public Signal<V> unSubscribeFinish(Procedure1<V> subscriber) {
+		finish.unSubscribe(subscriber);
 		return this;
 	}
 
@@ -107,7 +155,6 @@ public abstract class Signal<V> {
 	 */
 	public final Signal<V> filter(final Predicate1<V> function) {
 		final Signal<V> signal = new Signal<V>() {
-
 			@Override
 			public V getValue() {
 				return Signal.this.getValue();
@@ -115,14 +162,23 @@ public abstract class Signal<V> {
 		};
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
-					signal.emit();
+					signal.emit(Signal.this.getValue());
 				}
 			}
 		});
+
+		this.unSubscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				if (signal.isRunning() && function.invoke(value)) {
+					signal.emitFinish(Signal.this.getValue());
+				}
+			}
+		});
+
 		return signal;
 	}
 
@@ -134,20 +190,33 @@ public abstract class Signal<V> {
 	 * @return the new transformed react.
 	 */
 	public final <R> Signal<R> map(final Function1<R, V> function) {
-		final Signal<R> signal = new Signal<R>() {
+		return map(function, function);
+	}
 
-			@Override
-			public R getValue() {
-				return function.invoke(Signal.this.getValue());
-			}
-		};
+	/**
+	 * Modify the react data in value and type.
+	 *
+	 * @param <R> The new react data type.
+	 * @param function the function to transform data.
+	 * @return the new transformed react.
+	 */
+	public final <R> Signal<R> map(final Function1<R, V> fEmit, final Function1<R, V> fFinish) {
+		final Var<R> signal = new Var<R>(fFinish.invoke(this.getValue()));
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
-					signal.emit();
+					signal.emit(fEmit.invoke(Signal.this.getValue()));
+				}
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				if (signal.isRunning()) {
+					signal.emitFinish(fFinish.invoke(Signal.this.getValue()));
 				}
 			}
 		});
@@ -159,7 +228,6 @@ public abstract class Signal<V> {
 		final Var<V> signal = new Var<V>(getValue());
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.setValue(value);
@@ -167,10 +235,20 @@ public abstract class Signal<V> {
 		});
 
 		merge.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
-				Signal.this.emit();
+				if (signal.getValue().getClass().equals(value.getClass())) {
+					signal.setValue(signal.getValue());
+				} else {
+					Signal.this.emit(signal.getValue());
+				}
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
 			}
 		});
 
@@ -182,7 +260,6 @@ public abstract class Signal<V> {
 		final Var<V> signal = new Var<V>(getValue());
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.setValue(value);
@@ -190,7 +267,6 @@ public abstract class Signal<V> {
 		});
 
 		merge.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
 				signal.setValue(converter.invoke(value));
@@ -205,18 +281,20 @@ public abstract class Signal<V> {
 		final Var<W> signal = new Var<W>(merge.getValue());
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
-				merge.emit();
+				if (value.getClass().equals(signal.getValue().getClass())) {
+					signal.setValue((W) value);
+				} else {
+					merge.emit(signal.getValue());
+				}
 			}
 		});
 
 		merge.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
-				signal.setValue(value);
+				signal.emit(value);
 			}
 		});
 
@@ -228,7 +306,6 @@ public abstract class Signal<V> {
 		final Var<W> signal = new Var<W>(merge.getValue());
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.setValue(converter.invoke(value));
@@ -236,7 +313,6 @@ public abstract class Signal<V> {
 		});
 
 		merge.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
 				signal.setValue(value);
@@ -244,5 +320,81 @@ public abstract class Signal<V> {
 		});
 
 		return signal;
+	}
+
+	public final Signal<V> retainUntil(final Signal until) {
+		until.noAutoStart();
+		final Var<V> signal = new Var<V>(getValue());
+
+		this.subscribe(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				signal.setValue(value);
+				until.start();
+			}
+		});
+
+		until.subscribe(new Procedure1() {
+			@Override
+			public void invoke(Object value) {
+				signal.emitFinish(signal.getValue());
+				until.stop();
+			}
+		});
+
+
+		return signal;
+	}
+
+	public final <W> Signal<W> runDuring(final Signal<W> merge) {
+		merge.noAutoStart();
+
+		this.subscribe(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				merge.start();
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				merge.stop();
+				merge.emitFinish(merge.getValue());
+			}
+		});
+
+		return merge;
+	}
+
+	public final Signal<V> otherwise(final Function1<V, V> function) {
+
+		final Var<V> signal = new Var<V>(function.invoke(this.getValue()));
+
+		this.subscribe(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				signal.emit(value);
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				signal.emit(function.invoke(value));
+			}
+		});
+
+		return signal;
+	}
+
+	public final Signal<V> emitOnFinished() {
+		this.subscribeFinish(new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				emit(value);
+			}
+		});
+		return this;
 	}
 }

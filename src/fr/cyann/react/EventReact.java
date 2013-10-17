@@ -55,29 +55,5 @@ public abstract class EventReact<V extends Event> extends Var<V> {
 		return signal;
 	}
 
-	public final EventRetained<V> retainUntil(final Signal until) {
-		until.noAutoStart();
-		final EventRetained<V> signal = new EventRetained<V>(getValue());
 
-		this.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V arg1) {
-				signal.emit();
-				until.start();
-			}
-		});
-
-		until.subscribe(new Procedure1() {
-
-			@Override
-			public void invoke(Object arg1) {
-				signal.emitFinish();
-				until.stop();
-			}
-		});
-
-
-		return signal;
-	}
 }

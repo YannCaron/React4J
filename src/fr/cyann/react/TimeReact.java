@@ -37,12 +37,6 @@ public class TimeReact extends EventReact<TimeEvent> {
 	}
 
 	@Override
-	public void emit() {
-		value.increment();
-		super.emit();
-	}
-
-	@Override
 	public void start() {
 		if (!isRunning()) {
 			super.start();
@@ -70,12 +64,12 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(timeout);
-					react.emit();
+					react.value.increment();
+					react.emit(react.value);
 				} catch (InterruptedException ex) {
 					// do nothing
 				} finally {
@@ -99,13 +93,13 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
 
 					while (react.isRunning()) {
-						react.emit();
+						react.value.increment();
+						react.emit(react.value);
 
 						Thread.sleep(timeout);
 					}
@@ -133,7 +127,6 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final long timeout = 1000L / fps;
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
@@ -141,7 +134,8 @@ public class TimeReact extends EventReact<TimeEvent> {
 					while (react.isRunning()) {
 						long start = System.currentTimeMillis();
 
-						react.emit();
+						react.value.increment();
+						react.emit(react.value);
 
 						long elapsed = System.currentTimeMillis() - start;
 

@@ -50,7 +50,7 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 
 					if (react.isRunning() && predicate.invoke(ev)) {
 						react.value.setEvent(ev);
-						react.emit();
+						react.emit(react.value);
 					}
 				}
 			}
@@ -88,4 +88,30 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 		return MouseReact.button(MouseEvent.MOUSE_RELEASED, button);
 	}
 
+	public static MouseReact hold(final int button) {
+		final MouseReact react = new MouseReact();
+
+		AWTEventListener listener = new AWTEventListener() {
+			@Override
+			public void eventDispatched(AWTEvent e) {
+				if (e instanceof java.awt.event.MouseEvent) {
+					java.awt.event.MouseEvent ev = (java.awt.event.MouseEvent) e;
+
+					if (react.isRunning() && ev.getButton() == button && ev.getID() == MouseEvent.MOUSE_PRESSED) {
+						react.value.setEvent(ev);
+						react.emit(react.value);
+					}
+
+					if (ev.getButton() == button && ev.getID() == MouseEvent.MOUSE_RELEASED) {
+						react.value.setEvent(ev);
+						react.emitFinish(react.value);
+					}
+				}
+			}
+		};
+
+		TK.addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK);
+
+		return react;
+	}
 }
