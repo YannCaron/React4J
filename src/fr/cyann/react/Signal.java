@@ -16,10 +16,10 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.base.Tuple;
 import fr.cyann.functor.Function1;
 import fr.cyann.functor.Predicate1;
 import fr.cyann.functor.Procedure1;
-import fr.cyann.base.Package;
 import java.util.ConcurrentModificationException;
 
 /**
@@ -155,6 +155,7 @@ public abstract class Signal<V> {
 	 */
 	public final Signal<V> filter(final Predicate1<V> function) {
 		final Signal<V> signal = new Signal<V>() {
+
 			@Override
 			public V getValue() {
 				return Signal.this.getValue();
@@ -162,6 +163,7 @@ public abstract class Signal<V> {
 		};
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
@@ -171,6 +173,7 @@ public abstract class Signal<V> {
 		});
 
 		this.unSubscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
@@ -194,7 +197,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	 * Modify the react data in value and type.
+	 * Modify the react data in value and type for react and finish.
 	 *
 	 * @param <R> The new react data type.
 	 * @param function the function to transform data.
@@ -204,6 +207,7 @@ public abstract class Signal<V> {
 		final Var<R> signal = new Var<R>(fFinish.invoke(this.getValue()));
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
@@ -213,6 +217,7 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
@@ -223,99 +228,34 @@ public abstract class Signal<V> {
 		return signal;
 	}
 
-	public final <W> Signal<V> mergeLeft(final Signal<W> merge) {
-
-		final Var<V> signal = new Var<V>(getValue());
+	public final <W> Signal<Tuple<V, W>> merge(final Signal<W> merge) {
+		final Tuple<V, W> values = new Tuple<V, W>(getValue(), merge.getValue());
+		final Var<Tuple<V, W>> signal = new Var<Tuple<V, W>>(values);
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
-				signal.setValue(value);
+				values.setFirst(value);
+				signal.emit(values);
 			}
 		});
 
 		merge.subscribe(new Procedure1<W>() {
+
 			@Override
 			public void invoke(W value) {
-				if (signal.getValue().getClass().equals(value.getClass())) {
-					signal.setValue(signal.getValue());
-				} else {
-					Signal.this.emit(signal.getValue());
-				}
+				values.setSecond(value);
+				signal.emit(values);
 			}
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
-				signal.emitFinish(value);
-			}
-		});
-
-		return signal;
-	}
-
-	public final <W> Signal<V> mergeLeft(final Signal<W> merge, final Function1<V, W> converter) {
-
-		final Var<V> signal = new Var<V>(getValue());
-
-		this.subscribe(new Procedure1<V>() {
-			@Override
-			public void invoke(V value) {
-				signal.setValue(value);
-			}
-		});
-
-		merge.subscribe(new Procedure1<W>() {
-			@Override
-			public void invoke(W value) {
-				signal.setValue(converter.invoke(value));
-			}
-		});
-
-		return signal;
-	}
-
-	public final <W> Signal<W> mergeRight(final Signal<W> merge) {
-
-		final Var<W> signal = new Var<W>(merge.getValue());
-
-		this.subscribe(new Procedure1<V>() {
-			@Override
-			public void invoke(V value) {
-				if (value.getClass().equals(signal.getValue().getClass())) {
-					signal.setValue((W) value);
-				} else {
-					merge.emit(signal.getValue());
-				}
-			}
-		});
-
-		merge.subscribe(new Procedure1<W>() {
-			@Override
-			public void invoke(W value) {
-				signal.emit(value);
-			}
-		});
-
-		return signal;
-	}
-
-	public final <W> Signal<W> mergeRight(final Signal<W> merge, final Function1<W, V> converter) {
-
-		final Var<W> signal = new Var<W>(merge.getValue());
-
-		this.subscribe(new Procedure1<V>() {
-			@Override
-			public void invoke(V value) {
-				signal.setValue(converter.invoke(value));
-			}
-		});
-
-		merge.subscribe(new Procedure1<W>() {
-			@Override
-			public void invoke(W value) {
-				signal.setValue(value);
+				values.setFirst(value);
+				signal.emitFinish(values);
 			}
 		});
 
@@ -327,6 +267,7 @@ public abstract class Signal<V> {
 		final Var<V> signal = new Var<V>(getValue());
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				signal.setValue(value);
@@ -335,6 +276,7 @@ public abstract class Signal<V> {
 		});
 
 		until.subscribe(new Procedure1() {
+
 			@Override
 			public void invoke(Object value) {
 				signal.emitFinish(signal.getValue());
@@ -350,6 +292,7 @@ public abstract class Signal<V> {
 		merge.noAutoStart();
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				merge.start();
@@ -357,6 +300,7 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				merge.stop();
@@ -372,6 +316,7 @@ public abstract class Signal<V> {
 		final Var<V> signal = new Var<V>(function.invoke(this.getValue()));
 
 		this.subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
@@ -379,6 +324,7 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				signal.emit(function.invoke(value));
@@ -390,6 +336,7 @@ public abstract class Signal<V> {
 
 	public final Signal<V> emitOnFinished() {
 		this.subscribeFinish(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				emit(value);

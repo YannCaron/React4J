@@ -17,6 +17,7 @@
 package fr.cyann.react;
 
 import fr.cyann.base.Package;
+import java.util.Date;
 
 /**
  * The TimeEvent class.
@@ -31,12 +32,14 @@ public class TimeEvent implements Event {
 	private long fromStartTime;
 	private long lastTime;
 	private long fromLastTime;
+	private Date date;
 
 	public TimeEvent() {
 		iteration = 0;
 		long time = System.currentTimeMillis(); 
 		startTime = time;
 		lastTime = time;
+		date = new Date();
 	}
 
 	@Package void increment() {
@@ -57,6 +60,11 @@ public class TimeEvent implements Event {
 	
 	public long getTimeElapsed() {
 		return fromLastTime;
+	}
+	
+	public Date getDate() {
+		date.setTime(System.currentTimeMillis());
+		return date;
 	}
 
 	@Override

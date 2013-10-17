@@ -1,10 +1,3 @@
-
-import fr.cyann.functor.Procedure1;
-import fr.cyann.react.MouseEvent;
-import fr.cyann.react.MouseReact;
-import fr.cyann.react.TimeReact;
-import fr.cyann.react.Var;
-
 /*
  * Copyright (C) 2013 Yann Caron
  *
@@ -21,26 +14,42 @@ import fr.cyann.react.Var;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-public class ContinuousReact {
+package fr.cyann.base;
 
-	/**
-	 * Main methode, programm entry point.
-	 * @param args the command line arguments.
-	 */
-	public static void main(String[] args) {
+/**
+ * The Class class.
+ * Creation date: 17 oct. 2013.
+ * @author CyaNn 
+ * @version v0.1
+ */
+public class Tuple<V, W> {
+	private V first;
+	private W second;
 
-		final long start = System.currentTimeMillis();
-
-		Var<MouseEvent> s = MouseReact.press(1);
-
-		TimeReact.once(50L).merge(MouseReact.press(1)).subscribe(new Procedure1() {
-
-			@Override
-			public void invoke(Object arg1) {
-				System.out.println("Time " + (System.currentTimeMillis() - start));
-				System.out.println(arg1);
-			}
-		});
-
+	public V getFirst() {
+		return first;
 	}
+
+	public W getSecond() {
+		return second;
+	}
+
+	public void setFirst(V first) {
+		this.first = first;
+	}
+
+	public void setSecond(W second) {
+		this.second = second;
+	}
+
+	public Tuple(V first, W second) {
+		this.first = first;
+		this.second = second;
+	}
+
+	@Override
+	public String toString() {
+		return "Tuple{" + "first=" + first + ", second=" + second + '}';
+	}
+	
 }

@@ -11,6 +11,7 @@ import fr.cyann.react.MouseReact;
 import fr.cyann.react.Signal;
 import fr.cyann.react.TimeEvent;
 import fr.cyann.react.TimeReact;
+import fr.cyann.base.Tuple;
 import fr.cyann.react.Var;
 import fr.cyann.react.swing.RLabel;
 import java.awt.Component;
@@ -40,7 +41,7 @@ public class ReactiveMainFrame {
 	}
 
 	public static void testReact1() {
-		MouseReact.press(1).mergeRight(TimeReact.every(500L)).subscribe(new Procedure1() {
+		MouseReact.press(1).merge(TimeReact.every(500L)).subscribe(new Procedure1() {
 
 			@Override
 			public void invoke(Object event) {
@@ -96,14 +97,14 @@ public class ReactiveMainFrame {
 
 			@Override
 			public String invoke(String arg1) {
-				return "Mouse button 1 pressed";
+				return "Mouse button 1 released";
 			}
-		}).mergeRight(TimeReact.every(1000)).map(new Function1<String, TimeEvent>() {
+		}).merge(TimeReact.every(1000)).map(new Function1<String, Tuple<String, TimeEvent>>() {
 
 			@Override
-			public String invoke(TimeEvent arg1) {
+			public String invoke(Tuple<String, TimeEvent> values) {
 				System.out.println("GO");
-				return "" + arg1.getTimeElapsedFromStart();
+				return values.getFirst() + " " + values.getSecond().getDate();
 			}
 		});
 

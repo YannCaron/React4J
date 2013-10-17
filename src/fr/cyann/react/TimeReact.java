@@ -16,9 +16,6 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Procedure1;
-import java.util.ConcurrentModificationException;
-
 /**
  * The TimeReact class. Creation date: 12 oct. 2013.
  *
