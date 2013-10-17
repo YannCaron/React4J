@@ -2,7 +2,7 @@
  * Copyright (C) 2013 CyaNn
  * License modality not yet defined.
  */
-package fr.cyann.ui;
+package fr.cyann.liveTest.ui;
 
 import java.awt.Component;
 import java.awt.event.AdjustmentEvent;

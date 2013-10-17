@@ -61,7 +61,7 @@ public class RTextBox extends JTextField {
 	}
 
 	public void setText(Var<String> value) {
-		value.subscribe(react);
+		value.register(react);
 	}
 
 	public Var<String> getRText() {

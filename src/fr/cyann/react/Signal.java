@@ -102,7 +102,7 @@ public abstract class Signal<V> {
 		return this;
 	}
 
-	public Signal<V> subscribe(final Signal<V> signal) {
+	public Signal<V> register(final Signal<V> signal) {
 		if (isAutoStart()) {
 			start();
 		}
@@ -288,7 +288,21 @@ public abstract class Signal<V> {
 		return signal;
 	}
 
-	public final <W> Signal<W> runDuring(final Signal<W> merge) {
+	public final <W> Signal<W> then(final Signal<W> then) {
+		then.noAutoStart();
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				then.start();
+			}
+		});
+
+		return then;
+	}
+
+	public final <W> Signal<W> during(final Signal<W> merge) {
 		merge.noAutoStart();
 
 		this.subscribe(new Procedure1<V>() {

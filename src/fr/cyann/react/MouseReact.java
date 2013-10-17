@@ -114,4 +114,15 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 
 		return react;
 	}
+
+	public static MouseReact move() {
+		return createListener(new Predicate1<MouseEvent>() {
+
+			@Override
+			public boolean invoke(MouseEvent arg) {
+				return true;
+			}
+		}, AWTEvent.MOUSE_MOTION_EVENT_MASK);
+	}
+
 }

@@ -26,6 +26,7 @@ import fr.cyann.base.Package;
  */
 public class MouseEvent implements Event {
 
+	// enum
 	public enum ButtonAction {
 
 		PRESS, RELEASE;
@@ -36,10 +37,10 @@ public class MouseEvent implements Event {
 		UP, DOWN;
 	}
 	
-	// attributes
+	// attribute
 	private int button;
 	private ButtonAction action;
-	private int x, y;
+	private int x, y, xOnScreen, yOnScreen;
 	private Wheel wheel;
 
 	@Package void setEvent(java.awt.event.MouseEvent ev) {
@@ -49,9 +50,43 @@ public class MouseEvent implements Event {
 		} else {
 			action = ButtonAction.RELEASE;
 		}
+		x = ev.getX();
+		y = ev.getY();
+		xOnScreen = ev.getXOnScreen();
+		yOnScreen = ev.getYOnScreen();
 	}
 	
-	// methods
+	// property
+
+	public ButtonAction getAction() {
+		return action;
+	}
+
+	public int getButton() {
+		return button;
+	}
+
+	public Wheel getWheel() {
+		return wheel;
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getxOnScreen() {
+		return xOnScreen;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public int getyOnScreen() {
+		return yOnScreen;
+	}
+	
+	// methode
 	@Override
 	public String toString() {
 		return "MouseEvent{" + "button=" + button + ", action=" + action + ", x=" + x + ", y=" + y + ", wheel=" + wheel + '}';

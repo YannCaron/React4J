@@ -24,8 +24,10 @@ import fr.cyann.functor.Procedure1;
  */
 public class Var<V> extends Signal<V> {
 
+	// attribute
 	protected V value;
 
+	// constructor
 	public Var(V value) {
 		this.value = value;
 	}
@@ -41,6 +43,20 @@ public class Var<V> extends Signal<V> {
 
 	}
 
+	@Override
+	public void emit(V value) {
+		super.emit(value);
+		this.value = value;
+	}
+
+	@Override
+	public void emitFinish(V value) {
+		super.emitFinish(value);
+		this.value = value;
+	}
+	
+	// method
+	
 	@Override
 	public V getValue() {
 		return value;

@@ -1,3 +1,5 @@
+package fr.cyann.liveTest;
+
 /*
  * Copyright (C) 2013 Yann Caron
  *

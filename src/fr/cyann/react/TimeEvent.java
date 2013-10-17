@@ -36,14 +36,15 @@ public class TimeEvent implements Event {
 
 	public TimeEvent() {
 		iteration = 0;
-		long time = System.currentTimeMillis(); 
+		long time = System.currentTimeMillis();
 		startTime = time;
 		lastTime = time;
 		date = new Date();
 	}
 
-	@Package void increment() {
-		long time = System.currentTimeMillis(); 
+	@Package
+	void increment() {
+		long time = System.currentTimeMillis();
 		fromLastTime = time - lastTime;
 		lastTime = time;
 		fromStartTime = time - startTime;
@@ -54,14 +55,22 @@ public class TimeEvent implements Event {
 		return iteration;
 	}
 
+	public long getCurrentTimeElapsedFromStart() {
+		return System.currentTimeMillis() - startTime;
+	}
+
 	public long getTimeElapsedFromStart() {
 		return fromStartTime;
 	}
-	
+
+	public long getCurrentTimeElapsed() {
+		return System.currentTimeMillis() - lastTime;
+	}
+
 	public long getTimeElapsed() {
 		return fromLastTime;
 	}
-	
+
 	public Date getDate() {
 		date.setTime(System.currentTimeMillis());
 		return date;
@@ -71,5 +80,4 @@ public class TimeEvent implements Event {
 	public String toString() {
 		return "TimeEvent{" + "iteration=" + iteration + ", fromStartTime=" + fromStartTime + ", fromLastTime=" + fromLastTime + '}';
 	}
-	
 }

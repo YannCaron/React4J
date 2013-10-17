@@ -1,10 +1,3 @@
-
-import fr.cyann.functor.Procedure1;
-import fr.cyann.react.MouseEvent;
-import fr.cyann.react.MouseReact;
-import fr.cyann.react.TimeReact;
-import fr.cyann.react.Var;
-
 /*
  * Copyright (C) 2013 Yann Caron
  *
@@ -21,26 +14,37 @@ import fr.cyann.react.Var;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-public class ContinuousReact {
+package fr.cyann.liveTest.ui;
 
-	/**
-	 * Main methode, programm entry point.
-	 * @param args the command line arguments.
-	 */
-	public static void main(String[] args) {
+import fr.cyann.react.Signal;
+import fr.cyann.react.Var;
+import java.awt.Graphics;
 
-		final long start = System.currentTimeMillis();
+/**
+ * The Circle class.
+ * Creation date: 17 oct. 2013.
+ * @author CyaNn 
+ * @version v0.1
+ */
+public class Circle {
+	
+	private final Var<Integer> x, y;
 
-		Var<MouseEvent> s = MouseReact.press(1);
-
-		TimeReact.once(50L).merge(MouseReact.press(1)).subscribe(new Procedure1() {
-
-			@Override
-			public void invoke(Object arg1) {
-				System.out.println("Time " + (System.currentTimeMillis() - start));
-				System.out.println(arg1);
-			}
-		});
-
+	public Circle() {
+		x = new Var<Integer>(0);
+		y = new Var<Integer>(0);
 	}
+
+	public void setX(Signal<Integer> sx) {
+		sx.register(x);
+	}
+
+	public void setY(Signal<Integer> sy) {
+		sy.register(y);
+	}
+
+	public void draw(Graphics g) {
+		g.drawOval(x.getValue() - 12, y.getValue() - 12, 25, 25);
+	}
+	
 }
