@@ -19,7 +19,6 @@ package fr.cyann.react.swing;
 import fr.cyann.functor.Procedure1;
 import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
-import java.awt.AWTEventMulticaster;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JTextField;

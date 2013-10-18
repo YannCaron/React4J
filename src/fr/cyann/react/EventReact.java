@@ -55,5 +55,11 @@ public abstract class EventReact<V extends Event> extends Var<V> {
 		return signal;
 	}
 
+	public abstract void applyDispose();
 
+	@Override
+	public void dispose() {
+		applyDispose();
+		super.dispose();
+	}
 }

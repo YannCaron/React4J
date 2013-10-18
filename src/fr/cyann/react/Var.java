@@ -32,6 +32,11 @@ public class Var<V> extends Signal<V> {
 		this.value = value;
 	}
 
+	public Var(V value, Signal parent) {
+		super(parent);
+		this.value = value;
+	}
+
 	public Var(Var<V> value) {
 		value.react.subscribe(new Procedure1<V>() {
 

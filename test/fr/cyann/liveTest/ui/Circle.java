@@ -74,7 +74,5 @@ public class Circle {
 		g.setColor(shapeColor);
 		g.drawOval(x.getValue() - ms, y.getValue() - ms, s, s);
 	}
-	
-	public void dispose() {
-	}
+
 }

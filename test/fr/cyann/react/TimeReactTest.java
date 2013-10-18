@@ -151,4 +151,20 @@ public class TimeReactTest extends TestCase {
 		assertMoreOrLess(750, ((TimeEvent) results.get(0)).getTimeElapsedFromStart(), 1);
 
 	}
+	
+	public void testDispose() throws Exception {
+		
+		Signal.count.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				System.out.println("Number of signal " + arg1);
+			}
+		});
+		
+		Signal s = TimeReact.every(1000).merge(TimeReact.once(1000));
+		
+		s.dispose();
+		
+	}
 }

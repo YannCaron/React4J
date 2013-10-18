@@ -31,6 +31,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 	private TimeReact() {
 		super(new TimeEvent());
 		super.running = false;
+		Signal.count.setValue(Signal.count.getValue() + 1);
 	}
 
 	@Override
@@ -50,6 +51,16 @@ public class TimeReact extends EventReact<TimeEvent> {
 		}
 	}
 
+	@Override
+	public void applyDispose() {
+		Signal.count.setValue(Signal.count.getValue() - 1);
+		if (thread != null) {
+			thread.interrupt();
+		}
+		task = null;
+		thread = null;
+	}
+
 	/**
 	 * Factory to create a time based react. Emit a signal only one time after
 	 * timeout.
@@ -61,6 +72,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -90,6 +102,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -124,6 +137,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final long timeout = 1000L / fps;
 
 		react.task = new Runnable() {
+
 			@Override
 			public void run() {
 				try {

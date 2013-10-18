@@ -32,10 +32,22 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();
+	
+	@Override
+	public void applyDispose() {
+		Signal.count.setValue(Signal.count.getValue() - 1);
+
+		AWTEventListener[] listeners = TK.getAWTEventListeners();
+		
+		for (int i = listeners.length; i>=0; i--) {
+			TK.removeAWTEventListener(listeners[i]);
+		}
+	}
 
 	// constructor
 	private MouseReact() {
 		super(new fr.cyann.react.MouseEvent());
+		Signal.count.setValue(Signal.count.getValue() + 1);
 	}
 
 	// general factory
@@ -43,6 +55,7 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 		final MouseReact react = new MouseReact();
 
 		AWTEventListener listener = new AWTEventListener() {
+
 			@Override
 			public void eventDispatched(AWTEvent e) {
 				if (e instanceof MouseEvent) {
@@ -72,6 +85,7 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	private static MouseReact button(final int id, final int button) {
 
 		return createListener(new Predicate1<MouseEvent>() {
+
 			@Override
 			public boolean invoke(MouseEvent ev) {
 				return ev.getButton() == button && (ev.getID() == id);
@@ -92,6 +106,7 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 		final MouseReact react = new MouseReact();
 
 		AWTEventListener listener = new AWTEventListener() {
+
 			@Override
 			public void eventDispatched(AWTEvent e) {
 				if (e instanceof java.awt.event.MouseEvent) {
@@ -124,5 +139,4 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 			}
 		}, AWTEvent.MOUSE_MOTION_EVENT_MASK);
 	}
-
 }

@@ -55,8 +55,7 @@ public class DrawPanel extends JPanel {
 		return shapes.add(e);
 	}
 	
-	public synchronized boolean disposeShape(Circle c) {
-		c.dispose();
+	public synchronized boolean removeShape(Circle c) {
 		return shapes.remove(c);
 	}
 

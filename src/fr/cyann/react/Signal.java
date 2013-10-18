@@ -21,6 +21,7 @@ import fr.cyann.functor.Function1;
 import fr.cyann.functor.Predicate1;
 import fr.cyann.functor.Procedure1;
 import java.util.ConcurrentModificationException;
+import fr.cyann.base.Package;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -31,10 +32,12 @@ import java.util.ConcurrentModificationException;
  */
 public abstract class Signal<V> {
 
+	public static final Var<Integer> count = new Var<Integer>(0);
 	protected final React<V> react;
 	protected final React<V> finish;
 	protected boolean running = true;
 	private boolean autoStart = true;
+	private Signal parent;
 
 	public boolean isRunning() {
 		return running;
@@ -85,6 +88,12 @@ public abstract class Signal<V> {
 	public Signal() {
 		react = new React<V>();
 		finish = new React<V>();
+	}
+
+	@Package
+	Signal(Signal parent) {
+		this();
+		this.parent = parent;
 	}
 
 	/**
@@ -154,13 +163,7 @@ public abstract class Signal<V> {
 	 * @return the new filtered signal.
 	 */
 	public final Signal<V> filter(final Predicate1<V> function) {
-		final Signal<V> signal = new Signal<V>() {
-
-			@Override
-			public V getValue() {
-				return Signal.this.getValue();
-			}
-		};
+		final Signal<V> signal = new Var<V>(Signal.this.getValue(), this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -204,7 +207,7 @@ public abstract class Signal<V> {
 	 * @return the new transformed react.
 	 */
 	public final <R> Signal<R> map(final Function1<R, V> fEmit, final Function1<R, V> fFinish) {
-		final Var<R> signal = new Var<R>(fFinish.invoke(this.getValue()));
+		final Var<R> signal = new Var<R>(fFinish.invoke(this.getValue()), this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -230,7 +233,7 @@ public abstract class Signal<V> {
 
 	public final <W> Signal<Tuple<V, W>> merge(final Signal<W> merge) {
 		final Tuple<V, W> values = new Tuple<V, W>(getValue(), merge.getValue());
-		final Var<Tuple<V, W>> signal = new Var<Tuple<V, W>>(values);
+		final Var<Tuple<V, W>> signal = new Var<Tuple<V, W>>(values, this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -264,7 +267,7 @@ public abstract class Signal<V> {
 
 	public final Signal<V> retainUntil(final Signal until) {
 		until.noAutoStart();
-		final Var<V> signal = new Var<V>(getValue());
+		final Var<V> signal = new Var<V>(getValue(), this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -327,7 +330,7 @@ public abstract class Signal<V> {
 
 	public final Signal<V> otherwise(final Function1<V, V> function) {
 
-		final Var<V> signal = new Var<V>(function.invoke(this.getValue()));
+		final Var<V> signal = new Var<V>(function.invoke(this.getValue()), this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -357,5 +360,12 @@ public abstract class Signal<V> {
 			}
 		});
 		return this;
+	}
+
+	public void dispose() {
+		if (parent != null) {
+			parent.dispose();
+		}
+		parent = null;
 	}
 }

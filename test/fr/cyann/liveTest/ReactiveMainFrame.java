@@ -20,6 +20,7 @@ import fr.cyann.react.swing.RLabel;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
@@ -108,32 +109,40 @@ public class ReactiveMainFrame {
 				final double velX = Math.cos(velAngle) * velSpeed;
 				final double velY = Math.sin(velAngle) * velSpeed;
 
-				c.setX(new Var<Integer>(cursor.getX()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+				final Signal<Integer> x = new Var<Integer>(cursor.getX()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
 
 					@Override
 					public Integer invoke(Tuple<Integer, TimeEvent> values) {
-						return values.getFirst() + (int)(velX * values.getSecond().getIteration());
+						return values.getFirst() + (int) (velX * values.getSecond().getIteration());
 					}
-				}));
-
-				c.setY(new Var<Integer>(cursor.getY()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
-
-					@Override
-					public Integer invoke(Tuple<Integer, TimeEvent> values) {
-						return values.getFirst() + (int)(velY * values.getSecond().getIteration());
-					}
-				}));
+				});
 				
-				c.setSize(new Var<Integer>(5).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+				final Signal<Integer> y = new Var<Integer>(cursor.getY()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
 
 					@Override
 					public Integer invoke(Tuple<Integer, TimeEvent> values) {
-						double factor = Math.sin((double)values.getSecond().getIteration() / 25 - Math.PI / 4);
-						int size = 50 + (int)(50 * factor);
-						if (size == 1) game.disposeShape(c);
+						return values.getFirst() + (int) (velY * values.getSecond().getIteration());
+					}
+				});
+
+				final Signal<Integer> size = new Var<Integer>(5).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+
+					@Override
+					public Integer invoke(Tuple<Integer, TimeEvent> values) {
+						double factor = Math.sin((double) values.getSecond().getIteration() / 10 - Math.PI / 4);
+						int size = 50 + (int) (50 * factor);
+						if (size == 1) {
+							game.removeShape(c);
+							x.dispose();
+							y.dispose();
+						}
 						return size;
 					}
-				}));
+				});
+				
+				c.setX(x);
+				c.setY(y);
+				c.setSize(size);
 			}
 		});
 
@@ -155,14 +164,24 @@ public class ReactiveMainFrame {
 		label1.setAlignmentX(Component.CENTER_ALIGNMENT);
 		frame.add(label1);
 		frame.add(game);
+		frame.add(Box.createRigidArea(new Dimension(0, 5)));
+		scroll.setMaximumSize(new Dimension(2000, 550));
 		frame.add(scroll);
 
-		frame.setPreferredSize(new Dimension(800, 600));
+		frame.setPreferredSize(new Dimension(1024, 800));
 		frame.pack();
 		frame.setVisible(true);
 
 		initLabelReact();
 		initCursor();
 		initAnim();
+
+		Signal.count.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				logger.setText("Number of Signal = " + value);
+			}
+		});
 	}
 }
