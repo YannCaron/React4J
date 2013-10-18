@@ -18,6 +18,7 @@ package fr.cyann.liveTest.ui;
 
 import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
+import java.awt.Color;
 import java.awt.Graphics;
 
 /**
@@ -27,24 +28,53 @@ import java.awt.Graphics;
  * @version v0.1
  */
 public class Circle {
-	
-	private final Var<Integer> x, y;
 
-	public Circle() {
+	private final Var<Integer> x, y, size;
+	public final Color shapeColor, fillColor;
+
+	public Circle(int initSize) {
 		x = new Var<Integer>(0);
 		y = new Var<Integer>(0);
+		size = new Var<Integer>(initSize);
+		shapeColor = new Color(255, 255, 255, 200);
+		fillColor = new Color(255, 255, 255, 100);
 	}
 
-	public void setX(Signal<Integer> sx) {
-		sx.register(x);
+	public void setX(Signal<Integer> signal) {
+		signal.register(x);
 	}
 
-	public void setY(Signal<Integer> sy) {
-		sy.register(y);
+	public void setY(Signal<Integer> signal) {
+		signal.register(y);
+	}
+
+	public void setSize(Signal<Integer> signal) {
+		signal.register(size);
+	}
+
+	public int getX() {
+		return x.getValue();
+	}
+
+	public int getY() {
+		return y.getValue();
+	}
+
+	public int getSize() {
+		return size.getValue();
 	}
 
 	public void draw(Graphics g) {
-		g.drawOval(x.getValue() - 12, y.getValue() - 12, 25, 25);
+		int s = size.getValue();
+		int ms = s / 2;
+
+		g.setColor(fillColor);
+		g.fillOval(x.getValue() - ms, y.getValue() - ms, s, s);
+
+		g.setColor(shapeColor);
+		g.drawOval(x.getValue() - ms, y.getValue() - ms, s, s);
 	}
 	
+	public void dispose() {
+	}
 }

@@ -20,7 +20,6 @@ import fr.cyann.react.swing.RLabel;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.util.Date;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
@@ -38,6 +37,7 @@ public class ReactiveMainFrame {
 	private static final JTextArea logger = new JTextArea();
 	private static final RLabel label1 = new RLabel();
 	private static final DrawPanel game = new DrawPanel();
+	private static final Circle cursor = new Circle(25);
 
 	private static void log(String message) {
 		logger.append(message + "\n");
@@ -76,10 +76,9 @@ public class ReactiveMainFrame {
 	}
 
 	public static void initCursor() {
-		Circle c = new Circle();
-		game.addShape(c);
+		game.addShape(cursor);
 
-		c.setX(MouseReact.move().map(new Function1<Integer, MouseEvent>() {
+		cursor.setX(MouseReact.move().map(new Function1<Integer, MouseEvent>() {
 
 			@Override
 			public Integer invoke(MouseEvent value) {
@@ -87,7 +86,7 @@ public class ReactiveMainFrame {
 			}
 		}));
 
-		c.setY(MouseReact.move().map(new Function1<Integer, MouseEvent>() {
+		cursor.setY(MouseReact.move().map(new Function1<Integer, MouseEvent>() {
 
 			@Override
 			public Integer invoke(MouseEvent value) {
@@ -95,27 +94,49 @@ public class ReactiveMainFrame {
 			}
 		}));
 	}
-	
+
 	public static void initAnim() {
-		
-		MouseReact.press(1).subscribe(new Procedure1<MouseEvent>() {
+
+		MouseReact.hold(1).during(TimeReact.every(50)).subscribe(new Procedure1<TimeEvent>() {
 
 			@Override
-			public void invoke(MouseEvent value) {
-				final Circle c = new Circle();
+			public void invoke(TimeEvent value) {
+				final Circle c = new Circle(5);
 				game.addShape(c);
-				
-				c.setX(new Var<Integer>(10).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+				double velAngle = Math.random() * Math.PI * 2;
+				double velSpeed = Math.random() * 10;
+				final double velX = Math.cos(velAngle) * velSpeed;
+				final double velY = Math.sin(velAngle) * velSpeed;
+
+				c.setX(new Var<Integer>(cursor.getX()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
 
 					@Override
 					public Integer invoke(Tuple<Integer, TimeEvent> values) {
-						System.out.println(values);
-						return values.getFirst() + 10;
+						return values.getFirst() + (int)(velX * values.getSecond().getIteration());
+					}
+				}));
+
+				c.setY(new Var<Integer>(cursor.getY()).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+
+					@Override
+					public Integer invoke(Tuple<Integer, TimeEvent> values) {
+						return values.getFirst() + (int)(velY * values.getSecond().getIteration());
+					}
+				}));
+				
+				c.setSize(new Var<Integer>(5).merge(TimeReact.framePerSecond(25)).map(new Function1<Integer, Tuple<Integer, TimeEvent>>() {
+
+					@Override
+					public Integer invoke(Tuple<Integer, TimeEvent> values) {
+						double factor = Math.sin((double)values.getSecond().getIteration() / 25 - Math.PI / 4);
+						int size = 50 + (int)(50 * factor);
+						if (size == 1) game.disposeShape(c);
+						return size;
 					}
 				}));
 			}
 		});
-		
+
 	}
 
 	public static void main(String[] args) {

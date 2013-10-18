@@ -48,10 +48,16 @@ public class DrawPanel extends JPanel {
 				DrawPanel.this.repaint();
 			}
 		});
+		
 	}
 
-	public boolean addShape(Circle e) {
+	public synchronized boolean addShape(Circle e) {
 		return shapes.add(e);
+	}
+	
+	public synchronized boolean disposeShape(Circle c) {
+		c.dispose();
+		return shapes.remove(c);
 	}
 
 	// methodes
@@ -72,10 +78,10 @@ public class DrawPanel extends JPanel {
 		g2.setColor(Color.DARK_GRAY);
 		g2.fill(new Rectangle2D.Float(0, 0, this.getWidth(), this.getHeight()));
 
-		g2.setColor(Color.LIGHT_GRAY);
-
-		for (Circle shape : shapes) {
-			shape.draw(g2);
+		synchronized (this) {
+			for (Circle shape : shapes) {
+				shape.draw(g2);
+			}
 		}
 
 	}
