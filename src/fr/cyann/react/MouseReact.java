@@ -35,7 +35,6 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	
 	@Override
 	public void applyDispose() {
-		Signal.count.setValue(Signal.count.getValue() - 1);
 
 		AWTEventListener[] listeners = TK.getAWTEventListeners();
 		
@@ -47,7 +46,6 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	// constructor
 	private MouseReact() {
 		super(new fr.cyann.react.MouseEvent());
-		Signal.count.setValue(Signal.count.getValue() + 1);
 	}
 
 	// general factory

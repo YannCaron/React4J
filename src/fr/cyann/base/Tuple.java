@@ -17,7 +17,8 @@
 package fr.cyann.base;
 
 /**
- * The Class class.
+ * The Class class.<br>
+ * An parametric entity composed of two values.
  * Creation date: 17 oct. 2013.
  * @author CyaNn 
  * @version v0.1
@@ -26,27 +27,52 @@ public class Tuple<V, W> {
 	private V first;
 	private W second;
 
+	/**
+	Get the first value of the tuple.
+	@return the first value.
+	*/
 	public V getFirst() {
 		return first;
 	}
 
+	/**
+	Get the second value of the tuple.
+	@return the second value.
+	*/
 	public W getSecond() {
 		return second;
 	}
 
+	/**
+	Set the first value of the tuple.
+	@param first the value to set.
+	*/
 	public void setFirst(V first) {
 		this.first = first;
 	}
 
+	/**
+	Set the second value of the tuple.
+	@param second the second value to set.
+	*/
 	public void setSecond(W second) {
 		this.second = second;
 	}
 
+	/**
+	Default constructor.
+	@param first the value of the first value of the tuple.
+	@param second the value of the second value of the tuple.
+	*/
 	public Tuple(V first, W second) {
 		this.first = first;
 		this.second = second;
 	}
 
+	/**
+	Gets a textual representation of the object.
+	@return the textual representation.
+	*/
 	@Override
 	public String toString() {
 		return "Tuple{" + "first=" + first + ", second=" + second + '}';

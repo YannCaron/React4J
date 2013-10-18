@@ -31,7 +31,6 @@ public class TimeReact extends EventReact<TimeEvent> {
 	private TimeReact() {
 		super(new TimeEvent());
 		super.running = false;
-		Signal.count.setValue(Signal.count.getValue() + 1);
 	}
 
 	@Override
@@ -47,13 +46,14 @@ public class TimeReact extends EventReact<TimeEvent> {
 	public void stop() {
 		if (isRunning()) {
 			super.stop();
-			thread.interrupt();
+			if (thread != null) {
+				thread.interrupt();
+			}
 		}
 	}
 
 	@Override
 	public void applyDispose() {
-		Signal.count.setValue(Signal.count.getValue() - 1);
 		if (thread != null) {
 			thread.interrupt();
 		}

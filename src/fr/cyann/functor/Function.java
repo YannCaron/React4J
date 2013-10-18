@@ -17,7 +17,7 @@
 package fr.cyann.functor;
 
 /**
- * The Function1 interface.
+ * The Function interface. Give the possibility to create a functor with only a return parameter.
  * Creation date: 9 oct. 2013.
  * @author Yann Caron
  * @version v0.1

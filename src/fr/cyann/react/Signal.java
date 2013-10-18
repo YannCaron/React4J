@@ -22,6 +22,8 @@ import fr.cyann.functor.Predicate1;
 import fr.cyann.functor.Procedure1;
 import java.util.ConcurrentModificationException;
 import fr.cyann.base.Package;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -32,17 +34,21 @@ import fr.cyann.base.Package;
  */
 public abstract class Signal<V> {
 
-	public static final Var<Integer> count = new Var<Integer>(0);
 	protected final React<V> react;
 	protected final React<V> finish;
 	protected boolean running = true;
 	private boolean autoStart = true;
 	private Signal parent;
+	private final List<Signal> links;
 
 	public boolean isRunning() {
 		return running;
 	}
 
+	@Package void setParent(Signal parent) {
+		this.parent = parent;
+	}
+	
 	public void start() {
 		running = true;
 	}
@@ -88,6 +94,7 @@ public abstract class Signal<V> {
 	public Signal() {
 		react = new React<V>();
 		finish = new React<V>();
+		links = new ArrayList<Signal>();
 	}
 
 	@Package
@@ -111,7 +118,7 @@ public abstract class Signal<V> {
 		return this;
 	}
 
-	public Signal<V> register(final Signal<V> signal) {
+	public Signal<V> register(final Var<V> signal) {
 		if (isAutoStart()) {
 			start();
 		}
@@ -130,6 +137,7 @@ public abstract class Signal<V> {
 				signal.emitFinish(value);
 			}
 		});
+		signal.value = getValue();
 		return this;
 	}
 
@@ -232,6 +240,7 @@ public abstract class Signal<V> {
 	}
 
 	public final <W> Signal<Tuple<V, W>> merge(final Signal<W> merge) {
+		links.add(merge);
 		final Tuple<V, W> values = new Tuple<V, W>(getValue(), merge.getValue());
 		final Var<Tuple<V, W>> signal = new Var<Tuple<V, W>>(values, this);
 
@@ -266,6 +275,7 @@ public abstract class Signal<V> {
 	}
 
 	public final Signal<V> retainUntil(final Signal until) {
+		links.add(until);
 		until.noAutoStart();
 		final Var<V> signal = new Var<V>(getValue(), this);
 
@@ -293,6 +303,7 @@ public abstract class Signal<V> {
 
 	public final <W> Signal<W> then(final Signal<W> then) {
 		then.noAutoStart();
+		then.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -307,6 +318,7 @@ public abstract class Signal<V> {
 
 	public final <W> Signal<W> during(final Signal<W> merge) {
 		merge.noAutoStart();
+		merge.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -363,6 +375,11 @@ public abstract class Signal<V> {
 	}
 
 	public void dispose() {
+		for (Signal link : links) {
+			link.dispose();
+		}
+		links.clear();
+		
 		if (parent != null) {
 			parent.dispose();
 		}
