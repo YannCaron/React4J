@@ -45,10 +45,11 @@ public abstract class Signal<V> {
 		return running;
 	}
 
-	@Package void setParent(Signal parent) {
+	@Package
+	void setParent(Signal parent) {
 		this.parent = parent;
 	}
-	
+
 	public void start() {
 		running = true;
 	}
@@ -374,12 +375,59 @@ public abstract class Signal<V> {
 		return this;
 	}
 
+	public final <W> Signal<V> disposeWhen(Signal<W> signal) {
+		links.add(signal);
+		signal.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				Signal.this.dispose();
+			}
+		});
+		return this;
+	}
+
+	public final Signal<V> disposeWhen(final Predicate1<V> predicate) {
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				if (predicate.invoke(value)) {
+					Signal.this.dispose();
+				}
+			}
+		});
+		return this;
+	}
+
+	public final Var<V> initialize(V value) {
+		final Var<V> signal = new Var<V>(value);
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emit(value);
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
+			}
+		});
+
+		return signal;
+	}
+
 	public void dispose() {
 		for (Signal link : links) {
 			link.dispose();
 		}
 		links.clear();
-		
+
 		if (parent != null) {
 			parent.dispose();
 		}

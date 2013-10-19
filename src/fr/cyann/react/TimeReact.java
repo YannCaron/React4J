@@ -108,10 +108,10 @@ public class TimeReact extends EventReact<TimeEvent> {
 				try {
 
 					while (react.isRunning()) {
+						Thread.sleep(timeout);
+
 						react.value.increment();
 						react.emit(react.value);
-
-						Thread.sleep(timeout);
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -142,18 +142,20 @@ public class TimeReact extends EventReact<TimeEvent> {
 			public void run() {
 				try {
 
+					long start = 0;
+					long elapsed = 0;
+ 
 					while (react.isRunning()) {
-						long start = System.currentTimeMillis();
-
-						react.value.increment();
-						react.emit(react.value);
-
-						long elapsed = System.currentTimeMillis() - start;
-
 						if (timeout > elapsed) {
 							Thread.sleep(timeout - elapsed);
 						}
 
+						start = System.currentTimeMillis();
+
+						react.value.increment();
+						react.emit(react.value);
+
+						elapsed = System.currentTimeMillis() - start;
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
