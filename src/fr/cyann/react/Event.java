@@ -17,7 +17,7 @@
 package fr.cyann.react;
 
 /**
- * The Event class.
+ * The Event interface. The super class of every event emited by continuous reacts.
  * Creation date: 12 oct. 2013.
  * @author Yann Caron 
  * @version v0.1

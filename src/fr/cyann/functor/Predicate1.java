@@ -17,7 +17,7 @@
 package fr.cyann.functor;
 
 /**
- * The Predicate1 interface.
+ * The Predicate1 interface. Give the possibility to create a predicate functor with one parameter.
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1

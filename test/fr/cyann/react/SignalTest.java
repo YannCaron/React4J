@@ -16,6 +16,9 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functor.Function1;
+import fr.cyann.functor.Predicate1;
+import fr.cyann.functor.Procedure1;
 import junit.framework.TestCase;
 
 /**
@@ -34,6 +37,94 @@ public class SignalTest extends TestCase {
 		Tools.initResults();
 	}
 
-	// to be continued
-	
+	public void testDispose() {
+
+		Signal<MouseEvent> s = MouseReact.press(1);
+
+		assertEquals(Integer.valueOf(1), ReactManager.getInstance().getReactCounter().getValue());
+
+		s.dispose();
+
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+
+	}
+
+	public void testDisposeMerge() {
+
+		Signal s = MouseReact.press(1).merge(TimeReact.every(100));
+
+		assertEquals(Integer.valueOf(3), ReactManager.getInstance().getReactCounter().getValue());
+
+		s.dispose();
+
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+
+	}
+
+	public void testDisposeFilter() {
+
+		Signal s = MouseReact.press(1).filter(new Predicate1<MouseEvent>() {
+
+			@Override
+			public boolean invoke(MouseEvent arg) {
+				return false;
+			}
+		});
+
+		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
+
+		s.dispose();
+
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+
+	}
+
+	public void testDisposeMap() {
+
+		Signal s = MouseReact.press(1).map(new Function1<String, MouseEvent>() {
+
+			@Override
+			public String invoke(MouseEvent arg1) {
+				return arg1.toString();
+			}
+		});
+
+		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
+
+		s.dispose();
+
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+
+	}
+
+	public void testSmooth() throws InterruptedException {
+
+		Procedure1<TimeEvent> p = new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent event) {
+				Tools.results.add(event);
+			}
+		};
+		
+		Signal s = TimeReact.every(50).subscribe(p);
+
+		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(175L);
+		assertEquals(3, Tools.results.size());
+		
+		// reset
+		s.unSubscribe(p);
+		s.reset();
+		Tools.initResults();
+		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(175L);
+		assertEquals(0, Tools.results.size());
+
+		s.smooth(110).subscribe(p);
+		Thread.currentThread().sleep(310);
+		assertEquals(2, Tools.results.size());
+
+
+	}
 }

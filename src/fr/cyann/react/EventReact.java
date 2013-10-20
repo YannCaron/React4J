@@ -16,47 +16,36 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Procedure1;
 import fr.cyann.base.Package;
 
 /**
- * The EventReact class.
+ * The EventReact abstract class.<br>
+ * Represent the super class of all continuous react un the library.<br>
+ * Should be realized in case of new continuous react creation.
  * Creation date: 14 oct. 2013.
  * @author CyaNn
  * @version v0.1
  */
 public abstract class EventReact<V extends Event> extends Var<V> {
 
+	/**
+	Default constructor.
+	@param value Initialize the react value.
+	*/
 	@Package
 	EventReact(V value) {
 		super(value);
 	}
 
-	public final Signal<Event> mergeEvent(final Signal<Event> merge) {
-
-		final Var<Event> signal = new Var<Event>(getValue());
-
-		this.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				signal.setValue(value);
-			}
-		});
-
-		merge.subscribe(new Procedure1<Event>() {
-
-			@Override
-			public void invoke(Event value) {
-				signal.setValue(value);
-			}
-		});
-
-		return signal;
-	}
-
+	/**
+	Template method.<br>
+	Write here the needed behaviour of the react when it is disposed.
+	*/
 	public abstract void applyDispose();
 
+	/**
+	Override the dispose method to add specific template method.
+	*/
 	@Override
 	public void dispose() {
 		applyDispose();

@@ -17,7 +17,7 @@
 package fr.cyann.functor;
 
 /**
- * The Procedure interface.
+ * The Procedure interface. Give the possibility to create a functor without argument nor returned value.
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1

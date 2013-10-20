@@ -41,6 +41,36 @@ public abstract class Signal<V> {
 	private Signal parent;
 	private final List<Signal> links;
 
+	// constructor
+	/**
+	 * Default constructor.
+	 */
+	public Signal() {
+		ReactManager.getInstance().incrementCounter();
+
+		react = new React<V>();
+		finish = new React<V>();
+		links = new ArrayList<Signal>();
+	}
+
+	@Package
+	Signal(boolean count) {
+		if (count) {
+			ReactManager.getInstance().incrementCounter();
+		}
+
+		react = new React<V>();
+		finish = new React<V>();
+		links = new ArrayList<Signal>();
+	}
+
+	@Package
+	Signal(Signal parent) {
+		this();
+		this.parent = parent;
+	}
+
+	// property
 	public boolean isRunning() {
 		return running;
 	}
@@ -50,12 +80,18 @@ public abstract class Signal<V> {
 		this.parent = parent;
 	}
 
+	// method
 	public void start() {
 		running = true;
 	}
 
 	public void stop() {
 		running = false;
+	}
+
+	public void reset() {
+		stop();
+		start();
 	}
 
 	protected boolean isAutoStart() {
@@ -87,21 +123,6 @@ public abstract class Signal<V> {
 		} catch (ConcurrentModificationException ex) {
 			// avoid concurrent exception
 		}
-	}
-
-	/**
-	 * Default constructor.
-	 */
-	public Signal() {
-		react = new React<V>();
-		finish = new React<V>();
-		links = new ArrayList<Signal>();
-	}
-
-	@Package
-	Signal(Signal parent) {
-		this();
-		this.parent = parent;
 	}
 
 	/**
@@ -164,6 +185,33 @@ public abstract class Signal<V> {
 		return this;
 	}
 
+	/**
+	Emit event after a delay. If another event is emited, delay is postponed.
+	@param delay the delay to wait.
+	@return the new created signal.
+	*/
+	public Signal<V> smooth(final long delay) {
+		final Signal<V> signal = new Var<V>(getValue());
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
+			}
+		});
+
+		return signal;
+	}
+
+	// monadic methods
 	/**
 	 * Filter the event according a criteria.
 	 *
@@ -423,6 +471,7 @@ public abstract class Signal<V> {
 	}
 
 	public void dispose() {
+		ReactManager.getInstance().decrementCounter();
 		for (Signal link : links) {
 			link.dispose();
 		}

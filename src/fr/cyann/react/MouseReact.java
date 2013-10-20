@@ -38,7 +38,7 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 
 		AWTEventListener[] listeners = TK.getAWTEventListeners();
 		
-		for (int i = listeners.length; i>=0; i--) {
+		for (int i = listeners.length - 1; i>=0; i--) {
 			TK.removeAWTEventListener(listeners[i]);
 		}
 	}

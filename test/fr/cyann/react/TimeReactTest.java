@@ -101,13 +101,14 @@ public class TimeReactTest extends TestCase {
 		Tools.assertMoreOrLess(950, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
 
 		s.dispose();
-		
 	}
 
 	/**
 	 * Test of framePerSecond method, of class TimeReact.
 	 */
 	public void testFramePerSecond() throws InterruptedException {
+
+		System.out.println(ReactManager.getInstance().getReactCounter().getValue());
 		
 		Signal<TimeEvent> s = TimeReact.framePerSecond(4).subscribe(new Procedure1<TimeEvent>() {
 
