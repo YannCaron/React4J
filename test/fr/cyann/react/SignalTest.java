@@ -16,6 +16,7 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.base.Tuple;
 import fr.cyann.functor.Function1;
 import fr.cyann.functor.Predicate1;
 import fr.cyann.functor.Procedure1;
@@ -99,19 +100,20 @@ public class SignalTest extends TestCase {
 
 	public void testSmooth() throws InterruptedException {
 
-		Procedure1<TimeEvent> p = new Procedure1<TimeEvent>() {
+		Procedure1<Tuple<TimeEvent, TimeEvent>> p = new Procedure1<Tuple<TimeEvent, TimeEvent>>() {
 
 			@Override
-			public void invoke(TimeEvent event) {
+			public void invoke(Tuple<TimeEvent, TimeEvent> event) {
 				Tools.results.add(event);
+				System.out.println("RUN");
 			}
 		};
 		
-		Signal s = TimeReact.every(50).subscribe(p);
+		Signal s = TimeReact.every(50).merge(TimeReact.every(100)).subscribe(p);
 
 		assertEquals(0, Tools.results.size());
-		Thread.currentThread().sleep(175L);
-		assertEquals(3, Tools.results.size());
+		Thread.currentThread().sleep(410L);
+		assertEquals(12, Tools.results.size());
 		
 		// reset
 		s.unSubscribe(p);
@@ -121,10 +123,14 @@ public class SignalTest extends TestCase {
 		Thread.currentThread().sleep(175L);
 		assertEquals(0, Tools.results.size());
 
-		s.smooth(110).subscribe(p);
-		Thread.currentThread().sleep(310);
-		assertEquals(2, Tools.results.size());
+		s.smooth(20).subscribe(p);
+		
+		Thread.currentThread().sleep(410);
+		assertEquals(8, Tools.results.size());
 
+		System.out.println("DISPOSED");
+		s.dispose();
+		Thread.currentThread().sleep(510);
 
 	}
 }

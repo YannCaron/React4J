@@ -24,6 +24,10 @@ import java.util.ConcurrentModificationException;
 import fr.cyann.base.Package;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -185,33 +189,92 @@ public abstract class Signal<V> {
 		return this;
 	}
 
+	private static class SmoothThread<V> extends Thread {
+
+		private final Signal<V> signal;
+		private boolean isWaiting = false;
+		private V value;
+		private long executeAt;
+
+		public SmoothThread(Signal<V> signal) {
+			this.signal = signal;
+		}
+
+		public void postpone(long delay) {
+			this.executeAt = System.currentTimeMillis() + delay;
+		}
+
+		public void setValue(V value) {
+			this.value = value;
+		}
+
+		public void launch() {
+			System.out.println(this.isWaiting);
+			if (isWaiting) {
+				synchronized (this) {
+					this.notify();
+				}
+			}
+		}
+
+		@Override
+		public void run() {
+
+			try {
+
+				while (!isInterrupted()) {
+					synchronized (this) {
+						isWaiting = true;
+						Thread.currentThread().wait();
+						isWaiting = false;
+					}
+
+					while (System.currentTimeMillis() < executeAt) {
+						Thread.currentThread().sleep(executeAt - System.currentTimeMillis());
+					}
+
+					signal.emit(value);
+				}
+			} catch (InterruptedException ex) {
+			}
+		}
+	}
+	private SmoothThread<V> smoothThread = null;
+
 	/**
 	Emit event after a delay. If another event is emited, delay is postponed.
 	@param delay the delay to wait.
 	@return the new created signal.
-	*/
+	 */
 	public Signal<V> smooth(final long delay) {
 		final Signal<V> signal = new Var<V>(getValue());
+
+		smoothThread = new SmoothThread<V>(signal);
+		smoothThread.start();
 
 		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
+				smoothThread.setValue(value);
+				smoothThread.postpone(delay);
+				smoothThread.launch();
 			}
 		});
 
-		this.subscribeFinish(new Procedure1<V>() {
+		this.subscribeFinish(
+			new Procedure1<V>() {
 
-			@Override
-			public void invoke(V value) {
-				signal.emitFinish(value);
-			}
-		});
+				@Override
+				public void invoke(V value) {
+					signal.emitFinish(value);
+				}
+			});
+
 
 		return signal;
-	}
+	} // monadic methods
 
-	// monadic methods
 	/**
 	 * Filter the event according a criteria.
 	 *
@@ -472,6 +535,12 @@ public abstract class Signal<V> {
 
 	public void dispose() {
 		ReactManager.getInstance().decrementCounter();
+
+		if (smoothThread != null) {
+			smoothThread.interrupt();
+			smoothThread = null;
+		}
+
 		for (Signal link : links) {
 			link.dispose();
 		}
