@@ -16,7 +16,7 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Procedure1;
 import fr.cyann.base.Package;
 
 /**
@@ -58,14 +58,14 @@ public class Var<V> extends Signal<V> {
 
 	@Override
 	public void emit(V value) {
-		super.emit(value);
 		this.value = value;
+		super.emit(value);
 	}
 
 	@Override
 	public void emitFinish(V value) {
-		super.emitFinish(value);
 		this.value = value;
+		super.emitFinish(value);
 	}
 
 	// method
@@ -74,17 +74,17 @@ public class Var<V> extends Signal<V> {
 		return value;
 	}
 
-	public void setValue(V value) {
+	public synchronized void setValue(V value) {
 		this.value = value;
-		react.emit(value);
+		super.emit(value);
 	}
 
 	/**
 	Gets a textual representation of the object.
 	@return the textual representation.
-	*/
+	 */
 	@Override
 	public String toString() {
-		return "Var{" + "value=" + value + '}';
+		return "Var{" + "value=" + this.value + '}';
 	}
 }

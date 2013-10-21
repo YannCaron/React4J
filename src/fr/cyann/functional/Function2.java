@@ -14,16 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.functor;
+package fr.cyann.functional;
 
 /**
- * The Procedure interface. Give the possibility to create a functor without argument nor returned value.
+ * The Function1 interface. Give the possibility to create a functor with one parameter and a return parameter.
  * Creation date: 9 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
-public interface Procedure {
-	
-	void invoke();
-	
+public interface Function2<R, A1, A2> {
+
+	public R invoke(A1 arg1, A2 arg2);
 }

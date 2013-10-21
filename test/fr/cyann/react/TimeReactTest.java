@@ -16,7 +16,8 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Procedure1;
+import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
 /**
@@ -34,14 +35,13 @@ public class TimeReactTest extends TestCase {
 		super.setUp();
 		Tools.initResults();
 	}
-	
+
 	/**
 	 * Test of once method, of class TimeReact.
 	 */
 	public void testOnce() throws InterruptedException {
 
 		Signal<TimeEvent> s = TimeReact.once(250L).subscribe(new Procedure1<TimeEvent>() {
-
 			@Override
 			public void invoke(TimeEvent event) {
 				Tools.results.add(event);
@@ -66,7 +66,6 @@ public class TimeReactTest extends TestCase {
 	public void testEvery() throws InterruptedException {
 
 		Signal<TimeEvent> s = TimeReact.every(250L).subscribe(new Procedure1<TimeEvent>() {
-
 			@Override
 			public void invoke(TimeEvent event) {
 				Tools.results.add(event);
@@ -104,14 +103,42 @@ public class TimeReactTest extends TestCase {
 	}
 
 	/**
+	 * Test of every method, of class TimeReact.
+	 */
+	public void testRandomly() throws InterruptedException {
+
+		Signal<TimeEvent> s = TimeReact.randomly(50, 150).subscribe(new Procedure1<TimeEvent>() {
+			@Override
+			public void invoke(TimeEvent event) {
+				Tools.results.add(event.clone());
+				System.out.println("TEST RANDOMLY" + event);
+			}
+		});
+
+		Thread.currentThread().sleep(500L);
+
+		TimeEvent prev = null;
+		for (Object obj : Tools.results) {
+			TimeEvent ev = (TimeEvent) obj;
+			if (prev != null) {
+				assertNotSame(prev.getTimeElapsed(), ev.getTimeElapsed());
+			}
+			assertTrue(ev.getTimeElapsed() >= 45);
+			assertTrue(ev.getTimeElapsed() <= 155);
+			System.out.println(ev.getTimeElapsed());
+		}
+
+		s.dispose();
+	}
+
+	/**
 	 * Test of framePerSecond method, of class TimeReact.
 	 */
 	public void testFramePerSecond() throws InterruptedException {
 
 		System.out.println(ReactManager.getInstance().getReactCounter().getValue());
-		
-		Signal<TimeEvent> s = TimeReact.framePerSecond(4).subscribe(new Procedure1<TimeEvent>() {
 
+		Signal<TimeEvent> s = TimeReact.framePerSecond(4).subscribe(new Procedure1<TimeEvent>() {
 			@Override
 			public void invoke(TimeEvent event) {
 				Tools.results.add(event);
@@ -144,7 +171,7 @@ public class TimeReactTest extends TestCase {
 		assertEquals(3, ((TimeEvent) Tools.results.get(0)).getIteration());
 		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
 		Tools.assertMoreOrLess(750, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
-		
+
 		s.dispose();
 	}
 }

@@ -16,12 +16,12 @@ package fr.cyann.liveTest;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-import fr.cyann.functor.Function;
-import fr.cyann.functor.Function1;
-import fr.cyann.functor.Predicate1;
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Function;
+import fr.cyann.functional.Function1;
+import fr.cyann.functional.Predicate1;
+import fr.cyann.functional.Procedure1;
 import fr.cyann.react.Var;
-import fr.cyann.react.VarReact;
+import fr.cyann.react.Operation;
 
 public class DiscreteReact {
 
@@ -32,7 +32,7 @@ public class DiscreteReact {
 
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
-		final VarReact<Integer> sum = new VarReact<Integer>(new Function<Integer>() {
+		final Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
 
 			@Override
 			public Integer invoke() {
@@ -54,7 +54,7 @@ public class DiscreteReact {
 			}
 		});
 
-		new VarReact<Integer>(new Function<Integer>() {
+		Operation.mergeOperation(new Function<Integer>() {
 
 			@Override
 			public Integer invoke() {

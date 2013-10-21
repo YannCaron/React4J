@@ -16,7 +16,7 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Procedure1;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;

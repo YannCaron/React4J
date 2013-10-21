@@ -16,6 +16,8 @@
  */
 package fr.cyann.react;
 
+import java.util.Random;
+
 /**
  * The TimeReact class. Creation date: 12 oct. 2013.
  *
@@ -72,7 +74,6 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
@@ -102,13 +103,47 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
 
 					while (react.isRunning()) {
 						Thread.sleep(timeout);
+
+						react.value.increment();
+						react.emit(react.value);
+					}
+				} catch (InterruptedException ex) {
+					// do nothing
+				} finally {
+					react.stop();
+				}
+
+			}
+		};
+
+		return react;
+	}
+
+	/**
+	 * Factory to create a time based react. Emit a signal whenever the time
+	 * interval has elapsed.
+	 *
+	 * @param timeout time to wait before emitting message
+	 * @return the time react
+	 */
+	public static TimeReact randomly(final int min, final int max) {
+		final TimeReact react = new TimeReact();
+
+		react.task = new Runnable() {
+			@Override
+			public void run() {
+				try {
+
+					Random rand = new Random();
+
+					while (react.isRunning()) {
+						Thread.sleep(min + rand.nextInt(max - min));
 
 						react.value.increment();
 						react.emit(react.value);
@@ -137,14 +172,13 @@ public class TimeReact extends EventReact<TimeEvent> {
 		final long timeout = 1000L / fps;
 
 		react.task = new Runnable() {
-
 			@Override
 			public void run() {
 				try {
 
 					long start = 0;
 					long elapsed = 0;
- 
+
 					while (react.isRunning()) {
 						if (timeout > elapsed) {
 							Thread.sleep(timeout - elapsed);

@@ -16,7 +16,7 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Predicate1;
+import fr.cyann.functional.Predicate1;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;

@@ -14,33 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.react;
-
-import java.util.ArrayList;
-import java.util.List;
+package fr.cyann.functional;
 
 /**
- * The Tools class.
- * Creation date: 19 oct. 2013.
- * @author CyaNn 
+ * The Function interface. Give the possibility to create a functor with only a return parameter.
+ * Creation date: 9 oct. 2013.
+ * @author Yann Caron
  * @version v0.1
  */
-public final class Tools {
+public interface Function<R> {
 
-	private Tools() {
-	}
+	public R invoke();
 
-	public final static List<Object> results = new ArrayList<Object>();
-	
-	public final static void initResults () {
-		results.clear();
-	}
-		
-	public final static void assertMoreOrLess(long time1, long time2, long tolerance) {
-		if (Math.abs(time1 - time2) > tolerance) {
-			String msg = "Assertion error, range expected [" + (time1 - tolerance) + "-" + (time1 + tolerance) + "], found " + time2;
-			throw new AssertionError(msg);
-		}
-	}
-	
 }

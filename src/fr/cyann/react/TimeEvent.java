@@ -22,7 +22,7 @@ import java.util.Date;
 /**
  * The TimeEvent class.
  * Creation date: 12 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
 public class TimeEvent implements Event {
@@ -40,6 +40,15 @@ public class TimeEvent implements Event {
 		startTime = time;
 		lastTime = time;
 		date = new Date();
+	}
+
+	private TimeEvent(int iteration, long startTime, long fromStartTime, long lastTime, long fromLastTime, Date date) {
+		this.iteration = iteration;
+		this.startTime = startTime;
+		this.fromStartTime = fromStartTime;
+		this.lastTime = lastTime;
+		this.fromLastTime = fromLastTime;
+		this.date = date;
 	}
 
 	@Package
@@ -74,6 +83,11 @@ public class TimeEvent implements Event {
 	public Date getDate() {
 		date.setTime(System.currentTimeMillis());
 		return date;
+	}
+
+	@Override
+	public TimeEvent clone() {
+		return new TimeEvent(iteration, startTime, fromStartTime, lastTime, fromLastTime, date);
 	}
 
 	@Override

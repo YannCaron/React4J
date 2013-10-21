@@ -19,9 +19,9 @@ package fr.cyann.react;
 import fr.cyann.base.Package;
 
 /**
- * The MouseEvent class.
- * Creation date: 13 oct. 2013.
- * @author CyaNn 
+ * The MouseEvent class. Creation date: 13 oct. 2013.
+ *
+ * @author CyaNn
  * @version v0.1
  */
 public class MouseEvent implements Event {
@@ -36,14 +36,34 @@ public class MouseEvent implements Event {
 
 		UP, DOWN;
 	}
-	
 	// attribute
 	private int button;
 	private ButtonAction action;
 	private int x, y, xOnScreen, yOnScreen;
 	private Wheel wheel;
 
-	@Package void setEvent(java.awt.event.MouseEvent ev) {
+	// constructor
+	public MouseEvent() {
+	}
+
+	private MouseEvent(int button, ButtonAction action, int x, int y, int xOnScreen, int yOnScreen, Wheel wheel) {
+		this.button = button;
+		this.action = action;
+		this.x = x;
+		this.y = y;
+		this.xOnScreen = xOnScreen;
+		this.yOnScreen = yOnScreen;
+		this.wheel = wheel;
+	}
+
+	@Override
+	public MouseEvent clone() {
+		return new MouseEvent(button, action, x, y, xOnScreen, yOnScreen, wheel);
+	}
+
+	// property
+	@Package
+	void setEvent(java.awt.event.MouseEvent ev) {
 		button = ev.getButton();
 		if (ev.getID() == java.awt.event.MouseEvent.MOUSE_PRESSED) {
 			action = ButtonAction.PRESS;
@@ -55,8 +75,6 @@ public class MouseEvent implements Event {
 		xOnScreen = ev.getXOnScreen();
 		yOnScreen = ev.getYOnScreen();
 	}
-	
-	// property
 
 	public ButtonAction getAction() {
 		return action;
@@ -85,11 +103,10 @@ public class MouseEvent implements Event {
 	public int getyOnScreen() {
 		return yOnScreen;
 	}
-	
+
 	// methode
 	@Override
 	public String toString() {
 		return "MouseEvent{" + "button=" + button + ", action=" + action + ", x=" + x + ", y=" + y + ", wheel=" + wheel + '}';
 	}
-
 }

@@ -16,10 +16,12 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.base.Tuple;
-import fr.cyann.functor.Function1;
-import fr.cyann.functor.Predicate1;
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Tuple2;
+import fr.cyann.functional.Function1;
+import fr.cyann.functional.Function2;
+import fr.cyann.functional.Predicate1;
+import fr.cyann.functional.Procedure1;
+import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
 /**
@@ -36,6 +38,109 @@ public class SignalTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		Tools.initResults();
+	}
+	/*
+	public void testThen() throws InterruptedException {
+	
+	final Var<Integer> a = new Var<Integer>(0);
+	final Var<Integer> b = new Var<Integer>(0);
+	
+	Signal<TimeEvent> c = a.then(new Function1<Signal<TimeEvent>, Integer>() {
+	
+	@Override
+	public Signal<TimeEvent> invoke(Integer arg1) {
+	return TimeReact.once(150);
+	}
+	});
+	
+	c.subscribe(new Procedure1<TimeEvent>() {
+	
+	@Override
+	public void invoke(TimeEvent value) {
+	System.out.println(value);
+	}
+	});
+	
+	b.setValue(1);
+	
+	a.setValue(10);
+	a.setValue(10);
+	
+	b.setValue(2);
+	b.setValue(2);
+	
+	Thread.currentThread().sleep(500);
+	
+	}*/
+
+	public void testWeak() throws InterruptedException {
+
+		Signal<TimeEvent> t1 = TimeReact.every(50);
+		Signal<TimeEvent> t2 = TimeReact.every(30);
+
+		t1.subscribe(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent arg1) {
+				Tools.results.add("T1");
+			}
+		});
+
+		t2.subscribe(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent arg1) {
+				Tools.results.add("T2");
+			}
+		});
+
+		t1.merge(t2.weak()).dispose();
+
+		Thread.currentThread().sleep(170);
+		assertNotSame(0, Tools.results.size());
+		for (Object item : Tools.results) {
+			assertEquals("T2", item.toString());
+		}
+
+	}
+
+	public void testFoldDiscreet() throws Exception {
+
+		Var<Integer> a = new Var<Integer>(0);
+		a.fold(new Function2<Integer, Integer, Integer>() {
+
+			@Override
+			public Integer invoke(Integer value1, Integer value2) {
+				return value1 + value2;
+			}
+		}).subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				System.out.println("FOLD " + value);
+			}
+		});
+
+		a.setValue(1);
+		a.setValue(2);
+		a.setValue(3);
+		a.setValue(4);
+	}
+
+	public void testFoldContinuous() throws Exception {
+
+		Signal<TimeEvent> s = TimeReact.every(50).fold(new Function2<TimeEvent, TimeEvent, TimeEvent>() {
+
+			@Override
+			public TimeEvent invoke(TimeEvent arg1, TimeEvent arg2) {
+				System.out.println("ARG1 " + arg1);
+				System.out.println("ARG2 " + arg2);
+				return new TimeEvent();
+			}
+		});
+		
+		Thread.sleep(400);
+
 	}
 
 	public void testDispose() {
@@ -100,21 +205,21 @@ public class SignalTest extends TestCase {
 
 	public void testSmooth() throws InterruptedException {
 
-		Procedure1<Tuple<TimeEvent, TimeEvent>> p = new Procedure1<Tuple<TimeEvent, TimeEvent>>() {
+		Procedure1<Tuple2<TimeEvent, TimeEvent>> p = new Procedure1<Tuple2<TimeEvent, TimeEvent>>() {
 
 			@Override
-			public void invoke(Tuple<TimeEvent, TimeEvent> event) {
+			public void invoke(Tuple2<TimeEvent, TimeEvent> event) {
 				Tools.results.add(event);
 				System.out.println("RUN");
 			}
 		};
-		
+
 		Signal s = TimeReact.every(50).merge(TimeReact.every(100)).subscribe(p);
 
 		assertEquals(0, Tools.results.size());
 		Thread.currentThread().sleep(410L);
 		assertEquals(12, Tools.results.size());
-		
+
 		// reset
 		s.unSubscribe(p);
 		s.reset();
@@ -124,13 +229,41 @@ public class SignalTest extends TestCase {
 		assertEquals(0, Tools.results.size());
 
 		s.smooth(20).subscribe(p);
-		
+
 		Thread.currentThread().sleep(410);
 		assertEquals(8, Tools.results.size());
 
 		System.out.println("DISPOSED");
 		s.dispose();
 		Thread.currentThread().sleep(510);
+
+	}
+
+	public void testDisposeOnFinish() throws InterruptedException {
+
+		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent value) {
+				System.out.println("RUN");
+				Tools.results.add(value);
+			}
+		}).subscribeFinish(new Procedure1<TimeEvent>() {
+
+			@Override
+			public void invoke(TimeEvent value) {
+				System.out.println("FINISH");
+				Tools.results.add(value);
+			}
+		}).disposeOnFinished();
+
+		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(200);
+		assertEquals(4, Tools.results.size());
+
+		Thread.currentThread().sleep(200);
+		assertEquals(4, Tools.results.size());
+
 
 	}
 }

@@ -16,18 +16,15 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.base.Tuple;
-import fr.cyann.functor.Function1;
-import fr.cyann.functor.Predicate1;
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Tuple2;
+import fr.cyann.functional.Function1;
+import fr.cyann.functional.Predicate1;
+import fr.cyann.functional.Procedure1;
 import java.util.ConcurrentModificationException;
 import fr.cyann.base.Package;
+import fr.cyann.functional.Function2;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -242,9 +239,10 @@ public abstract class Signal<V> {
 	private SmoothThread<V> smoothThread = null;
 
 	/**
-	Emit event after a delay. If another event is emited, delay is postponed.
-	@param delay the delay to wait.
-	@return the new created signal.
+	 * Emit event after a delay. If another event is emited, delay is postponed.
+	 *
+	 * @param delay the delay to wait.
+	 * @return the new created signal.
 	 */
 	public Signal<V> smooth(final long delay) {
 		final Signal<V> signal = new Var<V>(getValue());
@@ -309,9 +307,9 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	 * Modify the react data in value and type.
+	 * Transform the react's value according the supplied function.
 	 *
-	 * @param <R> The new react data type.
+	 * @param <R> The transformed react's value data type.
 	 * @param function the function to transform data.
 	 * @return the new transformed react.
 	 */
@@ -351,10 +349,80 @@ public abstract class Signal<V> {
 		return signal;
 	}
 
-	public final <W> Signal<Tuple<V, W>> merge(final Signal<W> merge) {
+	/**
+	Fold current value with previous one.
+	@param function specify the action to perform between previous value and current.
+	@return the new value.
+	*/
+	public final Signal<V> fold(final Function2<V, V, V> function) {
+		return fold(function, function);
+	}
+		
+	/**
+	Fold current value with previous one.
+	@param fEmit specify the action to perform between previous value and current for event.
+	@param fFinish specify the action to perform between previous value and current for finish event.
+	@return the new value.
+	*/
+	public final Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
+		final Signal<V> signal = new Var<V>(getValue());
+		signal.setParent(this);
+
+		this.subscribe(new Procedure1<V>() {
+
+			private V previous = null;
+
+			@Override
+			public void invoke(V arg1) {
+				if (previous == null) {
+					V value = getValue();
+					if (value instanceof Event) {
+						previous = (V) ((Event) value).clone();
+					} else {
+						previous = value;
+					}
+				} else {
+					previous = fEmit.invoke(previous, getValue());
+					signal.emit(previous);
+				}
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			private V previous = null;
+
+			@Override
+			public void invoke(V arg1) {
+				if (previous == null) {
+					V value = getValue();
+					if (value instanceof Event) {
+						previous = (V) ((Event) value).clone();
+					} else {
+						previous = value;
+					}
+				} else {
+					previous = fFinish.invoke(previous, getValue());
+					signal.emitFinish(previous);
+				}
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	 * Merge two signal together. If any signal emit, the resulting signal will
+	 * emit. Consider this operation like an <b>and</b> boolean operation.
+	 *
+	 * @param <W> The result signal value type.
+	 * @param merge The signal to merge with.
+	 * @return The merging result.
+	 */
+	public final <W> Signal<Tuple2<V, W>> merge(final Signal<W> merge) {
 		links.add(merge);
-		final Tuple<V, W> values = new Tuple<V, W>(getValue(), merge.getValue());
-		final Var<Tuple<V, W>> signal = new Var<Tuple<V, W>>(values, this);
+		final Tuple2<V, W> values = new Tuple2<V, W>(getValue(), merge.getValue());
+		final Var<Tuple2<V, W>> signal = new Var<Tuple2<V, W>>(values, this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -383,10 +451,271 @@ public abstract class Signal<V> {
 			}
 		});
 
+		merge.subscribeFinish(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				values.setSecond(value);
+				signal.emitFinish(values);
+			}
+		});
+
 		return signal;
 	}
 
-	public final Signal<V> retainUntil(final Signal until) {
+	private static abstract class SyncProcedure1<W> implements Procedure1<W> {
+
+		private SyncProcedure1 with;
+		private boolean invoked = false;
+
+		public void setWith(SyncProcedure1 with) {
+			this.with = with;
+		}
+
+		@Override
+		public synchronized void invoke(W value) {
+			invoke(value, with.invoked);
+
+			if (with.invoked) {
+				invoked = false;
+				with.invoked = false;
+			} else {
+				this.invoked = true;
+			}
+		}
+
+		public abstract void invoke(W value, boolean sync);
+	}
+
+	/**
+	 * Synchronize signal together. The both signals should be emited before
+	 * resulting signal will emit.<br>
+	 * Consider this operation like an <b>or</b> boolean operation.
+	 *
+	 * @param <W> The result signal value type.
+	 * @param merge The signal to merge with.
+	 * @return The synchronized result.
+	 */
+	public final <W> Signal<Tuple2<V, W>> sync(final Signal<W> sync) {
+		links.add(sync);
+		final Tuple2<V, W> values = new Tuple2<V, W>(getValue(), sync.getValue());
+		final Var<Tuple2<V, W>> signal = new Var<Tuple2<V, W>>(values, this);
+
+		SyncProcedure1<V> p1 = new SyncProcedure1<V>() {
+
+			@Override
+			public void invoke(V value, boolean sync) {
+				values.setFirst(value);
+				if (sync) {
+					signal.emit(values);
+				}
+			}
+		};
+
+		SyncProcedure1<W> p2 = new SyncProcedure1<W>() {
+
+			@Override
+			public void invoke(W value, boolean sync) {
+				values.setSecond(value);
+				if (sync) {
+					signal.emit(values);
+				}
+			}
+		};
+		p1.setWith(p2);
+		p2.setWith(p1);
+
+		this.subscribe(p1);
+		sync.subscribe(p2);
+
+		SyncProcedure1<V> pf1 = new SyncProcedure1<V>() {
+
+			@Override
+			public void invoke(V value, boolean sync) {
+				values.setFirst(value);
+				if (sync) {
+					signal.emitFinish(values);
+				}
+			}
+		};
+
+		SyncProcedure1<W> pf2 = new SyncProcedure1<W>() {
+
+			@Override
+			public void invoke(W value, boolean sync) {
+				values.setSecond(value);
+				if (sync) {
+					signal.emitFinish(values);
+				}
+			}
+		};
+		pf1.setWith(pf2);
+		pf2.setWith(pf1);
+
+		this.subscribeFinish(pf1);
+		sync.subscribeFinish(pf2);
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				values.setFirst(value);
+				signal.emitFinish(values);
+			}
+		});
+
+		sync.subscribeFinish(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				values.setSecond(value);
+				signal.emitFinish(values);
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	 * Expects the first signal, then the second one before emit resulting.
+	 * signal.<br>
+	 * Difference with sync is that signals should be consecutives.
+	 *
+	 * @param <W> The value type of the second signal.
+	 * @param then The second signal.
+	 * @return The resulting signal.
+	 */
+	public final <W> Signal<W> then(final Signal<W> then) {
+
+		then.noAutoStart();
+		then.setParent(this);
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				then.start();
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				then.stop();
+			}
+		});
+
+		return then;
+	}
+	/*
+	public final <W> Signal<W> then(final Function1<Signal<W>, V> function) {
+	
+	final Signal<W> signal = new Var<W>((W) null);
+	links.add(signal);
+	
+	this.subscribe(new Procedure1<V>() {
+	
+	private boolean active = true;
+	
+	@Override
+	public synchronized void invoke(V value) {
+	if (active) {
+	final Signal<W> then = function.invoke(value);
+	links.add(then);
+	
+	then.subscribe(new Procedure1<W>() {
+	
+	@Override
+	public void invoke(W value) {
+	signal.emit(value);
+	active = true;
+	}
+	});
+	}
+	active = false;
+	
+	}
+	});
+	
+	return signal;
+	
+	}*/
+
+	/**
+	 * Expects the second signal, then the first one before emit resulting.
+	 * signal.<br>
+	 * Difference with sync is that signals should be consecutives.
+	 *
+	 * @param <W> The value type of the second signal.
+	 * @param when The second signal.
+	 * @return The resulting signal.
+	 */
+	public final <W> Signal<V> when(final Signal<W> when) {
+		links.add(when);
+		when.setParent(this);
+
+		when.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				when.start();
+			}
+		});
+
+		when.subscribeFinish(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				when.stop();
+			}
+		});
+
+		return this;
+	}
+
+	/**
+	Break link for dispose mechanism. The weak signal will not be disposed when linked signal is disposed.
+	@return The weak signal.
+	 */
+	public final Signal<V> weak() {
+		final Signal<V> signal = new Signal<V>() {
+
+			@Override
+			public V getValue() {
+				return Signal.this.getValue();
+			}
+		};
+		// no parent
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emit(value);
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	 * Create a long signal. Emit on the beginning and emif finish signal at the
+	 * end.<br>
+	 * Usefull for performing signal loop with start and stop limits.
+	 *
+	 * @param until the finish signal.
+	 * @return The resulting signal.
+	 */
+	public final Signal<V> until(final Signal until) {
 		links.add(until);
 		until.noAutoStart();
 		final Var<V> signal = new Var<V>(getValue(), this);
@@ -411,21 +740,6 @@ public abstract class Signal<V> {
 
 
 		return signal;
-	}
-
-	public final <W> Signal<W> then(final Signal<W> then) {
-		then.noAutoStart();
-		then.setParent(this);
-
-		this.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				then.start();
-			}
-		});
-
-		return then;
 	}
 
 	public final <W> Signal<W> during(final Signal<W> merge) {
@@ -511,7 +825,18 @@ public abstract class Signal<V> {
 		return this;
 	}
 
-	public final Var<V> initialize(V value) {
+	public final Signal<V> disposeOnFinished() {
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				dispose();
+			}
+		});
+		return this;
+	}
+
+	public final Var<V> toVar(V value) {
 		final Var<V> signal = new Var<V>(value);
 
 		this.subscribe(new Procedure1<V>() {

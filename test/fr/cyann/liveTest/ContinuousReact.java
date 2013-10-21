@@ -1,7 +1,7 @@
 package fr.cyann.liveTest;
 
 
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Procedure1;
 import fr.cyann.react.MouseEvent;
 import fr.cyann.react.MouseReact;
 import fr.cyann.react.TimeReact;

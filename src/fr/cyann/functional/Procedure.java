@@ -14,16 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.functor;
+package fr.cyann.functional;
 
 /**
- * The Procedure1 interface. Give the possibility to create a functor with one argument and no returned value.
+ * The Procedure interface. Give the possibility to create a functor without argument nor returned value.
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1
  */
-public interface Procedure1<A1> {
+public interface Procedure {
 	
-	void invoke(A1 arg1);
+	void invoke();
 	
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.functor;
+package fr.cyann.functional;
 
 /**
  * The Function1 interface. Give the possibility to create a functor with one parameter and a return parameter.

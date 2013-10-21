@@ -17,7 +17,7 @@
 package fr.cyann.react;
 
 import fr.cyann.base.Package;
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Procedure1;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,16 +32,16 @@ public class React<A> {
 	public React() {
 		subscribers = new ArrayList<Procedure1<A>>();
 	}
-	
+
 	public void subscribe(Procedure1<A> subscriber) {
 		this.subscribers.add(subscriber);
 	}
-	
+
 	public void unSubscribe(Procedure1<A> subscriber) {
 		this.subscribers.remove(subscriber);
 	}
 
-	@Package React<A> emit(A value) {
+	@Package synchronized React<A> emit(A value) {
 		for (Procedure1<A> subscriber : subscribers) {
 			subscriber.invoke(value);
 		}

@@ -16,12 +16,14 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functor.Function;
-import fr.cyann.functor.Function1;
-import fr.cyann.functor.Predicate1;
-import fr.cyann.functor.Procedure1;
+import fr.cyann.functional.Function;
+import fr.cyann.functional.Function1;
+import fr.cyann.functional.Predicate1;
+import fr.cyann.functional.Procedure1;
+import fr.cyann.functional.Tuple2;
 import java.util.ArrayList;
 import java.util.List;
+import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
 /**
@@ -30,8 +32,6 @@ import junit.framework.TestCase;
  */
 public class DiscreteReactTest extends TestCase {
 
-	private final List<Object> results = new ArrayList<Object>();
-
 	public DiscreteReactTest(String testName) {
 		super(testName);
 	}
@@ -39,35 +39,34 @@ public class DiscreteReactTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		results.clear();
+		Tools.initResults();
 	}
 
 	public void testVar() {
 
 		Var<Integer> a = new Var<Integer>(1);
 		a.subscribe(new Procedure1<Integer>() {
-
 			@Override
 			public void invoke(Integer value) {
-				results.add(value);
+				Tools.results.add(value);
 			}
 		});
 
-		assertEquals(0, results.size());
+		assertEquals(0, Tools.results.size());
 		assertEquals(Integer.valueOf(1), a.getValue());
 
 		a.setValue(7);
-		assertEquals(1, results.size());
-		assertEquals(Integer.valueOf(7), results.get(0));
+		assertEquals(1, Tools.results.size());
+		assertEquals(Integer.valueOf(7), Tools.results.get(0));
 
 	}
 
-	public void testVarReact() {
+	public void testSyncOperation() {
 
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(1);
-		VarReact<Integer> sum = new VarReact<Integer>(new Function<Integer>() {
 
+		Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -75,40 +74,45 @@ public class DiscreteReactTest extends TestCase {
 		}, a, b);
 
 		sum.subscribe(new Procedure1<Integer>() {
-
 			@Override
 			public void invoke(Integer value) {
-				results.add(value);
+				Tools.results.add(value);
 			}
 		});
 
-		assertEquals(0, results.size());
+		assertEquals(0, Tools.results.size());
 		assertEquals(Integer.valueOf(2), sum.getValue());
 
 		a.setValue(7);
-		b.setValue(8);
+		assertEquals(0, Tools.results.size());
 
-		assertEquals(2, results.size());
-		assertEquals(Integer.valueOf(8), results.get(0));
-		assertEquals(Integer.valueOf(15), results.get(1));
+		a.setValue(7);
+		assertEquals(0, Tools.results.size());
+
+		b.setValue(8);
+		assertEquals(1, Tools.results.size());
+
+		b.setValue(8);
+		assertEquals(1, Tools.results.size());
+
+		a.setValue(7);
+		assertEquals(2, Tools.results.size());
 
 	}
 
-	public void testVarReactChain() {
+	public void testSyncOperationCascade() {
 
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(1);
 		final Var<Integer> c = new Var<Integer>(1);
-		final VarReact<Integer> sum1 = new VarReact<Integer>(new Function<Integer>() {
-
+		final Operation<Integer> sum1 = Operation.syncOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
 			}
 		}, a, b);
 
-				VarReact<Integer> sum2 = new VarReact<Integer>(new Function<Integer>() {
-
+		Operation<Integer> sum2 = Operation.syncOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return sum1.getValue() + c.getValue();
@@ -116,32 +120,107 @@ public class DiscreteReactTest extends TestCase {
 		}, sum1, c);
 
 		sum2.subscribe(new Procedure1<Integer>() {
-
 			@Override
 			public void invoke(Integer value) {
-				results.add(value);
+				Tools.results.add(value);
 			}
 		});
 
-		assertEquals(0, results.size());
+		assertEquals(0, Tools.results.size());
 		assertEquals(Integer.valueOf(3), sum2.getValue());
 
 		a.setValue(7);
 		b.setValue(8);
 		c.setValue(2);
 
-		assertEquals(3, results.size());
-		assertEquals(Integer.valueOf(9), results.get(0));
-		assertEquals(Integer.valueOf(16), results.get(1));
-		assertEquals(Integer.valueOf(17), results.get(2));
+		assertEquals(1, Tools.results.size());
+		assertEquals(Integer.valueOf(17), Tools.results.get(0));
+
+	}
+
+	public void testMergeOperation() {
+
+		final Var<Integer> a = new Var<Integer>(1);
+		final Var<Integer> b = new Var<Integer>(1);
+
+		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+			@Override
+			public Integer invoke() {
+				return a.getValue() + b.getValue();
+			}
+		}, a, b);
+
+		sum.subscribe(new Procedure1<Integer>() {
+			@Override
+			public void invoke(Integer value) {
+				Tools.results.add(value);
+			}
+		});
+
+		assertEquals(0, Tools.results.size());
+		assertEquals(Integer.valueOf(2), sum.getValue());
+
+		a.setValue(7);
+		assertEquals(1, Tools.results.size());
+
+		a.setValue(7);
+		assertEquals(2, Tools.results.size());
+
+		b.setValue(8);
+		assertEquals(3, Tools.results.size());
+
+		b.setValue(8);
+		assertEquals(4, Tools.results.size());
+
+		a.setValue(7);
+		assertEquals(5, Tools.results.size());
+
+	}
+
+	public void testMergeOperationCascade() {
+
+		final Var<Integer> a = new Var<Integer>(1);
+		final Var<Integer> b = new Var<Integer>(1);
+		final Var<Integer> c = new Var<Integer>(1);
+		final Operation<Integer> sum1 = Operation.mergeOperation(new Function<Integer>() {
+			@Override
+			public Integer invoke() {
+				return a.getValue() + b.getValue();
+			}
+		}, a, b);
+
+		Operation<Integer> sum2 = Operation.mergeOperation(new Function<Integer>() {
+			@Override
+			public Integer invoke() {
+				return sum1.getValue() + c.getValue();
+			}
+		}, sum1, c);
+
+		sum2.subscribe(new Procedure1<Integer>() {
+			@Override
+			public void invoke(Integer value) {
+				Tools.results.add(value);
+			}
+		});
+
+		assertEquals(0, Tools.results.size());
+		assertEquals(Integer.valueOf(3), sum2.getValue());
+
+		a.setValue(7);
+		b.setValue(8);
+		c.setValue(2);
+
+		assertEquals(3, Tools.results.size());
+		assertEquals(Integer.valueOf(9), Tools.results.get(0));
+		assertEquals(Integer.valueOf(16), Tools.results.get(1));
+		assertEquals(Integer.valueOf(17), Tools.results.get(2));
 
 	}
 
 	public void testMapFilter() {
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
-		final VarReact<Integer> sum = new VarReact<Integer>(new Function<Integer>() {
-
+		final Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -149,53 +228,48 @@ public class DiscreteReactTest extends TestCase {
 		}, a, b);
 
 		sum.map(new Function1<String, Integer>() {
-
 			@Override
 			public String invoke(Integer value) {
 				return "sum result = " + value;
 			}
 		}).subscribe(new Procedure1<String>() {
-
 			@Override
 			public void invoke(String value) {
-				results.add(value);
+				Tools.results.add(value);
 			}
 		});
 
-		new VarReact<Integer>(new Function<Integer>() {
-
+		Operation.mergeOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return sum.getValue() + 1;
 			}
 		}, sum).filter(new Predicate1<Integer>() {
-
 			@Override
 			public boolean invoke(Integer value) {
 				return (value <= 10);
 			}
 		}).map(new Function1<String, Integer>() {
-
 			@Override
 			public String invoke(Integer value) {
 				return "increment of sum = " + value;
 			}
 		}).subscribe(new Procedure1<String>() {
-
 			@Override
 			public void invoke(String value) {
-				results.add(value);
+				Tools.results.add(value);
 			}
 		});
 
-		System.out.println(sum.getValue());
 		a.setValue(5);
 		b.setValue(7);
 
-		assertEquals(3, results.size());
-		assertEquals("sum result = 7", results.get(0));
-		assertEquals("increment of sum = 8", results.get(1));
-		assertEquals("sum result = 12", results.get(2));
+		System.out.println(Tools.results);
+
+		//assertEquals(3, Tools.results.size());
+		assertEquals("sum result = 7", Tools.results.get(0));
+		assertEquals("increment of sum = 8", Tools.results.get(1));
+		assertEquals("sum result = 12", Tools.results.get(2));
 
 	}
 
@@ -212,11 +286,10 @@ public class DiscreteReactTest extends TestCase {
 
 		ListVar<Integer> list = ListVar.newInstance(new ArrayList<Integer>());
 		list.subscribe(new Procedure1<List<Integer>>() {
-
 			@Override
 			public void invoke(List<Integer> values) {
 				for (Integer value : values) {
-					results.add(Integer.valueOf(value));
+					Tools.results.add(Integer.valueOf(value));
 				}
 			}
 		});
@@ -228,7 +301,7 @@ public class DiscreteReactTest extends TestCase {
 		list.remove(2);
 		list.set(2, 7);
 
-		assertEquals(results, 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 4, 1, 2, 7);
+		assertEquals(Tools.results, 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 4, 1, 2, 7);
 
 	}
 
@@ -236,19 +309,17 @@ public class DiscreteReactTest extends TestCase {
 
 		ListVar<Signal<Integer>> list = ListVar.newInstance(new ArrayList<Signal<Integer>>());
 		list.subscribe(new Procedure1<List<Signal<Integer>>>() {
-
 			@Override
 			public void invoke(List<Signal<Integer>> values) {
 				for (Signal<Integer> value : values) {
-					results.add(value.getValue());
+					Tools.results.add(value.getValue());
 				}
 			}
 		});
 
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
-		VarReact<Integer> sum = new VarReact<Integer>(new Function<Integer>() {
-
+		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -261,7 +332,7 @@ public class DiscreteReactTest extends TestCase {
 
 		a.setValue(7);
 
-		assertEquals(results, 1, 1, 2, 1, 2, 3, 7, 2, 9, 7, 2, 9);
+		assertEquals(Tools.results, 1, 1, 2, 1, 2, 3, 7, 2, 9, 7, 2, 9);
 	}
 
 	public void testListReactVarAddAll() {
@@ -269,8 +340,7 @@ public class DiscreteReactTest extends TestCase {
 		ListVar<Signal<Integer>> list = ListVar.newInstance(new ArrayList<Signal<Integer>>());
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
-		VarReact<Integer> sum = new VarReact<Integer>(new Function<Integer>() {
-
+		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -283,11 +353,10 @@ public class DiscreteReactTest extends TestCase {
 
 		ListVar<Signal<Integer>> list2 = ListVar.newInstance(new ArrayList<Signal<Integer>>());
 		list2.subscribe(new Procedure1<List<Signal<Integer>>>() {
-
 			@Override
 			public void invoke(List<Signal<Integer>> values) {
 				for (Signal<Integer> value : values) {
-					results.add(value.getValue());
+					Tools.results.add(value.getValue());
 				}
 			}
 		});
@@ -295,6 +364,77 @@ public class DiscreteReactTest extends TestCase {
 		list2.addAll(list);
 		a.setValue(7);
 
-		assertEquals(results, 1, 2, 3, 7, 2, 9, 7, 2, 9);
+		assertEquals(Tools.results, 1, 2, 3, 7, 2, 9, 7, 2, 9);
+	}
+
+	public void testSync1() {
+
+		final Var<Integer> a = new Var<Integer>(0);
+		final Var<Integer> b = new Var<Integer>(0);
+
+		Signal<Tuple2<Integer, Integer>> r = a.sync(b);
+
+		r.subscribe(new Procedure1<Tuple2<Integer, Integer>>() {
+			@Override
+			public void invoke(Tuple2<Integer, Integer> value) {
+				Tools.results.add(value);
+				System.out.println(value);
+			}
+		});
+
+		a.setValue(10);
+		a.setValue(20);
+		a.setValue(10);
+		assertEquals(0, Tools.results.size());
+
+		b.setValue(50);
+		assertEquals(1, Tools.results.size());
+
+		b.setValue(50);
+		assertEquals(1, Tools.results.size());
+
+		a.setValue(10);
+		assertEquals(2, Tools.results.size());
+
+	}
+
+	public void testSync2() {
+
+		final Var<Integer> a = new Var<Integer>(0);
+		final Var<Integer> b = new Var<Integer>(0);
+		final Var<Integer> c = new Var<Integer>(0);
+
+		Signal<Tuple2<Tuple2<Integer, Integer>, Integer>> r = a.sync(b).sync(c);
+
+		r.subscribe(new Procedure1<Tuple2<Tuple2<Integer, Integer>, Integer>>() {
+			@Override
+			public void invoke(Tuple2<Tuple2<Integer, Integer>, Integer> value) {
+				Tools.results.add(value);
+				System.out.println(value);
+			}
+		});
+
+		b.setValue(50);
+		assertEquals(0, Tools.results.size());
+		b.setValue(70);
+		assertEquals(0, Tools.results.size());
+
+		a.setValue(10);
+		a.setValue(20);
+		a.setValue(10);
+		assertEquals(0, Tools.results.size());
+
+		c.setValue(80);
+		assertEquals(1, Tools.results.size());
+
+		a.setValue(10);
+		assertEquals(1, Tools.results.size());
+
+		b.setValue(10);
+		assertEquals(1, Tools.results.size());
+
+		c.setValue(10);
+		assertEquals(2, Tools.results.size());
+
 	}
 }

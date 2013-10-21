@@ -16,11 +16,16 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.base.Package;
+
 /**
  * The Event interface. The super class of every event emited by continuous reacts.
  * Creation date: 12 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
-public interface Event {
+public interface Event extends Cloneable {
+	
+	Event clone();
+	
 }

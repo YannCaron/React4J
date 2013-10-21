@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.base;
+package fr.cyann.functional;
 
 /**
  * The Class class.<br>
@@ -23,7 +23,7 @@ package fr.cyann.base;
  * @author CyaNn 
  * @version v0.1
  */
-public class Tuple<V, W> {
+public class Tuple2<V, W> {
 	private V first;
 	private W second;
 
@@ -64,7 +64,7 @@ public class Tuple<V, W> {
 	@param first the value of the first value of the tuple.
 	@param second the value of the second value of the tuple.
 	*/
-	public Tuple(V first, W second) {
+	public Tuple2(V first, W second) {
 		this.first = first;
 		this.second = second;
 	}
