@@ -307,11 +307,11 @@ public class DiscreteReactTest extends TestCase {
 
 	public void testListReactVar() {
 
-		ListVar<Signal<Integer>> list = ListVar.newInstance(new ArrayList<Signal<Integer>>());
-		list.subscribe(new Procedure1<List<Signal<Integer>>>() {
+		ListVar<Var<Integer>> list = ListVar.newInstance(new ArrayList<Var<Integer>>());
+		list.subscribe(new Procedure1<List<Var<Integer>>>() {
 			@Override
-			public void invoke(List<Signal<Integer>> values) {
-				for (Signal<Integer> value : values) {
+			public void invoke(List<Var<Integer>> values) {
+				for (Var<Integer> value : values) {
 					Tools.results.add(value.getValue());
 				}
 			}
@@ -337,7 +337,7 @@ public class DiscreteReactTest extends TestCase {
 
 	public void testListReactVarAddAll() {
 
-		ListVar<Signal<Integer>> list = ListVar.newInstance(new ArrayList<Signal<Integer>>());
+		ListVar<Var<Integer>> list = ListVar.newInstance(new ArrayList<Var<Integer>>());
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
 		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
@@ -351,11 +351,11 @@ public class DiscreteReactTest extends TestCase {
 		list.add(b);
 		list.add(sum);
 
-		ListVar<Signal<Integer>> list2 = ListVar.newInstance(new ArrayList<Signal<Integer>>());
-		list2.subscribe(new Procedure1<List<Signal<Integer>>>() {
+		ListVar<Var<Integer>> list2 = ListVar.newInstance(new ArrayList<Var<Integer>>());
+		list2.subscribe(new Procedure1<List<Var<Integer>>>() {
 			@Override
-			public void invoke(List<Signal<Integer>> values) {
-				for (Signal<Integer> value : values) {
+			public void invoke(List<Var<Integer>> values) {
+				for (Var<Integer> value : values) {
 					Tools.results.add(value.getValue());
 				}
 			}

@@ -28,160 +28,157 @@ import java.util.ListIterator;
  * @author Yann Caron
  * @version v0.1
  */
-public class ListVar<V> extends Signal<List<V>> implements List<V> {
+public class ListVar<V> extends Var<List<V>> implements List<V> {
 
 	private class Subscriber implements Procedure1<V> {
 
 		@Override
 		public void invoke(V arg1) {
 			if (isRunning()) {
-				ListVar.this.react.emit(list);
+				ListVar.this.react.emit(value);
 			}
 		}
 	}
-	// decorator design pattern
-	private List<V> list;
-
-	private ListVar(List<V> list) {
-		this.list = list;
+	private ListVar(List<V> value) {
+		super(value);
 	}
 
-	public static <V> ListVar<V> newInstance(List<V> list) {
-		return new ListVar<V>(list);
+	public static <V> ListVar<V> newInstance(List<V> value) {
+		return new ListVar<V>(value);
 	}
 
 	@Override
 	public List<V> getValue() {
-		return list;
+		return value;
 	}
 
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return list.toArray(a);
+		return value.toArray(a);
 	}
 
 	@Override
 	public Object[] toArray() {
-		return list.toArray();
+		return value.toArray();
 	}
 
 	@Override
 	public ListVar<V> subList(int fromIndex, int toIndex) {
-		return new ListVar(list.subList(fromIndex, toIndex));
+		return new ListVar(value.subList(fromIndex, toIndex));
 	}
 
 	@Override
 	public int size() {
-		return list.size();
+		return value.size();
 	}
 
 	@Override
 	public V set(int index, V element) {
-		V result = list.set(index, element);
-		react.emit(list);
+		V result = value.set(index, element);
+		react.emit(value);
 		return result;
 	}
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		boolean result = list.retainAll(c);
+		boolean result = value.retainAll(c);
 		if (result) {
-			react.emit(list);
+			react.emit(value);
 		}
 		return result;
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		boolean result = list.removeAll(c);;
+		boolean result = value.removeAll(c);;
 		if (result) {
-			react.emit(list);
+			react.emit(value);
 		}
 		return result;
 	}
 
 	@Override
 	public V remove(int index) {
-		V result = list.remove(index);
-		react.emit(list);
+		V result = value.remove(index);
+		react.emit(value);
 		return result;
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		boolean result = list.remove(o);
+		boolean result = value.remove(o);
 		if (result) {
-			react.emit(list);
+			react.emit(value);
 		}
 		return result;
 	}
 
 	@Override
 	public ListIterator<V> listIterator(int index) {
-		return list.listIterator(index);
+		return value.listIterator(index);
 	}
 
 	@Override
 	public ListIterator<V> listIterator() {
-		return list.listIterator();
+		return value.listIterator();
 	}
 
 	@Override
 	public int lastIndexOf(Object o) {
-		return list.lastIndexOf(o);
+		return value.lastIndexOf(o);
 	}
 
 	@Override
 	public Iterator<V> iterator() {
-		return list.iterator();
+		return value.iterator();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return list.isEmpty();
+		return value.isEmpty();
 	}
 
 	@Override
 	public int indexOf(Object o) {
-		return list.indexOf(o);
+		return value.indexOf(o);
 	}
 
 	@Override
 	public int hashCode() {
-		return list.hashCode();
+		return value.hashCode();
 	}
 
 	@Override
 	public V get(int index) {
-		return list.get(index);
+		return value.get(index);
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		return list.equals(o);
+		return value.equals(o);
 	}
 
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return list.containsAll(c);
+		return value.containsAll(c);
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return list.contains(o);
+		return value.contains(o);
 	}
 
 	@Override
 	public void clear() {
-		list.clear();
-		react.emit(list);
+		value.clear();
+		react.emit(value);
 	}
 
 	@Override
 	public boolean addAll(int index, Collection<? extends V> c) {
-		boolean result = list.addAll(index, c);
+		boolean result = value.addAll(index, c);
 		if (result) {
-			react.emit(list);
+			react.emit(value);
 
 			for (V element : c) {
 				if (element instanceof Signal) {
@@ -194,32 +191,32 @@ public class ListVar<V> extends Signal<List<V>> implements List<V> {
 
 	@Override
 	public boolean addAll(Collection<? extends V> c) {
-		boolean result = list.addAll(c);
+		boolean result = value.addAll(c);
 		if (result) {
 			for (V element : c) {
 				if (element instanceof Signal) {
 					((Signal) element).subscribe(new Subscriber());
 				}
 			}
-			react.emit(list);
+			react.emit(value);
 		}
 		return result;
 	}
 
 	@Override
 	public void add(int index, V element) {
-		list.add(index, element);
+		value.add(index, element);
 		if (element instanceof Signal) {
 			((Signal) element).subscribe(new Subscriber());
 		}
-		react.emit(list);
+		react.emit(value);
 	}
 
 	@Override
 	public boolean add(V e) {
-		boolean result = list.add(e);
+		boolean result = value.add(e);
 		if (result) {
-			react.emit(list);
+			react.emit(value);
 			if (e instanceof Signal) {
 				((Signal) e).subscribe(new Subscriber());
 			}

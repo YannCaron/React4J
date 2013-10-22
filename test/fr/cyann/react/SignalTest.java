@@ -16,11 +16,12 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functional.Tuple2;
+import fr.cyann.functional.Function;
 import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
+import java.awt.event.MouseEvent;
 import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
@@ -107,7 +108,7 @@ public class SignalTest extends TestCase {
 	public void testFoldDiscreet() throws Exception {
 
 		Var<Integer> a = new Var<Integer>(0);
-		a.fold(new Function2<Integer, Integer, Integer>() {
+		a.fold(0, new Function2<Integer, Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Integer value1, Integer value2) {
@@ -117,7 +118,7 @@ public class SignalTest extends TestCase {
 
 			@Override
 			public void invoke(Integer value) {
-				System.out.println("FOLD " + value);
+				Tools.results.add(value);
 			}
 		});
 
@@ -125,6 +126,13 @@ public class SignalTest extends TestCase {
 		a.setValue(2);
 		a.setValue(3);
 		a.setValue(4);
+
+		assertEquals(4, Tools.results.size());
+		assertEquals(1, Tools.results.get(0));
+		assertEquals(3, Tools.results.get(1));
+		assertEquals(6, Tools.results.get(2));
+		assertEquals(10, Tools.results.get(3));
+
 	}
 
 	public void testFoldContinuous() throws Exception {
@@ -138,9 +146,43 @@ public class SignalTest extends TestCase {
 				return new TimeEvent();
 			}
 		});
-		
+
 		Thread.sleep(400);
 
+	}
+
+	public void testFoldContinuousCount() throws Exception {
+
+		TimeReact.every(50).map(new Function1<Integer, TimeEvent>() {
+
+			@Override
+			public Integer invoke(TimeEvent value) {
+				return value.getIteration();
+			}
+		}).fold(0, new Function2<Integer, Integer, Integer>() {
+
+			@Override
+			public Integer invoke(Integer value1, Integer value2) {
+				System.out.println(value1);
+				return value1 + 1;
+			}
+		}).subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				Tools.results.add(value);
+			}
+		});
+
+		Thread.sleep(380);
+		assertEquals(7, Tools.results.size());
+
+		int i = 0;
+		for (Object o : Tools.results) {
+			int v = (Integer) o;
+			assertEquals(i + 1, v);
+			i++;
+		}
 	}
 
 	public void testDispose() {
@@ -241,17 +283,17 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeOnFinish() throws InterruptedException {
 
-		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<TimeEvent>() {
+		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<Long>() {
 
 			@Override
-			public void invoke(TimeEvent value) {
+			public void invoke(Long value) {
 				System.out.println("RUN");
 				Tools.results.add(value);
 			}
-		}).subscribeFinish(new Procedure1<TimeEvent>() {
+		}).subscribeFinish(new Procedure1<Long>() {
 
 			@Override
-			public void invoke(TimeEvent value) {
+			public void invoke(Long value) {
 				System.out.println("FINISH");
 				Tools.results.add(value);
 			}
@@ -264,6 +306,54 @@ public class SignalTest extends TestCase {
 		Thread.currentThread().sleep(200);
 		assertEquals(4, Tools.results.size());
 
+
+	}
+
+	public void testDisposeWhen() throws InterruptedException {
+
+		Signal s = TimeReact.every(50).fold(0L, new Function2<Long, Long, Long>() {
+
+			@Override
+			public Long invoke(Long arg1, Long arg2) {
+				Tools.results.add(arg1);
+				return arg1 + 1;
+			}
+		}).disposeWhen(new Predicate1<Long>() {
+
+			@Override
+			public boolean invoke(Long arg) {
+				if (arg == 4) {
+					Tools.results.add(arg);
+					System.out.println("DISPOSE");
+					return true;
+				}
+				return false;
+			}
+		});
+
+		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(200);
+		assertEquals(5, Tools.results.size());
+
+		Thread.currentThread().sleep(200);
+		assertEquals(5, Tools.results.size());
+
+	}
+
+	public void testOperationDisposeWhen() throws InterruptedException {
+
+		final Var<Integer> a = new Var<Integer>(0);
+		final Var<Integer> b = new Var<Integer>(0);
+
+		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+
+			@Override
+			public Integer invoke() {
+				return a.getValue() + b.getValue();
+			}
+		}, a.weak().toVar(0), b.weak().toVar(0));
+
+		sum.dispose();
 
 	}
 }

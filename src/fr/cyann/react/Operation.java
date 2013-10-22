@@ -26,19 +26,20 @@ import fr.cyann.functional.Procedure1;
  *
  * @author caronyn
  */
-public class Operation<V> extends Signal<V> {
+public class Operation<V> extends Var<V> {
 
 	// attribute
 	private final Function<V> operation;
 
 	// constructor
-	public Operation(Function<V> operation, Function2<Signal, Signal, Signal> fold, Signal... signals) {
+	public Operation(Function<V> operation, Function2<Var, Var, Var> fold, Var... signals) {
+		super(operation.invoke());
 		this.operation = operation;
 
 		// create sync binary tree
 		// list fold operation
-		Signal sync = null;
-		for (Signal signal : signals) {
+		Var sync = null;
+		for (Var signal : signals) {
 			if (sync == null) {
 				sync = signal;
 			} else {
@@ -54,9 +55,12 @@ public class Operation<V> extends Signal<V> {
 				}
 			});
 		}
+		
+		links.add(sync);
 	}
 
 	public Operation(Function<V> operation, Function<Signal> fold, Signal... signals) {
+		super(operation.invoke());
 		this.operation = operation;
 
 		fold.invoke().subscribe(new Procedure1<V>() {
@@ -68,20 +72,32 @@ public class Operation<V> extends Signal<V> {
 
 	}
 
-	public static <V> Operation<V> mergeOperation(Function<V> operation, Signal... signals) {
-		return new Operation<V>(operation, new Function2<Signal, Signal, Signal>() {
+	public static <V> Operation<V> mergeOperation(Function<V> operation, Var... signals) {
+		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
 			@Override
-			public Signal invoke(Signal signal1, Signal signal2) {
-				return signal1.merge(signal2);
+			public Var invoke(Var signal1, Var signal2) {
+				return signal1.merge(signal2, new Function2() {
+
+					@Override
+					public Object invoke(Object arg1, Object arg2) {
+						return arg1;
+					}
+				});
 			}
 		}, signals);
 	}
 
-	public static <V> Operation<V> syncOperation(Function<V> operation, Signal... signals) {
-		return new Operation<V>(operation, new Function2<Signal, Signal, Signal>() {
+	public static <V> Operation<V> syncOperation(Function<V> operation, Var... signals) {
+		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
 			@Override
-			public Signal invoke(Signal signal1, Signal signal2) {
-				return signal1.sync(signal2);
+			public Var invoke(Var signal1, Var signal2) {
+				return signal1.sync(signal2, new Function2() {
+
+					@Override
+					public Object invoke(Object arg1, Object arg2) {
+						return arg1;
+					}
+				});
 			}
 		}, signals);
 	}

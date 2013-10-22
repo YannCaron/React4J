@@ -16,6 +16,7 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Predicate1;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
@@ -28,28 +29,44 @@ import java.awt.event.MouseEvent;
  * @author CyaNn
  * @version v0.1
  */
-public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
+public class MouseReact extends EventReact<Integer> {
 
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();
-	
+	public static Predicate1<Integer> BUTTON1 = new Predicate1<Integer>() {
+
+		@Override
+		public boolean invoke(Integer value) {
+			return value.equals(1);
+		}
+	};
+	public static Predicate1<Integer> BUTTON2 = new Predicate1<Integer>() {
+
+		@Override
+		public boolean invoke(Integer value) {
+			return value.equals(1);
+		}
+	};
+	public static Predicate1<Integer> BUTTON3 = new Predicate1<Integer>() {
+
+		@Override
+		public boolean invoke(Integer value) {
+			return value.equals(1);
+		}
+	};
+
 	@Override
 	public void applyDispose() {
 
 		AWTEventListener[] listeners = TK.getAWTEventListeners();
-		
-		for (int i = listeners.length - 1; i>=0; i--) {
+
+		for (int i = listeners.length - 1; i >= 0; i--) {
 			TK.removeAWTEventListener(listeners[i]);
 		}
 	}
 
-	// constructor
-	private MouseReact() {
-		super(new fr.cyann.react.MouseEvent());
-	}
-
 	// general factory
-	private static MouseReact createListener(final Predicate1<MouseEvent> predicate, long eventMask) {
+	private static MouseReact createListener(final Predicate1<MouseEvent> filter, final Function1<Integer, MouseEvent> map, long eventMask) {
 		final MouseReact react = new MouseReact();
 
 		AWTEventListener listener = new AWTEventListener() {
@@ -59,9 +76,8 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 				if (e instanceof MouseEvent) {
 					MouseEvent ev = (MouseEvent) e;
 
-					if (react.isRunning() && predicate.invoke(ev)) {
-						react.value.setEvent(ev);
-						react.emit(react.value);
+					if (react.isRunning() && filter.invoke(ev)) {
+						react.emit(map.invoke(ev));
 					}
 				}
 			}
@@ -74,33 +90,39 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 	}
 
 	// factories
-	/**
-	 * Create a mouse react that emit an event each time user press a mouse button
-	 * on application window
-	 *
-	 * @return the created mouse react instance
-	 */
-	private static MouseReact button(final int id, final int button) {
-
+	public static MouseReact press() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override
-			public boolean invoke(MouseEvent ev) {
-				return ev.getButton() == button && (ev.getID() == id);
+			public boolean invoke(MouseEvent event) {
+				return event.getID() == MouseEvent.MOUSE_PRESSED;
+			}
+		}, new Function1<Integer, MouseEvent>() {
+
+			@Override
+			public Integer invoke(MouseEvent event) {
+				return event.getButton();
 			}
 		}, AWTEvent.MOUSE_EVENT_MASK);
-
 	}
 
-	public static MouseReact press(int button) {
-		return MouseReact.button(MouseEvent.MOUSE_PRESSED, button);
+	public static MouseReact release() {
+		return createListener(new Predicate1<MouseEvent>() {
+
+			@Override
+			public boolean invoke(MouseEvent event) {
+				return event.getID() == MouseEvent.MOUSE_RELEASED;
+			}
+		}, new Function1<Integer, MouseEvent>() {
+
+			@Override
+			public Integer invoke(MouseEvent event) {
+				return event.getButton();
+			}
+		}, AWTEvent.MOUSE_EVENT_MASK);
 	}
 
-	public static MouseReact release(int button) {
-		return MouseReact.button(MouseEvent.MOUSE_RELEASED, button);
-	}
-
-	public static MouseReact hold(final int button) {
+	public static MouseReact hold() {
 		final MouseReact react = new MouseReact();
 
 		AWTEventListener listener = new AWTEventListener() {
@@ -110,14 +132,12 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 				if (e instanceof java.awt.event.MouseEvent) {
 					java.awt.event.MouseEvent ev = (java.awt.event.MouseEvent) e;
 
-					if (react.isRunning() && ev.getButton() == button && ev.getID() == MouseEvent.MOUSE_PRESSED) {
-						react.value.setEvent(ev);
-						react.emit(react.value);
+					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_PRESSED) {
+						react.emit(ev.getButton());
 					}
 
-					if (ev.getButton() == button && ev.getID() == MouseEvent.MOUSE_RELEASED) {
-						react.value.setEvent(ev);
-						react.emitFinish(react.value);
+					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_RELEASED) {
+						react.emitFinish(ev.getButton());
 					}
 				}
 			}
@@ -128,12 +148,34 @@ public class MouseReact extends EventReact<fr.cyann.react.MouseEvent> {
 		return react;
 	}
 
-	public static MouseReact move() {
+	public static MouseReact positionX() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override
-			public boolean invoke(MouseEvent arg) {
+			public boolean invoke(MouseEvent event) {
 				return true;
+			}
+		}, new Function1<Integer, MouseEvent>() {
+
+			@Override
+			public Integer invoke(MouseEvent event) {
+				return event.getX();
+			}
+		}, AWTEvent.MOUSE_MOTION_EVENT_MASK);
+	}
+
+	public static MouseReact positionY() {
+		return createListener(new Predicate1<MouseEvent>() {
+
+			@Override
+			public boolean invoke(MouseEvent event) {
+				return true;
+			}
+		}, new Function1<Integer, MouseEvent>() {
+
+			@Override
+			public Integer invoke(MouseEvent event) {
+				return event.getY();
 			}
 		}, AWTEvent.MOUSE_MOTION_EVENT_MASK);
 	}

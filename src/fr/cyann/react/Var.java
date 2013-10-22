@@ -18,50 +18,65 @@ package fr.cyann.react;
 
 import fr.cyann.functional.Procedure1;
 import fr.cyann.base.Package;
+import fr.cyann.functional.Function2;
 
 /**
- *
+ * Var class. Describe a variable that changes in time.
  * @author caronyn
  */
 public class Var<V> extends Signal<V> {
 
 	// attribute
+	/**
+	Value decorated by this generic type.
+	*/
 	protected V value;
-
+	
 	// constructor
+	/**
+	Default constructor.
+	@param value the initial value.
+	*/
 	public Var(V value) {
 		super();
 		this.value = value;
 	}
 
+	/**
+	Constructor for ReactManager only (avoid stack overflow with the counter react).
+	@param value the initial value.
+	@param count is ReactManaget count this.
+	*/
 	@Package
 	Var(V value, boolean count) {
 		super(count);
 		this.value = value;
 	}
 
+	/**
+	Var constructor for chained signals.
+	@param value the initial value.
+	@param parent chain with the parent.
+	*/
 	public Var(V value, Signal parent) {
 		super(parent);
 		this.value = value;
 	}
 
-	public Var(Var<V> value) {
-		value.react.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V arg1) {
-				react.emit(arg1);
-			}
-		});
-
-	}
-
+	/**
+	Emit a signal
+	@param value the signal value.
+	*/
 	@Override
 	public void emit(V value) {
 		this.value = value;
 		super.emit(value);
 	}
 
+	/**
+	Emit a finish signal.
+	@param value the signal value.
+	*/
 	@Override
 	public void emitFinish(V value) {
 		this.value = value;
@@ -69,14 +84,150 @@ public class Var<V> extends Signal<V> {
 	}
 
 	// method
-	@Override
 	public V getValue() {
 		return value;
 	}
 
+	/**
+	Value mutator.
+	@param value the value to set.
+	*/
 	public synchronized void setValue(V value) {
 		this.value = value;
 		super.emit(value);
+	}
+
+	/**
+	Merge two signal together. If any signal emit, the resulting signal will
+	emit. Consider this operation like an <b>and</b> boolean operation.
+	
+	@param <X> Type of the resulting var.
+	@param <W> Type of the merged var.
+	@param merge the var to merge with.
+	@param mapfold the map fold transformation function.<br>It's goal is to merge the two values together and returned in the desired type.
+	@return the new merged signal.
+	*/
+	public final <X, W> Var<X> merge(final Var<W> merge, final Function2<X, V, W> mapfold) {
+		links.add(merge);
+		final Var<X> signal = new Var(mapfold.invoke(getValue(), merge.getValue()));
+		signal.setParent(this);
+
+		this.subscribe(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emit(mapfold.invoke(value, merge.getValue()));
+			}
+		});
+		merge.subscribe(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				signal.emit(mapfold.invoke(getValue(), value));
+			}
+		});
+		this.subscribeFinish(new Procedure1<V>() {
+
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(mapfold.invoke(value, merge.getValue()));
+			}
+		});
+		merge.subscribeFinish(new Procedure1<W>() {
+
+			@Override
+			public void invoke(W value) {
+				signal.emit(mapfold.invoke(getValue(), value));
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	Synchrinize two callback together.
+	@param <V> the callback type.
+	*/
+	private static abstract class SyncProcedure1<V> implements Procedure1<V> {
+
+		private SyncProcedure1 with;
+		private boolean invoked = false;
+
+		public void setWith(SyncProcedure1 with) {
+			this.with = with;
+		}
+
+		@Override
+		public synchronized void invoke(V value) {
+			if (with.invoked) {
+				invokeF(value);
+				invoked = false;
+				with.invoked = false;
+			} else {
+				this.invoked = true;
+			}
+		}
+
+		public abstract void invokeF(V value);
+	}
+	
+	/**
+	Synchronize signal together. The both signals should be emited before
+	resulting signal will emit.<br>
+	Consider this operation like an <b>or</b> boolean operation.
+	
+	@param <X> Type of the resulting var.
+	@param <W> Type of the merged var.
+	@param sync the var to merge with.
+	@param mapfold the map fold transformation function.<br>It's goal is to merge the two values together and returned in the desired type.
+	@return the new merged signal.
+	 */
+	public final <X, W> Var<X> sync(final Var<W> sync, final Function2<X, V, W> mapfold) {
+		links.add(sync);
+		final Var<X> signal = new Var(mapfold.invoke(getValue(), sync.getValue()));
+		signal.setParent(this);
+
+		SyncProcedure1<V> p1 = new SyncProcedure1<V>() {
+
+			@Override
+			public void invokeF(V value) {
+				signal.emit(mapfold.invoke(value, sync.getValue()));
+			}
+		};
+		SyncProcedure1<W> p2 = new SyncProcedure1<W>() {
+
+			@Override
+			public void invokeF(W value) {
+				signal.emit(mapfold.invoke(getValue(), value));
+			}
+		};
+		p1.setWith(p2);
+		p2.setWith(p1);
+
+		this.subscribe(p1);
+		sync.subscribe(p2);
+
+		SyncProcedure1<V> pf1 = new SyncProcedure1<V>() {
+
+			@Override
+			public void invokeF(V value) {
+				signal.emitFinish(mapfold.invoke(value, sync.getValue()));
+			}
+		};
+		SyncProcedure1<W> pf2 = new SyncProcedure1<W>() {
+
+			@Override
+			public void invokeF(W value) {
+				signal.emitFinish(mapfold.invoke(getValue(), value));
+			}
+		};
+		pf1.setWith(pf2);
+		pf2.setWith(pf1);
+
+		this.subscribeFinish(pf1);
+		sync.subscribeFinish(pf2);
+
+		return signal;
 	}
 
 	/**

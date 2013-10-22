@@ -26,16 +26,7 @@ import fr.cyann.base.Package;
  * @author CyaNn
  * @version v0.1
  */
-public abstract class EventReact<V extends Event> extends Var<V> {
-
-	/**
-	Default constructor.
-	@param value Initialize the react value.
-	*/
-	@Package
-	EventReact(V value) {
-		super(value);
-	}
+public abstract class EventReact<V> extends Signal<V> {
 
 	/**
 	Template method.<br>

@@ -16,7 +16,6 @@
  */
 package fr.cyann.react;
 
-import fr.cyann.functional.Tuple2;
 import fr.cyann.functional.Function1;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
@@ -40,24 +39,22 @@ public abstract class Signal<V> {
 	protected boolean running = true;
 	private boolean autoStart = true;
 	private Signal parent;
-	private final List<Signal> links;
+	protected final List<Signal> links;
 
-	// constructor
-	/**
-	 * Default constructor.
-	 */
-	public Signal() {
-		ReactManager.getInstance().incrementCounter();
+	// inner class
+	private static class ConcretSignal<V> extends Signal<V> {
 
-		react = new React<V>();
-		finish = new React<V>();
-		links = new ArrayList<Signal>();
+		public ConcretSignal(Signal parent) {
+			super(parent);
+		}
 	}
 
+	// constructor
 	@Package
 	Signal(boolean count) {
 		if (count) {
 			ReactManager.getInstance().incrementCounter();
+			System.out.println("CREATE " + this.getClass());
 		}
 
 		react = new React<V>();
@@ -65,9 +62,16 @@ public abstract class Signal<V> {
 		links = new ArrayList<Signal>();
 	}
 
+	/**
+	 * Default constructor.
+	 */
+	public Signal() {
+		this(true);
+	}
+
 	@Package
 	Signal(Signal parent) {
-		this();
+		this(true);
 		this.parent = parent;
 	}
 
@@ -103,8 +107,7 @@ public abstract class Signal<V> {
 		autoStart = false;
 	}
 
-	public abstract V getValue();
-
+	// public abstract V getValue();
 	/**
 	 * Command react to emit a signal.<br>
 	 * Should be overrided to add automatic behaviours like emit counter time
@@ -141,7 +144,7 @@ public abstract class Signal<V> {
 		return this;
 	}
 
-	public Signal<V> register(final Var<V> signal) {
+	public Signal<V> subscribe(final Signal<V> signal) {
 		if (isAutoStart()) {
 			start();
 		}
@@ -160,7 +163,6 @@ public abstract class Signal<V> {
 				signal.emitFinish(value);
 			}
 		});
-		signal.value = getValue();
 		return this;
 	}
 
@@ -245,7 +247,7 @@ public abstract class Signal<V> {
 	 * @return the new created signal.
 	 */
 	public Signal<V> smooth(final long delay) {
-		final Signal<V> signal = new Var<V>(getValue());
+		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		smoothThread = new SmoothThread<V>(signal);
 		smoothThread.start();
@@ -271,8 +273,9 @@ public abstract class Signal<V> {
 
 
 		return signal;
-	} // monadic methods
+	}
 
+	// monadic methods
 	/**
 	 * Filter the event according a criteria.
 	 *
@@ -281,24 +284,24 @@ public abstract class Signal<V> {
 	 * @return the new filtered signal.
 	 */
 	public final Signal<V> filter(final Predicate1<V> function) {
-		final Signal<V> signal = new Var<V>(Signal.this.getValue(), this);
+		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
-					signal.emit(Signal.this.getValue());
+					signal.emit(value);
 				}
 			}
 		});
 
-		this.unSubscribeFinish(new Procedure1<V>() {
+		this.subscribeFinish(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
-					signal.emitFinish(Signal.this.getValue());
+					signal.emitFinish(value);
 				}
 			}
 		});
@@ -325,14 +328,14 @@ public abstract class Signal<V> {
 	 * @return the new transformed react.
 	 */
 	public final <R> Signal<R> map(final Function1<R, V> fEmit, final Function1<R, V> fFinish) {
-		final Var<R> signal = new Var<R>(fFinish.invoke(this.getValue()), this);
+		final Signal<R> signal = new ConcretSignal<R>(this);
 
 		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
-					signal.emit(fEmit.invoke(Signal.this.getValue()));
+					signal.emit(fEmit.invoke(value));
 				}
 			}
 		});
@@ -342,7 +345,7 @@ public abstract class Signal<V> {
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
-					signal.emitFinish(fFinish.invoke(Signal.this.getValue()));
+					signal.emitFinish(fFinish.invoke(value));
 				}
 			}
 		});
@@ -350,39 +353,63 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Fold current value with previous one.
-	@param function specify the action to perform between previous value and current.
-	@return the new value.
-	*/
+	 * Fold current value with previous one.
+	 *
+	 * @param function specify the action to perform between previous value and
+	 * current.
+	 * @return the new value.
+	 */
 	public final Signal<V> fold(final Function2<V, V, V> function) {
-		return fold(function, function);
+		return fold(null, function, null, function);
 	}
-		
+
 	/**
-	Fold current value with previous one.
-	@param fEmit specify the action to perform between previous value and current for event.
-	@param fFinish specify the action to perform between previous value and current for finish event.
-	@return the new value.
-	*/
+	 * Fold current value with previous one.
+	 *
+	 * @param function specify the action to perform between previous value and
+	 * current.
+	 * @param initialize the first value to fold.
+	 * @return the new value.
+	 */
+	public final Signal<V> fold(final V initialize, final Function2<V, V, V> function) {
+		return fold(initialize, function, initialize, function);
+	}
+
+	/**
+	 * Fold current value with previous one.
+	 *
+	 * @param initEmit the first value to fold for emil folding.
+	 * @param initFinish the first value to fold for finish folding.
+	 * @return the new value.
+	 */
 	public final Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
-		final Signal<V> signal = new Var<V>(getValue());
-		signal.setParent(this);
+		return fold(null, fEmit, null, fFinish);
+	}
+
+	/**
+	 * Fold current value with previous one.
+	 *
+	 * @param initEmit the first value to fold for emil folding.
+	 * @param fEmit specify the action to perform between previous value and
+	 * current for event.
+	 * @param initFinish the first value to fold for finish folding.
+	 * @param fFinish specify the action to perform between previous value and
+	 * current for finish event.
+	 * @return the new value.
+	 */
+	public final Signal<V> fold(final V initEmit, final Function2<V, V, V> fEmit, final V initFinish, final Function2<V, V, V> fFinish) {
+		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
 
-			private V previous = null;
+			private V previous = initEmit;
 
 			@Override
-			public void invoke(V arg1) {
+			public void invoke(V value) {
 				if (previous == null) {
-					V value = getValue();
-					if (value instanceof Event) {
-						previous = (V) ((Event) value).clone();
-					} else {
-						previous = value;
-					}
+					previous = value;
 				} else {
-					previous = fEmit.invoke(previous, getValue());
+					previous = fEmit.invoke(previous, value);
 					signal.emit(previous);
 				}
 			}
@@ -390,186 +417,16 @@ public abstract class Signal<V> {
 
 		this.subscribeFinish(new Procedure1<V>() {
 
-			private V previous = null;
+			private V previous = initFinish;
 
 			@Override
-			public void invoke(V arg1) {
+			public void invoke(V value) {
 				if (previous == null) {
-					V value = getValue();
-					if (value instanceof Event) {
-						previous = (V) ((Event) value).clone();
-					} else {
-						previous = value;
-					}
+					previous = value;
 				} else {
-					previous = fFinish.invoke(previous, getValue());
+					previous = fFinish.invoke(previous, value);
 					signal.emitFinish(previous);
 				}
-			}
-		});
-
-		return signal;
-	}
-
-	/**
-	 * Merge two signal together. If any signal emit, the resulting signal will
-	 * emit. Consider this operation like an <b>and</b> boolean operation.
-	 *
-	 * @param <W> The result signal value type.
-	 * @param merge The signal to merge with.
-	 * @return The merging result.
-	 */
-	public final <W> Signal<Tuple2<V, W>> merge(final Signal<W> merge) {
-		links.add(merge);
-		final Tuple2<V, W> values = new Tuple2<V, W>(getValue(), merge.getValue());
-		final Var<Tuple2<V, W>> signal = new Var<Tuple2<V, W>>(values, this);
-
-		this.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				values.setFirst(value);
-				signal.emit(values);
-			}
-		});
-
-		merge.subscribe(new Procedure1<W>() {
-
-			@Override
-			public void invoke(W value) {
-				values.setSecond(value);
-				signal.emit(values);
-			}
-		});
-
-		this.subscribeFinish(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				values.setFirst(value);
-				signal.emitFinish(values);
-			}
-		});
-
-		merge.subscribeFinish(new Procedure1<W>() {
-
-			@Override
-			public void invoke(W value) {
-				values.setSecond(value);
-				signal.emitFinish(values);
-			}
-		});
-
-		return signal;
-	}
-
-	private static abstract class SyncProcedure1<W> implements Procedure1<W> {
-
-		private SyncProcedure1 with;
-		private boolean invoked = false;
-
-		public void setWith(SyncProcedure1 with) {
-			this.with = with;
-		}
-
-		@Override
-		public synchronized void invoke(W value) {
-			invoke(value, with.invoked);
-
-			if (with.invoked) {
-				invoked = false;
-				with.invoked = false;
-			} else {
-				this.invoked = true;
-			}
-		}
-
-		public abstract void invoke(W value, boolean sync);
-	}
-
-	/**
-	 * Synchronize signal together. The both signals should be emited before
-	 * resulting signal will emit.<br>
-	 * Consider this operation like an <b>or</b> boolean operation.
-	 *
-	 * @param <W> The result signal value type.
-	 * @param merge The signal to merge with.
-	 * @return The synchronized result.
-	 */
-	public final <W> Signal<Tuple2<V, W>> sync(final Signal<W> sync) {
-		links.add(sync);
-		final Tuple2<V, W> values = new Tuple2<V, W>(getValue(), sync.getValue());
-		final Var<Tuple2<V, W>> signal = new Var<Tuple2<V, W>>(values, this);
-
-		SyncProcedure1<V> p1 = new SyncProcedure1<V>() {
-
-			@Override
-			public void invoke(V value, boolean sync) {
-				values.setFirst(value);
-				if (sync) {
-					signal.emit(values);
-				}
-			}
-		};
-
-		SyncProcedure1<W> p2 = new SyncProcedure1<W>() {
-
-			@Override
-			public void invoke(W value, boolean sync) {
-				values.setSecond(value);
-				if (sync) {
-					signal.emit(values);
-				}
-			}
-		};
-		p1.setWith(p2);
-		p2.setWith(p1);
-
-		this.subscribe(p1);
-		sync.subscribe(p2);
-
-		SyncProcedure1<V> pf1 = new SyncProcedure1<V>() {
-
-			@Override
-			public void invoke(V value, boolean sync) {
-				values.setFirst(value);
-				if (sync) {
-					signal.emitFinish(values);
-				}
-			}
-		};
-
-		SyncProcedure1<W> pf2 = new SyncProcedure1<W>() {
-
-			@Override
-			public void invoke(W value, boolean sync) {
-				values.setSecond(value);
-				if (sync) {
-					signal.emitFinish(values);
-				}
-			}
-		};
-		pf1.setWith(pf2);
-		pf2.setWith(pf1);
-
-		this.subscribeFinish(pf1);
-		sync.subscribeFinish(pf2);
-
-		this.subscribeFinish(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				values.setFirst(value);
-				signal.emitFinish(values);
-			}
-		});
-
-		sync.subscribeFinish(new Procedure1<W>() {
-
-			@Override
-			public void invoke(W value) {
-				values.setSecond(value);
-				signal.emitFinish(values);
 			}
 		});
 
@@ -675,16 +532,13 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Break link for dispose mechanism. The weak signal will not be disposed when linked signal is disposed.
-	@return The weak signal.
+	 * Break link for dispose mechanism. The weak signal will not be disposed when
+	 * linked signal is disposed.
+	 *
+	 * @return The weak signal.
 	 */
 	public final Signal<V> weak() {
 		final Signal<V> signal = new Signal<V>() {
-
-			@Override
-			public V getValue() {
-				return Signal.this.getValue();
-			}
 		};
 		// no parent
 
@@ -718,13 +572,12 @@ public abstract class Signal<V> {
 	public final Signal<V> until(final Signal until) {
 		links.add(until);
 		until.noAutoStart();
-		final Var<V> signal = new Var<V>(getValue(), this);
+		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
-				signal.setValue(value);
 				until.start();
 			}
 		});
@@ -733,7 +586,7 @@ public abstract class Signal<V> {
 
 			@Override
 			public void invoke(Object value) {
-				signal.emitFinish(signal.getValue());
+				//signal.emitFinish(signal.getValue());
 				until.stop();
 			}
 		});
@@ -759,7 +612,7 @@ public abstract class Signal<V> {
 			@Override
 			public void invoke(V value) {
 				merge.stop();
-				merge.emitFinish(merge.getValue());
+				//merge.emitFinish(merge.getValue());
 			}
 		});
 
@@ -768,7 +621,7 @@ public abstract class Signal<V> {
 
 	public final Signal<V> otherwise(final Function1<V, V> function) {
 
-		final Var<V> signal = new Var<V>(function.invoke(this.getValue()), this);
+		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -818,7 +671,7 @@ public abstract class Signal<V> {
 			@Override
 			public void invoke(V value) {
 				if (predicate.invoke(value)) {
-					Signal.this.dispose();
+					dispose();
 				}
 			}
 		});
@@ -838,6 +691,7 @@ public abstract class Signal<V> {
 
 	public final Var<V> toVar(V value) {
 		final Var<V> signal = new Var<V>(value);
+		signal.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -859,6 +713,7 @@ public abstract class Signal<V> {
 	}
 
 	public void dispose() {
+		System.out.println("DISPOSE " + this.getClass());
 		ReactManager.getInstance().decrementCounter();
 
 		if (smoothThread != null) {

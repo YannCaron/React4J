@@ -24,14 +24,13 @@ import java.util.Random;
  * @author Yann Caron
  * @version v0.1
  */
-public class TimeReact extends EventReact<TimeEvent> {
+public class TimeReact extends EventReact<Long> {
 
 	private Thread thread;
 	private Runnable task;
 
 	// constructor
 	private TimeReact() {
-		super(new TimeEvent());
 		super.running = false;
 	}
 
@@ -78,8 +77,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 			public void run() {
 				try {
 					Thread.sleep(timeout);
-					react.value.increment();
-					react.emit(react.value);
+					react.emit(System.currentTimeMillis());
 				} catch (InterruptedException ex) {
 					// do nothing
 				} finally {
@@ -110,8 +108,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 					while (react.isRunning()) {
 						Thread.sleep(timeout);
 
-						react.value.increment();
-						react.emit(react.value);
+						react.emit(System.currentTimeMillis());
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -145,8 +142,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 					while (react.isRunning()) {
 						Thread.sleep(min + rand.nextInt(max - min));
 
-						react.value.increment();
-						react.emit(react.value);
+						react.emit(System.currentTimeMillis());
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -186,8 +182,7 @@ public class TimeReact extends EventReact<TimeEvent> {
 
 						start = System.currentTimeMillis();
 
-						react.value.increment();
-						react.emit(react.value);
+						react.emit(System.currentTimeMillis());
 
 						elapsed = System.currentTimeMillis() - start;
 					}
