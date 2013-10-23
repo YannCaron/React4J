@@ -31,7 +31,7 @@ public class Var<V> extends Signal<V> {
 	Value decorated by this generic type.
 	*/
 	protected V value;
-	
+
 	// constructor
 	/**
 	Default constructor.
@@ -100,7 +100,7 @@ public class Var<V> extends Signal<V> {
 	/**
 	Merge two signal together. If any signal emit, the resulting signal will
 	emit. Consider this operation like an <b>and</b> boolean operation.
-	
+
 	@param <X> Type of the resulting var.
 	@param <W> Type of the merged var.
 	@param merge the var to merge with.
@@ -170,12 +170,12 @@ public class Var<V> extends Signal<V> {
 
 		public abstract void invokeF(V value);
 	}
-	
+
 	/**
 	Synchronize signal together. The both signals should be emited before
 	resulting signal will emit.<br>
 	Consider this operation like an <b>or</b> boolean operation.
-	
+
 	@param <X> Type of the resulting var.
 	@param <W> Type of the merged var.
 	@param sync the var to merge with.

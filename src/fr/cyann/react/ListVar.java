@@ -24,7 +24,9 @@ import java.util.ListIterator;
 
 /**
  * The ListVar class. Creation date: 12 oct. 2013.
- *
+ * Emit signal when list changed.<br>
+ * In case of List<Signal> type, emit also when any contained value in the list change.<br>
+ * Based on decorator design pattern from GoF.
  * @author Yann Caron
  * @version v0.1
  */
@@ -32,6 +34,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 
 	private class Subscriber implements Procedure1<V> {
 
+		/** {@inheritDoc} */
 		@Override
 		public void invoke(V arg1) {
 			if (isRunning()) {
@@ -39,39 +42,53 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 			}
 		}
 	}
+
+	// private constructor
 	private ListVar(List<V> value) {
 		super(value);
 	}
 
+	/**
+	 * Abstract factory of list that decorate another list.
+	 * @param <V> the type of list.
+	 * @param value the list to decorate.
+	 * @return the decorated list.
+	 */
 	public static <V> ListVar<V> newInstance(List<V> value) {
 		return new ListVar<V>(value);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public List<V> getValue() {
 		return value;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public <T> T[] toArray(T[] a) {
 		return value.toArray(a);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public Object[] toArray() {
 		return value.toArray();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public ListVar<V> subList(int fromIndex, int toIndex) {
 		return new ListVar(value.subList(fromIndex, toIndex));
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public int size() {
 		return value.size();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public V set(int index, V element) {
 		V result = value.set(index, element);
@@ -79,6 +96,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		boolean result = value.retainAll(c);
@@ -88,6 +106,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean result = value.removeAll(c);;
@@ -97,6 +116,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public V remove(int index) {
 		V result = value.remove(index);
@@ -104,6 +124,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean remove(Object o) {
 		boolean result = value.remove(o);
@@ -113,67 +134,80 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public ListIterator<V> listIterator(int index) {
 		return value.listIterator(index);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public ListIterator<V> listIterator() {
 		return value.listIterator();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public int lastIndexOf(Object o) {
 		return value.lastIndexOf(o);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public Iterator<V> iterator() {
 		return value.iterator();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean isEmpty() {
 		return value.isEmpty();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public int indexOf(Object o) {
 		return value.indexOf(o);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public int hashCode() {
 		return value.hashCode();
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public V get(int index) {
 		return value.get(index);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object o) {
 		return value.equals(o);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		return value.containsAll(c);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean contains(Object o) {
 		return value.contains(o);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public void clear() {
 		value.clear();
 		react.emit(value);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean addAll(int index, Collection<? extends V> c) {
 		boolean result = value.addAll(index, c);
@@ -189,6 +223,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean addAll(Collection<? extends V> c) {
 		boolean result = value.addAll(c);
@@ -203,6 +238,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return result;
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public void add(int index, V element) {
 		value.add(index, element);
@@ -212,6 +248,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		react.emit(value);
 	}
 
+	/** {@inheritDoc} */
 	@Override
 	public boolean add(V e) {
 		boolean result = value.add(e);

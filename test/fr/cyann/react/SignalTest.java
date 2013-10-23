@@ -21,7 +21,6 @@ import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
-import java.awt.event.MouseEvent;
 import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
@@ -41,61 +40,63 @@ public class SignalTest extends TestCase {
 		Tools.initResults();
 	}
 	/*
-	public void testThen() throws InterruptedException {
-	
-	final Var<Integer> a = new Var<Integer>(0);
-	final Var<Integer> b = new Var<Integer>(0);
-	
-	Signal<TimeEvent> c = a.then(new Function1<Signal<TimeEvent>, Integer>() {
-	
-	@Override
-	public Signal<TimeEvent> invoke(Integer arg1) {
-	return TimeReact.once(150);
-	}
-	});
-	
-	c.subscribe(new Procedure1<TimeEvent>() {
-	
-	@Override
-	public void invoke(TimeEvent value) {
-	System.out.println(value);
-	}
-	});
-	
-	b.setValue(1);
-	
-	a.setValue(10);
-	a.setValue(10);
-	
-	b.setValue(2);
-	b.setValue(2);
-	
-	Thread.currentThread().sleep(500);
-	
-	}*/
+	 public void testThen() throws InterruptedException {
+
+	 final Var<Integer> a = new Var<Integer>(0);
+	 final Var<Integer> b = new Var<Integer>(0);
+
+	 Signal<Integer> c = a.then(new Function1<Signal<Integer>, Integer>() {
+
+	 @Override
+	 public Signal<Integer> invoke(Integer arg1) {
+	 return TimeReact.once(150);
+	 }
+	 });
+
+	 c.subscribe(new Procedure1<Integer>() {
+
+	 @Override
+	 public void invoke(Integer value) {
+	 System.out.println(value);
+	 }
+	 });
+
+	 b.setValue(1);
+
+	 a.setValue(10);
+	 a.setValue(10);
+
+	 b.setValue(2);
+	 b.setValue(2);
+
+	 Thread.currentThread().sleep(500);
+
+	 }*/
 
 	public void testWeak() throws InterruptedException {
 
-		Signal<TimeEvent> t1 = TimeReact.every(50);
-		Signal<TimeEvent> t2 = TimeReact.every(30);
-
-		t1.subscribe(new Procedure1<TimeEvent>() {
-
+		Var<Integer> t1 = TimeReact.every(50).toVar(0);
+		Var<Integer> t2 = TimeReact.every(30).toVar(0);
+		t1.subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent arg1) {
+			public void invoke(Integer arg1) {
 				Tools.results.add("T1");
 			}
 		});
 
-		t2.subscribe(new Procedure1<TimeEvent>() {
-
+		t2.subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent arg1) {
+			public void invoke(Integer arg1) {
 				Tools.results.add("T2");
 			}
 		});
 
-		t1.merge(t2.weak()).dispose();
+		t1.merge(t2.weak().toVar(0), new Function2<Integer, Integer, Integer>() {
+			@Override
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return arg1 + 1;
+			}
+		}).dispose();
 
 		Thread.currentThread().sleep(170);
 		assertNotSame(0, Tools.results.size());
@@ -103,19 +104,19 @@ public class SignalTest extends TestCase {
 			assertEquals("T2", item.toString());
 		}
 
+		t1.dispose();
+		t2.dispose();
 	}
 
 	public void testFoldDiscreet() throws Exception {
 
 		Var<Integer> a = new Var<Integer>(0);
-		a.fold(0, new Function2<Integer, Integer, Integer>() {
-
+		Signal s = a.fold(0, new Function2<Integer, Integer, Integer>() {
 			@Override
 			public Integer invoke(Integer value1, Integer value2) {
 				return value1 + value2;
 			}
 		}).subscribe(new Procedure1<Integer>() {
-
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -133,41 +134,41 @@ public class SignalTest extends TestCase {
 		assertEquals(6, Tools.results.get(2));
 		assertEquals(10, Tools.results.get(3));
 
+		a.dispose();
+		s.dispose();
+
 	}
 
 	public void testFoldContinuous() throws Exception {
 
-		Signal<TimeEvent> s = TimeReact.every(50).fold(new Function2<TimeEvent, TimeEvent, TimeEvent>() {
-
+		Var<Integer> a = TimeReact.every(50).fold(0, new Function2<Integer, Integer, Integer>() {
 			@Override
-			public TimeEvent invoke(TimeEvent arg1, TimeEvent arg2) {
-				System.out.println("ARG1 " + arg1);
-				System.out.println("ARG2 " + arg2);
-				return new TimeEvent();
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return arg1 + arg2;
 			}
-		});
+		}).toVar(0);
 
-		Thread.sleep(400);
+		Var<Integer> b = TimeReact.every(50).fold(0, new Function2<Integer, Integer, Integer>() {
+			@Override
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return arg1 + 1;
+			}
+		}).toVar(0);
+
+		Tools.assertWithTolerence(a.getValue(), 0, 5);
+		assertEquals(b.getValue(), 0, 5);
+		Thread.sleep(410);
+		Tools.assertWithTolerence(a.getValue(), 400, 5);
+		assertEquals(b.getValue(), 8, 5);
+
+		a.dispose();
+		b.dispose();
 
 	}
 
 	public void testFoldContinuousCount() throws Exception {
 
-		TimeReact.every(50).map(new Function1<Integer, TimeEvent>() {
-
-			@Override
-			public Integer invoke(TimeEvent value) {
-				return value.getIteration();
-			}
-		}).fold(0, new Function2<Integer, Integer, Integer>() {
-
-			@Override
-			public Integer invoke(Integer value1, Integer value2) {
-				System.out.println(value1);
-				return value1 + 1;
-			}
-		}).subscribe(new Procedure1<Integer>() {
-
+		Signal s = TimeReact.every(50).fold(0, Signal.SUM_FOLD).subscribe(new Procedure1<Integer>() {
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -183,117 +184,112 @@ public class SignalTest extends TestCase {
 			assertEquals(i + 1, v);
 			i++;
 		}
+
+		s.dispose();
 	}
 
-	public void testDispose() {
+	public void testFoldAverage() throws Exception {
 
-		Signal<MouseEvent> s = MouseReact.press(1);
+		Var<Integer> a = new Var<Integer>(0);
+		Var<Integer> average = a.fold(new Signal.AverageFold<Integer>() {
 
-		assertEquals(Integer.valueOf(1), ReactManager.getInstance().getReactCounter().getValue());
+			@Override
+			public Integer convert(Float value) {
+				return value.intValue();
+			}
+		}).toVar(0);
+
+		average.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				System.out.println("Average=" + arg1);
+				Tools.results.add(arg1);
+			}
+		});
+
+		a.setValue(10);
+		a.setValue(20);
+		a.setValue(30);
+		a.setValue(40);
+
+		assertEquals(average, average);
+
+	}
+
+	public void testDisposeCounter() {
+
+		Signal<Integer> s = MouseReact.press();
+		assertEquals(1, ReactManager.getInstance().getReactCounter().getValue().get());
 
 		s.dispose();
 
-		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
 
 	}
 
 	public void testDisposeMerge() {
 
-		Signal s = MouseReact.press(1).merge(TimeReact.every(100));
+		Signal<Integer> s = MouseReact.press().toVar(0).merge(TimeReact.every(100).toVar(0), new Function2<Integer, Integer, Integer>() {
+			@Override
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return 0;
+			}
+		});
 
-		assertEquals(Integer.valueOf(3), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(5, ReactManager.getInstance().getReactCounter().getValue().get());
 
 		s.dispose();
 
-		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
 
 	}
 
 	public void testDisposeFilter() {
 
-		Signal s = MouseReact.press(1).filter(new Predicate1<MouseEvent>() {
-
+		Signal s = MouseReact.press().filter(new Predicate1<Integer>() {
 			@Override
-			public boolean invoke(MouseEvent arg) {
+			public boolean invoke(Integer arg) {
 				return false;
 			}
 		});
 
-		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(2, ReactManager.getInstance().getReactCounter().getValue().get());
 
 		s.dispose();
 
-		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
 
 	}
 
 	public void testDisposeMap() {
 
-		Signal s = MouseReact.press(1).map(new Function1<String, MouseEvent>() {
-
+		Signal s = MouseReact.press().map(new Function1<String, Integer>() {
 			@Override
-			public String invoke(MouseEvent arg1) {
+			public String invoke(Integer arg1) {
 				return arg1.toString();
 			}
 		});
 
-		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
+		assertEquals(2, ReactManager.getInstance().getReactCounter().getValue().get());
 
 		s.dispose();
 
-		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
-
-	}
-
-	public void testSmooth() throws InterruptedException {
-
-		Procedure1<Tuple2<TimeEvent, TimeEvent>> p = new Procedure1<Tuple2<TimeEvent, TimeEvent>>() {
-
-			@Override
-			public void invoke(Tuple2<TimeEvent, TimeEvent> event) {
-				Tools.results.add(event);
-				System.out.println("RUN");
-			}
-		};
-
-		Signal s = TimeReact.every(50).merge(TimeReact.every(100)).subscribe(p);
-
-		assertEquals(0, Tools.results.size());
-		Thread.currentThread().sleep(410L);
-		assertEquals(12, Tools.results.size());
-
-		// reset
-		s.unSubscribe(p);
-		s.reset();
-		Tools.initResults();
-		assertEquals(0, Tools.results.size());
-		Thread.currentThread().sleep(175L);
-		assertEquals(0, Tools.results.size());
-
-		s.smooth(20).subscribe(p);
-
-		Thread.currentThread().sleep(410);
-		assertEquals(8, Tools.results.size());
-
-		System.out.println("DISPOSED");
-		s.dispose();
-		Thread.currentThread().sleep(510);
+		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
 
 	}
 
 	public void testDisposeOnFinish() throws InterruptedException {
 
-		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<Long>() {
-
+		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(Long value) {
+			public void invoke(Integer value) {
 				System.out.println("RUN");
 				Tools.results.add(value);
 			}
-		}).subscribeFinish(new Procedure1<Long>() {
-
+		}).subscribeFinish(new Procedure1<Integer>() {
 			@Override
-			public void invoke(Long value) {
+			public void invoke(Integer value) {
 				System.out.println("FINISH");
 				Tools.results.add(value);
 			}
@@ -306,38 +302,7 @@ public class SignalTest extends TestCase {
 		Thread.currentThread().sleep(200);
 		assertEquals(4, Tools.results.size());
 
-
-	}
-
-	public void testDisposeWhen() throws InterruptedException {
-
-		Signal s = TimeReact.every(50).fold(0L, new Function2<Long, Long, Long>() {
-
-			@Override
-			public Long invoke(Long arg1, Long arg2) {
-				Tools.results.add(arg1);
-				return arg1 + 1;
-			}
-		}).disposeWhen(new Predicate1<Long>() {
-
-			@Override
-			public boolean invoke(Long arg) {
-				if (arg == 4) {
-					Tools.results.add(arg);
-					System.out.println("DISPOSE");
-					return true;
-				}
-				return false;
-			}
-		});
-
-		assertEquals(0, Tools.results.size());
-		Thread.currentThread().sleep(200);
-		assertEquals(5, Tools.results.size());
-
-		Thread.currentThread().sleep(200);
-		assertEquals(5, Tools.results.size());
-
+		s.dispose();
 	}
 
 	public void testOperationDisposeWhen() throws InterruptedException {
@@ -346,7 +311,6 @@ public class SignalTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(0);
 
 		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
-
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -355,5 +319,7 @@ public class SignalTest extends TestCase {
 
 		sum.dispose();
 
+		a.dispose();
+		b.dispose();
 	}
 }

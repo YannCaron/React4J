@@ -24,10 +24,18 @@ import java.util.Random;
  * @author Yann Caron
  * @version v0.1
  */
-public class TimeReact extends EventReact<Long> {
+public class TimeReact extends EventReact<Integer> {
 
 	private Thread thread;
 	private Runnable task;
+	private Long lastTime;
+
+	protected int getTimeElapsed() {
+		long time = System.currentTimeMillis();
+		int result = (int) (time - lastTime);
+		lastTime = time;
+		return result;
+	}
 
 	// constructor
 	private TimeReact() {
@@ -40,6 +48,7 @@ public class TimeReact extends EventReact<Long> {
 			super.start();
 			thread = new Thread(task);
 			thread.start();
+			lastTime = System.currentTimeMillis();
 		}
 	}
 
@@ -77,7 +86,7 @@ public class TimeReact extends EventReact<Long> {
 			public void run() {
 				try {
 					Thread.sleep(timeout);
-					react.emit(System.currentTimeMillis());
+					react.emit(react.getTimeElapsed());
 				} catch (InterruptedException ex) {
 					// do nothing
 				} finally {
@@ -108,7 +117,7 @@ public class TimeReact extends EventReact<Long> {
 					while (react.isRunning()) {
 						Thread.sleep(timeout);
 
-						react.emit(System.currentTimeMillis());
+						react.emit(react.getTimeElapsed());
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -142,7 +151,7 @@ public class TimeReact extends EventReact<Long> {
 					while (react.isRunning()) {
 						Thread.sleep(min + rand.nextInt(max - min));
 
-						react.emit(System.currentTimeMillis());
+						react.emit(react.getTimeElapsed());
 					}
 				} catch (InterruptedException ex) {
 					// do nothing
@@ -182,7 +191,7 @@ public class TimeReact extends EventReact<Long> {
 
 						start = System.currentTimeMillis();
 
-						react.emit(System.currentTimeMillis());
+						react.emit(react.getTimeElapsed());
 
 						elapsed = System.currentTimeMillis() - start;
 					}

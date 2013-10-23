@@ -23,7 +23,10 @@ import java.util.ConcurrentModificationException;
 import fr.cyann.base.Package;
 import fr.cyann.functional.Function2;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -39,6 +42,7 @@ public abstract class Signal<V> {
 	protected boolean running = true;
 	private boolean autoStart = true;
 	private Signal parent;
+	private boolean disposed = false;
 	protected final List<Signal> links;
 
 	// inner class
@@ -49,12 +53,54 @@ public abstract class Signal<V> {
 		}
 	}
 
+	public static class KeepFirst<V, W> implements Function2<V, V, W> {
+
+		@Override
+		public V invoke(V arg1, W arg2) {
+			return arg1;
+		}
+	}
+
+	public static class KeepSecond<V, W> implements Function2<W, V, W> {
+
+		@Override
+		public W invoke(V arg1, W arg2) {
+			return arg2;
+		}
+	}
+	public static final Function2<Integer, Integer, Integer> SUM_FOLD = new Function2<Integer, Integer, Integer>() {
+		@Override
+		public Integer invoke(Integer arg1, Integer arg2) {
+			return arg1 + 1;
+		}
+	};
+
+	public static abstract class AverageFold<V extends Number> implements Function2<V, V, V> {
+
+		private int i;
+
+		public AverageFold() {
+			this.i = 1;
+		}
+
+		@Override
+		public V invoke(V arg1, V arg2) {
+			float sum = arg1.floatValue() * i;
+			i++;
+			return convert((sum + arg2.floatValue()) / i);
+		}
+
+		public abstract V convert(Float value);
+
+	}
 	// constructor
+
 	@Package
 	Signal(boolean count) {
 		if (count) {
 			ReactManager.getInstance().incrementCounter();
-			System.out.println("CREATE " + this.getClass());
+			disposed = false;
+			addDispose(this, 1);
 		}
 
 		react = new React<V>();
@@ -149,7 +195,6 @@ public abstract class Signal<V> {
 			start();
 		}
 		react.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
@@ -157,7 +202,6 @@ public abstract class Signal<V> {
 		});
 
 		finish.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emitFinish(value);
@@ -253,7 +297,6 @@ public abstract class Signal<V> {
 		smoothThread.start();
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				smoothThread.setValue(value);
@@ -263,13 +306,12 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(
-			new Procedure1<V>() {
-
-				@Override
-				public void invoke(V value) {
-					signal.emitFinish(value);
-				}
-			});
+				new Procedure1<V>() {
+			@Override
+			public void invoke(V value) {
+				signal.emitFinish(value);
+			}
+		});
 
 
 		return signal;
@@ -287,7 +329,6 @@ public abstract class Signal<V> {
 		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
@@ -297,7 +338,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning() && function.invoke(value)) {
@@ -331,7 +371,6 @@ public abstract class Signal<V> {
 		final Signal<R> signal = new ConcretSignal<R>(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
@@ -341,7 +380,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (signal.isRunning()) {
@@ -401,7 +439,6 @@ public abstract class Signal<V> {
 		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			private V previous = initEmit;
 
 			@Override
@@ -416,7 +453,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			private V previous = initFinish;
 
 			@Override
@@ -448,7 +484,6 @@ public abstract class Signal<V> {
 		then.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				then.start();
@@ -456,7 +491,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				then.stop();
@@ -466,38 +500,38 @@ public abstract class Signal<V> {
 		return then;
 	}
 	/*
-	public final <W> Signal<W> then(final Function1<Signal<W>, V> function) {
-	
-	final Signal<W> signal = new Var<W>((W) null);
-	links.add(signal);
-	
-	this.subscribe(new Procedure1<V>() {
-	
-	private boolean active = true;
-	
-	@Override
-	public synchronized void invoke(V value) {
-	if (active) {
-	final Signal<W> then = function.invoke(value);
-	links.add(then);
-	
-	then.subscribe(new Procedure1<W>() {
-	
-	@Override
-	public void invoke(W value) {
-	signal.emit(value);
-	active = true;
-	}
-	});
-	}
-	active = false;
-	
-	}
-	});
-	
-	return signal;
-	
-	}*/
+	 public final <W> Signal<W> then(final Function1<Signal<W>, V> function) {
+
+	 final Signal<W> signal = new Var<W>((W) null);
+	 links.add(signal);
+
+	 this.subscribe(new Procedure1<V>() {
+
+	 private boolean active = true;
+
+	 @Override
+	 public synchronized void invoke(V value) {
+	 if (active) {
+	 final Signal<W> then = function.invoke(value);
+	 links.add(then);
+
+	 then.subscribe(new Procedure1<W>() {
+
+	 @Override
+	 public void invoke(W value) {
+	 signal.emit(value);
+	 active = true;
+	 }
+	 });
+	 }
+	 active = false;
+
+	 }
+	 });
+
+	 return signal;
+
+	 }*/
 
 	/**
 	 * Expects the second signal, then the first one before emit resulting.
@@ -513,7 +547,6 @@ public abstract class Signal<V> {
 		when.setParent(this);
 
 		when.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
 				when.start();
@@ -521,7 +554,6 @@ public abstract class Signal<V> {
 		});
 
 		when.subscribeFinish(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
 				when.stop();
@@ -543,7 +575,6 @@ public abstract class Signal<V> {
 		// no parent
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
@@ -551,7 +582,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emitFinish(value);
@@ -575,7 +605,6 @@ public abstract class Signal<V> {
 		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				until.start();
@@ -583,7 +612,6 @@ public abstract class Signal<V> {
 		});
 
 		until.subscribe(new Procedure1() {
-
 			@Override
 			public void invoke(Object value) {
 				//signal.emitFinish(signal.getValue());
@@ -600,7 +628,6 @@ public abstract class Signal<V> {
 		merge.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				merge.start();
@@ -608,7 +635,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				merge.stop();
@@ -624,7 +650,6 @@ public abstract class Signal<V> {
 		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
@@ -632,7 +657,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emit(function.invoke(value));
@@ -644,7 +668,6 @@ public abstract class Signal<V> {
 
 	public final Signal<V> emitOnFinished() {
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				emit(value);
@@ -656,7 +679,6 @@ public abstract class Signal<V> {
 	public final <W> Signal<V> disposeWhen(Signal<W> signal) {
 		links.add(signal);
 		signal.subscribe(new Procedure1<W>() {
-
 			@Override
 			public void invoke(W value) {
 				Signal.this.dispose();
@@ -667,7 +689,6 @@ public abstract class Signal<V> {
 
 	public final Signal<V> disposeWhen(final Predicate1<V> predicate) {
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				if (predicate.invoke(value)) {
@@ -680,7 +701,6 @@ public abstract class Signal<V> {
 
 	public final Signal<V> disposeOnFinished() {
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				dispose();
@@ -694,7 +714,6 @@ public abstract class Signal<V> {
 		signal.setParent(this);
 
 		this.subscribe(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
@@ -702,7 +721,6 @@ public abstract class Signal<V> {
 		});
 
 		this.subscribeFinish(new Procedure1<V>() {
-
 			@Override
 			public void invoke(V value) {
 				signal.emitFinish(value);
@@ -711,10 +729,27 @@ public abstract class Signal<V> {
 
 		return signal;
 	}
+	public final static Map<String, Integer> DISPOSED = new HashMap<String, Integer>();
+
+	public final void addDispose(Signal signal, int i) {
+		int value = i;
+		String name = signal.getClass().getSimpleName();
+		if (DISPOSED.containsKey(name)) {
+			value = DISPOSED.get(name) + i;
+		}
+		DISPOSED.put(name, value);
+	}
 
 	public void dispose() {
-		System.out.println("DISPOSE " + this.getClass());
-		ReactManager.getInstance().decrementCounter();
+		//System.out.println("DISPOSE " + this.getClass());
+		if (!disposed) {
+			ReactManager.getInstance().decrementCounter();
+			addDispose(this, -1);
+		}
+		disposed = true;
+
+		react.clearSubscribe();
+		finish.clearSubscribe();
 
 		if (smoothThread != null) {
 			smoothThread.interrupt();

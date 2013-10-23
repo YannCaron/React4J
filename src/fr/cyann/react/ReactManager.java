@@ -17,23 +17,24 @@
 package fr.cyann.react;
 
 import fr.cyann.base.Package;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The ReactManager class.
  * Creation date: 20 oct. 2013.
- * @author CyaNn 
+ * @author CyaNn
  * @version v0.1
  */
 public class ReactManager {
 
 	// attribute
 	private static ReactManager singleton;
-	private final Var<Integer> counter;
+	private final Var<AtomicInteger> counter;
 
 	// constructor
 	// hide constructor
 	private ReactManager() {
-		counter = new Var<Integer>(0, false);
+		counter = new Var<AtomicInteger>(new AtomicInteger(0), false);
 	}
 
 	/**
@@ -53,7 +54,7 @@ public class ReactManager {
 	 */
 	@Package
 	void incrementCounter() {
-		counter.setValue(counter.getValue() + 1);
+		counter.getValue().incrementAndGet();
 	}
 
 	/**
@@ -61,10 +62,10 @@ public class ReactManager {
 	 */
 	@Package
 	void decrementCounter() {
-		counter.setValue(counter.getValue() - 1);
+		counter.getValue().decrementAndGet();
 	}
 
-	public Var<Integer> getReactCounter() {
+	public Var<AtomicInteger> getReactCounter() {
 		return counter;
 	}
 }

@@ -18,9 +18,9 @@ package fr.cyann.react;
 
 import fr.cyann.functional.Function;
 import fr.cyann.functional.Function1;
+import fr.cyann.functional.Function2;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
-import fr.cyann.functional.Tuple2;
 import java.util.ArrayList;
 import java.util.List;
 import static junit.framework.Assert.assertEquals;
@@ -30,9 +30,9 @@ import junit.framework.TestCase;
  *
  * @author Yann Caron
  */
-public class DiscreteReactTest extends TestCase {
+public class VarOperationTest extends TestCase {
 
-	public DiscreteReactTest(String testName) {
+	public VarOperationTest(String testName) {
 		super(testName);
 	}
 
@@ -372,11 +372,12 @@ public class DiscreteReactTest extends TestCase {
 		final Var<Integer> a = new Var<Integer>(0);
 		final Var<Integer> b = new Var<Integer>(0);
 
-		Signal<Tuple2<Integer, Integer>> r = a.sync(b);
+		Signal<Integer> r = a.sync(b, new Signal.KeepFirst<Integer, Integer>() {
+		});
 
-		r.subscribe(new Procedure1<Tuple2<Integer, Integer>>() {
+		r.subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(Tuple2<Integer, Integer> value) {
+			public void invoke(Integer value) {
 				Tools.results.add(value);
 				System.out.println(value);
 			}
@@ -404,11 +405,13 @@ public class DiscreteReactTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(0);
 		final Var<Integer> c = new Var<Integer>(0);
 
-		Signal<Tuple2<Tuple2<Integer, Integer>, Integer>> r = a.sync(b).sync(c);
+		Signal<Integer> r = a.sync(b, new Signal.KeepFirst<Integer, Integer>() {
+		}).sync(c, new Signal.KeepFirst<Integer, Integer>() {
+		});
 
-		r.subscribe(new Procedure1<Tuple2<Tuple2<Integer, Integer>, Integer>>() {
+		r.subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(Tuple2<Tuple2<Integer, Integer>, Integer> value) {
+			public void invoke(Integer value) {
 				Tools.results.add(value);
 				System.out.println(value);
 			}

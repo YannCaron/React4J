@@ -16,6 +16,7 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functional.Function2;
 import fr.cyann.functional.Procedure1;
 import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
@@ -41,9 +42,9 @@ public class TimeReactTest extends TestCase {
 	 */
 	public void testOnce() throws InterruptedException {
 
-		Signal<TimeEvent> s = TimeReact.once(250L).subscribe(new Procedure1<TimeEvent>() {
+		Signal<Integer> s = TimeReact.once(250L).subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent event) {
+			public void invoke(Integer event) {
 				Tools.results.add(event);
 			}
 		});
@@ -53,9 +54,7 @@ public class TimeReactTest extends TestCase {
 
 		Thread.currentThread().sleep(150L);
 		assertEquals(1, Tools.results.size());
-		assertEquals(1, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
 
 		s.dispose();
 	}
@@ -65,9 +64,9 @@ public class TimeReactTest extends TestCase {
 	 */
 	public void testEvery() throws InterruptedException {
 
-		Signal<TimeEvent> s = TimeReact.every(250L).subscribe(new Procedure1<TimeEvent>() {
+		Signal<Integer> s = TimeReact.every(250L).subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent event) {
+			public void invoke(Integer event) {
 				Tools.results.add(event);
 				try {
 					System.out.println("TEST EVERY");
@@ -83,21 +82,15 @@ public class TimeReactTest extends TestCase {
 
 		Thread.currentThread().sleep(110L);
 		assertEquals(1, Tools.results.size());
-		assertEquals(1, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
 
 		Thread.currentThread().sleep(350L);
 		assertEquals(2, Tools.results.size());
-		assertEquals(2, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(350, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(600, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
 
 		Thread.currentThread().sleep(350L);
 		assertEquals(3, Tools.results.size());
-		assertEquals(3, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(350, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(950, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
 
 		s.dispose();
 	}
@@ -107,25 +100,22 @@ public class TimeReactTest extends TestCase {
 	 */
 	public void testRandomly() throws InterruptedException {
 
-		Signal<TimeEvent> s = TimeReact.randomly(50, 150).subscribe(new Procedure1<TimeEvent>() {
+		Signal<Integer> s = TimeReact.randomly(50, 150).subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent event) {
-				Tools.results.add(event.clone());
+			public void invoke(Integer event) {
+				Tools.results.add(event);
 				System.out.println("TEST RANDOMLY" + event);
 			}
 		});
 
 		Thread.currentThread().sleep(500L);
 
-		TimeEvent prev = null;
+		Integer prev = null;
 		for (Object obj : Tools.results) {
-			TimeEvent ev = (TimeEvent) obj;
-			if (prev != null) {
-				assertNotSame(prev.getTimeElapsed(), ev.getTimeElapsed());
-			}
-			assertTrue(ev.getTimeElapsed() >= 45);
-			assertTrue(ev.getTimeElapsed() <= 155);
-			System.out.println(ev.getTimeElapsed());
+			Integer ev = (Integer) obj;
+			assertTrue(ev >= 45);
+			assertTrue(ev <= 155);
+			System.out.println(ev);
 		}
 
 		s.dispose();
@@ -136,41 +126,31 @@ public class TimeReactTest extends TestCase {
 	 */
 	public void testFramePerSecond() throws InterruptedException {
 
-		System.out.println(ReactManager.getInstance().getReactCounter().getValue());
-
-		Signal<TimeEvent> s = TimeReact.framePerSecond(4).subscribe(new Procedure1<TimeEvent>() {
+		Signal<Integer> s = TimeReact.framePerSecond(4).subscribe(new Procedure1<Integer>() {
 			@Override
-			public void invoke(TimeEvent event) {
-				Tools.results.add(event);
-				try {
-					System.out.println("TEST FPS");
-					Thread.currentThread().sleep(100L);
-				} catch (InterruptedException ex) {
-					// do nothing
-				}
+			public void invoke(Integer arg1) {
+				System.out.println(arg1);
+				Tools.results.add(arg1);
 			}
 		});
 
-		Thread.currentThread().sleep(150L);
+		Var<Integer> cumul = s.fold(new Function2<Integer, Integer, Integer>() {
+			@Override
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return arg1 + arg2;
+			}
+		}).toVar(0);
+
 		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(1010);
 
-		Thread.currentThread().sleep(110L);
-		assertEquals(1, Tools.results.size());
-		assertEquals(1, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		assertEquals(4, Tools.results.size());
+		Tools.assertWithTolerence(250, (Integer) Tools.results.get(0), 5);
+		Tools.assertWithTolerence(250, (Integer) Tools.results.get(1), 5);
+		Tools.assertWithTolerence(250, (Integer) Tools.results.get(2), 5);
+		Tools.assertWithTolerence(250, (Integer) Tools.results.get(3), 5);
 
-		Thread.currentThread().sleep(350L);
-		assertEquals(2, Tools.results.size());
-		assertEquals(2, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(500, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
-
-		Thread.currentThread().sleep(350L);
-		assertEquals(3, Tools.results.size());
-		assertEquals(3, ((TimeEvent) Tools.results.get(0)).getIteration());
-		Tools.assertMoreOrLess(250, ((TimeEvent) Tools.results.get(0)).getTimeElapsed(), 5);
-		Tools.assertMoreOrLess(750, ((TimeEvent) Tools.results.get(0)).getTimeElapsedFromStart(), 5);
+		Tools.assertWithTolerence(1000, cumul.getValue(), 5);
 
 		s.dispose();
 	}

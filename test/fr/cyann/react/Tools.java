@@ -36,7 +36,7 @@ public final class Tools {
 		results.clear();
 	}
 		
-	public final static void assertMoreOrLess(long time1, long time2, long tolerance) {
+	public final static void assertWithTolerence(long time1, long time2, long tolerance) {
 		if (Math.abs(time1 - time2) > tolerance) {
 			String msg = "Assertion error, range expected [" + (time1 - tolerance) + "-" + (time1 + tolerance) + "], found " + time2;
 			throw new AssertionError(msg);

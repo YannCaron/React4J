@@ -25,7 +25,7 @@ import java.awt.event.MouseEvent;
 
 /**
  * The MouseReact class. Creation date: 13 oct. 2013.
- *
+ * All factories of mouse reacts.
  * @author CyaNn
  * @version v0.1
  */
@@ -33,6 +33,10 @@ public class MouseReact extends EventReact<Integer> {
 
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();
+
+	/**
+	 * Predefined filter. Filter on the button 1 when mouse is pressed or released.
+	 */
 	public static Predicate1<Integer> BUTTON1 = new Predicate1<Integer>() {
 
 		@Override
@@ -40,6 +44,9 @@ public class MouseReact extends EventReact<Integer> {
 			return value.equals(1);
 		}
 	};
+	/**
+	 * Predefined filter. Filter on the button 2 when mouse is pressed or released.
+	 */
 	public static Predicate1<Integer> BUTTON2 = new Predicate1<Integer>() {
 
 		@Override
@@ -47,6 +54,9 @@ public class MouseReact extends EventReact<Integer> {
 			return value.equals(1);
 		}
 	};
+	/**
+	 * Predefined filter. Filter on the button 3 when mouse is pressed or released.
+	 */
 	public static Predicate1<Integer> BUTTON3 = new Predicate1<Integer>() {
 
 		@Override
@@ -55,6 +65,10 @@ public class MouseReact extends EventReact<Integer> {
 		}
 	};
 
+	/**
+	 * Template method (GoF). Do not override it !<br>
+	 * Needed to dispose all react resources, threads etc.
+	 */
 	@Override
 	public void applyDispose() {
 
@@ -90,6 +104,10 @@ public class MouseReact extends EventReact<Integer> {
 	}
 
 	// factories
+	/**
+	 * React that emit event when any mouse button is pressed.
+	 * @return The corresponding mouse react.
+	 */
 	public static MouseReact press() {
 		return createListener(new Predicate1<MouseEvent>() {
 
@@ -106,6 +124,10 @@ public class MouseReact extends EventReact<Integer> {
 		}, AWTEvent.MOUSE_EVENT_MASK);
 	}
 
+	/**
+	 * React that emit event when any mouse button is released.
+	 * @return The corresponding mouse react.
+	 */
 	public static MouseReact release() {
 		return createListener(new Predicate1<MouseEvent>() {
 
@@ -122,6 +144,11 @@ public class MouseReact extends EventReact<Integer> {
 		}, AWTEvent.MOUSE_EVENT_MASK);
 	}
 
+	/**
+	 * React that emit event when any mouse button is pressed and finish event when mouse button is released.<br>
+	 * It create a long signal that is framed.
+	 * @return The corresponding mouse react.
+	 */
 	public static MouseReact hold() {
 		final MouseReact react = new MouseReact();
 
@@ -148,6 +175,10 @@ public class MouseReact extends EventReact<Integer> {
 		return react;
 	}
 
+	/**
+	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
+	 * @return The corresponding mouse react.
+	 */
 	public static MouseReact positionX() {
 		return createListener(new Predicate1<MouseEvent>() {
 
@@ -164,6 +195,10 @@ public class MouseReact extends EventReact<Integer> {
 		}, AWTEvent.MOUSE_MOTION_EVENT_MASK);
 	}
 
+	/**
+	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
+	 * @return The corresponding mouse react.
+	 */
 	public static MouseReact positionY() {
 		return createListener(new Predicate1<MouseEvent>() {
 

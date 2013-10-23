@@ -41,7 +41,12 @@ public class React<A> {
 		this.subscribers.remove(subscriber);
 	}
 
-	@Package synchronized React<A> emit(A value) {
+	public void clearSubscribe() {
+		this.subscribers.clear();
+	}
+
+	@Package
+	synchronized React<A> emit(A value) {
 		for (Procedure1<A> subscriber : subscribers) {
 			subscriber.invoke(value);
 		}
