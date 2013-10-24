@@ -16,17 +16,19 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
+import java.util.Random;
 
 /**
- * The Signals class.
+ * The CommonReact class.
  * Creation date: 24 oct. 2013.
  * @author CyaNn 
  * @version v0.1
  */
-public class Signals {
+public class CommonReact {
 
-	private Signals() {
+	private CommonReact() {
 	} // static class
 
 	public static final Var<Integer> newRange(final int from, final int to, final int step, final Signal every) {
@@ -41,6 +43,17 @@ public class Signals {
 				}
 			}
 		});
+	}
+
+	public static final Var<Integer> newRandom(final int from, final int to, final Signal every) {
+		final Random rnd = new Random();
+		return every.map(new Function1<Integer, Object>() {
+
+			@Override
+			public Integer invoke(Object arg1) {
+				return rnd.nextInt(to + 1 - from) + from;
+			}
+		}).toVar(rnd.nextInt(to + 1 - from) + from);
 	}
 
 	public static final Var<Integer> newCounter(final Signal every) {

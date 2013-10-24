@@ -29,7 +29,7 @@ import java.awt.event.MouseEvent;
  * @author CyaNn
  * @version v0.1
  */
-public class MouseReact extends EventReact<Integer> {
+public class MouseReact extends AbstractReact<Integer> {
 
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();

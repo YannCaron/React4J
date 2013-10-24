@@ -19,14 +19,14 @@ package fr.cyann.react;
 import fr.cyann.base.Package;
 
 /**
- * The EventReact abstract class.<br>
+ * The AbstractReact abstract class.<br>
  * Represent the super class of all continuous react un the library.<br>
  * Should be realized in case of new continuous react creation.
  * Creation date: 14 oct. 2013.
  * @author CyaNn
  * @version v0.1
  */
-public abstract class EventReact<V> extends Signal<V> {
+public abstract class AbstractReact<V> extends Signal<V> {
 
 	/**
 	Template method.<br>

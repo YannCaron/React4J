@@ -53,7 +53,7 @@ public abstract class Signal<V> {
 			super(parent);
 		}
 	}
-
+	
 	public static class KeepFirstFold<V, W> implements Function2<V, V, W> {
 
 		@Override

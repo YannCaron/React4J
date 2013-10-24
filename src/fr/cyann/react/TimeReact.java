@@ -24,7 +24,7 @@ import java.util.Random;
  * @author Yann Caron
  * @version v0.1
  */
-public class TimeReact extends EventReact<Integer> {
+public class TimeReact extends AbstractReact<Integer> {
 
 	private Thread thread;
 	private Runnable task;
