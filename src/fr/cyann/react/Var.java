@@ -29,14 +29,14 @@ public class Var<V> extends Signal<V> {
 	// attribute
 	/**
 	Value decorated by this generic type.
-	*/
+	 */
 	protected V value;
 
 	// constructor
 	/**
 	Default constructor.
 	@param value the initial value.
-	*/
+	 */
 	public Var(V value) {
 		super();
 		this.value = value;
@@ -46,7 +46,7 @@ public class Var<V> extends Signal<V> {
 	Constructor for ReactManager only (avoid stack overflow with the counter react).
 	@param value the initial value.
 	@param count is ReactManaget count this.
-	*/
+	 */
 	@Package
 	Var(V value, boolean count) {
 		super(count);
@@ -57,7 +57,7 @@ public class Var<V> extends Signal<V> {
 	Var constructor for chained signals.
 	@param value the initial value.
 	@param parent chain with the parent.
-	*/
+	 */
 	public Var(V value, Signal parent) {
 		super(parent);
 		this.value = value;
@@ -66,7 +66,7 @@ public class Var<V> extends Signal<V> {
 	/**
 	Emit a signal
 	@param value the signal value.
-	*/
+	 */
 	@Override
 	public void emit(V value) {
 		this.value = value;
@@ -76,7 +76,7 @@ public class Var<V> extends Signal<V> {
 	/**
 	Emit a finish signal.
 	@param value the signal value.
-	*/
+	 */
 	@Override
 	public void emitFinish(V value) {
 		this.value = value;
@@ -91,27 +91,27 @@ public class Var<V> extends Signal<V> {
 	/**
 	Value mutator.
 	@param value the value to set.
-	*/
+	 */
 	public synchronized void setValue(V value) {
 		this.value = value;
 		super.emit(value);
 	}
-/*
+	/*
 	@Override
 	public final <R> Var<R> map(final Function1<R, V> function) {
-		return super.map(function).toVar(function.invoke(getValue()));
+	return super.map(function).toVar(function.invoke(getValue()));
 	}*/
 
 	/**
 	Merge two signal together. If any signal emit, the resulting signal will
 	emit. Consider this operation like an <b>and</b> boolean operation.
-
+	
 	@param <X> Type of the resulting var.
 	@param <W> Type of the merged var.
 	@param merge the var to merge with.
 	@param mapfold the map fold transformation function.<br>It's goal is to merge the two values together and returned in the desired type.
 	@return the new merged signal.
-	*/
+	 */
 	public final <X, W> Var<X> merge(final Var<W> merge, final Function2<X, V, W> mapfold) {
 		links.add(merge);
 		final Var<X> signal = new Var(mapfold.invoke(getValue(), merge.getValue()), this);
@@ -149,9 +149,25 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final Signal<V> fold(final Function2<V, V, V> function) {
+		return fold(getValue(), function, getValue(), function);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
+		return fold(getValue(), fEmit, getValue(), fFinish);
+	}
+
+	/**
 	Synchrinize two callback together.
 	@param <V> the callback type.
-	*/
+	 */
 	private static abstract class SyncProcedure1<V> implements Procedure1<V> {
 
 		private SyncProcedure1 with;
@@ -179,7 +195,7 @@ public class Var<V> extends Signal<V> {
 	Synchronize signal together. The both signals should be emited before
 	resulting signal will emit.<br>
 	Consider this operation like an <b>or</b> boolean operation.
-
+	
 	@param <X> Type of the resulting var.
 	@param <W> Type of the merged var.
 	@param sync the var to merge with.

@@ -16,6 +16,7 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Procedure1;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,14 +40,34 @@ public class ListVarTest extends TestCase {
 		List<Integer> li = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8));
 		ListVar<Integer> list = ListVar.newInstance(li);
 
-		Var<Integer> elements = list.elements(TimeReact.every(100)).toVar(0);
-		elements.subscribe(new Procedure1<Integer>() {
+		Var<Integer> elements = list.elementsEvery(TimeReact.every(100)).toVar(0);
+		elements.map(new Function1<String, Integer>() {
+
 			@Override
-			public void invoke(Integer arg1) {
-				System.out.println("Element " + arg1);
+			public String invoke(Integer value) {
+				return "Element " + value;
+			}
+		}).subscribe(new Procedure1<String>() {
+			@Override
+			public void invoke(String arg1) {
+				System.out.println(arg1);
+				Tools.results.add(arg1);
 			}
 		}).disposeOnFinished();
 
-		Thread.currentThread().sleep(1000);
+		assertEquals(0, Tools.results.size());
+		Thread.currentThread().sleep(1010);
+		assertEquals(10, Tools.results.size());
+		assertEquals("Element 1", Tools.results.get(0));
+		assertEquals("Element 2", Tools.results.get(1));
+		assertEquals("Element 3", Tools.results.get(2));
+		assertEquals("Element 4", Tools.results.get(3));
+		assertEquals("Element 5", Tools.results.get(4));
+		assertEquals("Element 6", Tools.results.get(5));
+		assertEquals("Element 7", Tools.results.get(6));
+		assertEquals("Element 8", Tools.results.get(7));
+		assertEquals("Element 1", Tools.results.get(8));
+		assertEquals("Element 2", Tools.results.get(9));
+		
 	}
 }

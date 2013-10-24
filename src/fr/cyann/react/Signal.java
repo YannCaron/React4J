@@ -448,7 +448,7 @@ public abstract class Signal<V> {
 	 * current.
 	 * @return the new value.
 	 */
-	public final Signal<V> fold(final Function2<V, V, V> function) {
+	public Signal<V> fold(final Function2<V, V, V> function) {
 		return fold(function, function);
 	}
 
@@ -459,7 +459,7 @@ public abstract class Signal<V> {
 	 * @param initFinish the first value to fold for finish folding.
 	 * @return the new value.
 	 */
-	public final Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
+	public Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
 		final Signal<V> signal = new ConcretSignal<V>(this);
 
 		this.subscribeDiscreet(new Procedure1<V>() {

@@ -16,14 +16,13 @@
  */
 package fr.cyann.react;
 
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Procedure1;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The ListVar class. Creation date: 12 oct. 2013. Emit signal when list
@@ -66,29 +65,15 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 		return new ListVar<V>(value);
 	}
 
-	public Var<V> elements(final Signal every) {
+	public Var<V> elementsEvery(final Signal every) {
 		final List<V> clone = Collections.unmodifiableList(value);
-		final Var<V> signal = new Var<V>(clone.get(0), this);
-
-		links.add(every);
-
-
-		every.subscribe(new Procedure1() {
-
-			int i = 0;
+		return Signals.newRange(0, clone.size() - 1, 1, every).toVar(0).map(new Function1<V, Integer>() {
 
 			@Override
-			public void invoke(Object arg1) {
-				signal.setValue(clone.get(i));
-				i++;
-				if (i >= clone.size()) {
-					i = 0; // ready to restart
-					signal.emitFinish(clone.get(0));
-				}
+			public V invoke(Integer index) {
+				return clone.get(index);
 			}
-		});
-
-		return signal;
+		}).toVar(clone.get(0));
 
 	}
 

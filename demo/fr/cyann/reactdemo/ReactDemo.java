@@ -107,7 +107,7 @@ public class ReactDemo {
 		List<Integer> li = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8));
 		ListVar<Integer> list = ListVar.newInstance(li);
 
-		Var<Integer> elements = list.elements(TimeReact.every(500L)).toVar(0);
+		Var<Integer> elements = list.elementsEvery(TimeReact.every(500L)).toVar(0);
 		elements.subscribe(new Procedure1<Integer>() {
 
 			@Override
