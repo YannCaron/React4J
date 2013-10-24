@@ -168,7 +168,7 @@ public class SignalTest extends TestCase {
 
 	public void testFoldContinuousCount() throws Exception {
 
-		Signal s = TimeReact.every(50).fold(0, Signal.SUM_FOLD).subscribe(new Procedure1<Integer>() {
+		Signal s = TimeReact.every(50).fold(0, new Signal.CountFold<Integer>()).subscribe(new Procedure1<Integer>() {
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -191,18 +191,11 @@ public class SignalTest extends TestCase {
 	public void testFoldAverage() throws Exception {
 
 		Var<Integer> a = new Var<Integer>(0);
-		Var<Integer> average = a.fold(new Signal.AverageFold<Integer>() {
+		Var<Float> average = a.fold(0f, new Signal.AverageFold<Integer>());
 
+		average.subscribe(new Procedure1<Float>() {
 			@Override
-			public Integer convert(Float value) {
-				return value.intValue();
-			}
-		}).toVar(0);
-
-		average.subscribe(new Procedure1<Integer>() {
-
-			@Override
-			public void invoke(Integer arg1) {
+			public void invoke(Float arg1) {
 				System.out.println("Average=" + arg1);
 				Tools.results.add(arg1);
 			}
@@ -213,18 +206,22 @@ public class SignalTest extends TestCase {
 		a.setValue(30);
 		a.setValue(40);
 
-		assertEquals(average, average);
+		assertEquals(Float.valueOf(5.0f), Tools.results.get(0));
+		assertEquals(Float.valueOf(10.0f), Tools.results.get(1));
+		assertEquals(Float.valueOf(15.0f), Tools.results.get(2));
+		assertEquals(Float.valueOf(20.0f), Tools.results.get(3));
 
+		average.dispose();
 	}
 
 	public void testDisposeCounter() {
 
 		Signal<Integer> s = MouseReact.press();
-		assertEquals(1, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(1), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
 
-		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
 
 	}
 
@@ -237,11 +234,11 @@ public class SignalTest extends TestCase {
 			}
 		});
 
-		assertEquals(5, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(5), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
 
-		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
 
 	}
 
@@ -254,11 +251,11 @@ public class SignalTest extends TestCase {
 			}
 		});
 
-		assertEquals(2, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
 
-		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
 
 	}
 
@@ -271,11 +268,11 @@ public class SignalTest extends TestCase {
 			}
 		});
 
-		assertEquals(2, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(2), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
 
-		assertEquals(0, ReactManager.getInstance().getReactCounter().getValue().get());
+		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
 
 	}
 

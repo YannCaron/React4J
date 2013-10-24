@@ -96,6 +96,11 @@ public class Var<V> extends Signal<V> {
 		this.value = value;
 		super.emit(value);
 	}
+/*
+	@Override
+	public final <R> Var<R> map(final Function1<R, V> function) {
+		return super.map(function).toVar(function.invoke(getValue()));
+	}*/
 
 	/**
 	Merge two signal together. If any signal emit, the resulting signal will
@@ -109,8 +114,7 @@ public class Var<V> extends Signal<V> {
 	*/
 	public final <X, W> Var<X> merge(final Var<W> merge, final Function2<X, V, W> mapfold) {
 		links.add(merge);
-		final Var<X> signal = new Var(mapfold.invoke(getValue(), merge.getValue()));
-		signal.setParent(this);
+		final Var<X> signal = new Var(mapfold.invoke(getValue(), merge.getValue()), this);
 
 		this.subscribe(new Procedure1<V>() {
 
@@ -184,8 +188,7 @@ public class Var<V> extends Signal<V> {
 	 */
 	public final <X, W> Var<X> sync(final Var<W> sync, final Function2<X, V, W> mapfold) {
 		links.add(sync);
-		final Var<X> signal = new Var(mapfold.invoke(getValue(), sync.getValue()));
-		signal.setParent(this);
+		final Var<X> signal = new Var(mapfold.invoke(getValue(), sync.getValue()), this);
 
 		SyncProcedure1<V> p1 = new SyncProcedure1<V>() {
 

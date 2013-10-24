@@ -150,8 +150,10 @@ public class TimeReactTest extends TestCase {
 		Tools.assertWithTolerence(250, (Integer) Tools.results.get(2), 5);
 		Tools.assertWithTolerence(250, (Integer) Tools.results.get(3), 5);
 
+		System.out.println(cumul);
 		Tools.assertWithTolerence(1000, cumul.getValue(), 5);
 
 		s.dispose();
+		cumul.dispose();
 	}
 }

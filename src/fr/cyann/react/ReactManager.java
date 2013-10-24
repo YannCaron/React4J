@@ -17,6 +17,7 @@
 package fr.cyann.react;
 
 import fr.cyann.base.Package;
+import fr.cyann.functional.Function1;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,12 +30,14 @@ public class ReactManager {
 
 	// attribute
 	private static ReactManager singleton;
-	private final Var<AtomicInteger> counter;
+	private final AtomicInteger value;
+	private final Var<Integer> counter;
 
 	// constructor
 	// hide constructor
 	private ReactManager() {
-		counter = new Var<AtomicInteger>(new AtomicInteger(0), false);
+		value = new AtomicInteger();
+		counter = new Var<Integer>(new Integer(0), false);
 	}
 
 	/**
@@ -54,7 +57,8 @@ public class ReactManager {
 	 */
 	@Package
 	void incrementCounter() {
-		counter.getValue().incrementAndGet();
+		int v = value.incrementAndGet();
+		counter.emit(v);
 	}
 
 	/**
@@ -62,10 +66,11 @@ public class ReactManager {
 	 */
 	@Package
 	void decrementCounter() {
-		counter.getValue().decrementAndGet();
+		int v = value.decrementAndGet();
+		counter.emit(v);
 	}
 
-	public Var<AtomicInteger> getReactCounter() {
+	public Var<Integer> getReactCounter() {
 		return counter;
 	}
 }

@@ -372,7 +372,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> a = new Var<Integer>(0);
 		final Var<Integer> b = new Var<Integer>(0);
 
-		Signal<Integer> r = a.sync(b, new Signal.KeepFirst<Integer, Integer>() {
+		Signal<Integer> r = a.sync(b, new Signal.KeepFirstFold<Integer, Integer>() {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {
@@ -405,8 +405,8 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(0);
 		final Var<Integer> c = new Var<Integer>(0);
 
-		Signal<Integer> r = a.sync(b, new Signal.KeepFirst<Integer, Integer>() {
-		}).sync(c, new Signal.KeepFirst<Integer, Integer>() {
+		Signal<Integer> r = a.sync(b, new Signal.KeepFirstFold<Integer, Integer>() {
+		}).sync(c, new Signal.KeepFirstFold<Integer, Integer>() {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {

@@ -43,7 +43,7 @@ public class TimeReact extends EventReact<Integer> {
 	}
 
 	@Override
-	public void start() {
+	public synchronized void start() {
 		if (!isRunning()) {
 			super.start();
 			thread = new Thread(task);
@@ -53,7 +53,7 @@ public class TimeReact extends EventReact<Integer> {
 	}
 
 	@Override
-	public void stop() {
+	public synchronized void stop() {
 		if (isRunning()) {
 			super.stop();
 			if (thread != null) {
@@ -72,21 +72,28 @@ public class TimeReact extends EventReact<Integer> {
 	}
 
 	/**
-	 * Factory to create a time based react. Emit a signal only one time after
-	 * timeout.
-	 *
-	 * @param timeout time to wait before emitting message
-	 * @return the time react
+	 * Interface to run in time react.
 	 */
-	public static TimeReact once(final long timeout) {
+	public interface TimeRunnable {
+
+		public void run(TimeReact react) throws InterruptedException;
+	}
+
+	/**
+	 * Create a new instance of time react. Encapsulate the runnable into thread.
+	 *
+	 * @param runnable the method to run in thread.
+	 * @return the obtained instance of time react.
+	 */
+	private static TimeReact newInstance(final TimeRunnable runnable) {
 		final TimeReact react = new TimeReact();
 
 		react.task = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(timeout);
-					react.emit(react.getTimeElapsed());
+					runnable.run(react);
 				} catch (InterruptedException ex) {
 					// do nothing
 				} finally {
@@ -95,8 +102,26 @@ public class TimeReact extends EventReact<Integer> {
 
 			}
 		};
-
 		return react;
+	}
+
+	/**
+	 * Factory to create a time based react. Emit a signal only one time after
+	 * timeout.
+	 *
+	 * @param timeout time to wait before emitting message
+	 * @return the time react
+	 */
+	public static TimeReact once(final long timeout) {
+
+		return newInstance(new TimeRunnable() {
+
+			@Override
+			public void run(TimeReact react) throws InterruptedException {
+				Thread.sleep(timeout);
+				react.emit(react.getTimeElapsed());
+			}
+		});
 	}
 
 	/**
@@ -107,28 +132,16 @@ public class TimeReact extends EventReact<Integer> {
 	 * @return the time react
 	 */
 	public static TimeReact every(final long timeout) {
-		final TimeReact react = new TimeReact();
+		return newInstance(new TimeRunnable() {
 
-		react.task = new Runnable() {
 			@Override
-			public void run() {
-				try {
-
-					while (react.isRunning()) {
-						Thread.sleep(timeout);
-
-						react.emit(react.getTimeElapsed());
-					}
-				} catch (InterruptedException ex) {
-					// do nothing
-				} finally {
-					react.stop();
+			public void run(TimeReact react) throws InterruptedException {
+				while (react.isRunning()) {
+					Thread.sleep(timeout);
+					react.emit(react.getTimeElapsed());
 				}
-
 			}
-		};
-
-		return react;
+		});
 	}
 
 	/**
@@ -139,30 +152,20 @@ public class TimeReact extends EventReact<Integer> {
 	 * @return the time react
 	 */
 	public static TimeReact randomly(final int min, final int max) {
-		final TimeReact react = new TimeReact();
+		return newInstance(new TimeRunnable() {
 
-		react.task = new Runnable() {
+			Random rand = new Random();
+
 			@Override
-			public void run() {
-				try {
+			public void run(TimeReact react) throws InterruptedException {
 
-					Random rand = new Random();
+				while (react.isRunning()) {
+					Thread.sleep(min + rand.nextInt(max - min));
 
-					while (react.isRunning()) {
-						Thread.sleep(min + rand.nextInt(max - min));
-
-						react.emit(react.getTimeElapsed());
-					}
-				} catch (InterruptedException ex) {
-					// do nothing
-				} finally {
-					react.stop();
+					react.emit(react.getTimeElapsed());
 				}
-
 			}
-		};
-
-		return react;
+		});
 	}
 
 	/**
@@ -173,37 +176,27 @@ public class TimeReact extends EventReact<Integer> {
 	 * @return the time react
 	 */
 	public static TimeReact framePerSecond(final int fps) {
-		final TimeReact react = new TimeReact();
 		final long timeout = 1000L / fps;
 
-		react.task = new Runnable() {
+		return newInstance(new TimeRunnable() {
+
 			@Override
-			public void run() {
-				try {
+			public void run(TimeReact react) throws InterruptedException {
+				long start = 0;
+				long elapsed = 0;
 
-					long start = 0;
-					long elapsed = 0;
-
-					while (react.isRunning()) {
-						if (timeout > elapsed) {
-							Thread.sleep(timeout - elapsed);
-						}
-
-						start = System.currentTimeMillis();
-
-						react.emit(react.getTimeElapsed());
-
-						elapsed = System.currentTimeMillis() - start;
+				while (react.isRunning()) {
+					if (timeout > elapsed) {
+						Thread.sleep(timeout - elapsed);
 					}
-				} catch (InterruptedException ex) {
-					// do nothing
-				} finally {
-					react.stop();
+
+					start = System.currentTimeMillis();
+
+					react.emit(react.getTimeElapsed());
+
+					elapsed = System.currentTimeMillis() - start;
 				}
-
 			}
-		};
-
-		return react;
+		});
 	}
 }

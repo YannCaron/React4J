@@ -150,7 +150,13 @@ public class MouseReact extends EventReact<Integer> {
 	 * @return The corresponding mouse react.
 	 */
 	public static MouseReact hold() {
-		final MouseReact react = new MouseReact();
+		final MouseReact react = new MouseReact() {
+
+			@Override
+			public void start() {
+				super.start();
+			}
+		};
 
 		AWTEventListener listener = new AWTEventListener() {
 
