@@ -22,11 +22,9 @@ import fr.cyann.functional.Procedure1;
 import java.util.ConcurrentModificationException;
 import fr.cyann.base.Package;
 import fr.cyann.functional.Function2;
+import fr.cyann.functional.Predicate2;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The Signal class. Define the base class of all discrete and continous react.
@@ -53,7 +51,55 @@ public abstract class Signal<V> {
 			super(parent);
 		}
 	}
-	
+
+	public static class AlwaysFilter<V> implements Predicate1<V> {
+
+		@Override
+		public boolean invoke(V arg) {
+			return true;
+		}
+	}
+
+	public static class NeverFilter<V> implements Predicate1<V> {
+
+		@Override
+		public boolean invoke(V arg) {
+			return true;
+		}
+	}
+
+	public static class AlwaysFilter2<V> implements Predicate2<V, V> {
+
+		@Override
+		public boolean invoke(V arg1, V arg2) {
+			return true;
+		}
+	}
+
+	public static class NeverFilter2<V> implements Predicate2<V, V> {
+
+		@Override
+		public boolean invoke(V arg1, V arg2) {
+			return false;
+		}
+	}
+
+	public static class DropRepeatFilter<V> implements Predicate2<V, V> {
+
+		@Override
+		public boolean invoke(V arg1, V arg2) {
+			return arg1 != arg2;
+		}
+	}
+
+	public static class RaiseRepeatFilter<V> implements Predicate2<V, V> {
+
+		@Override
+		public boolean invoke(V arg1, V arg2) {
+			return arg1 == arg2;
+		}
+	}
+
 	public static class KeepFirstFold<V, W> implements Function2<V, V, W> {
 
 		@Override
@@ -399,6 +445,62 @@ public abstract class Signal<V> {
 	}
 
 	/**
+	 * Filter the event according a criteria on the value and it's previous.<br>
+	 * <b>Finish signal</b> is not filtered.
+	 *
+	 * @param initialize the first value to compare signal value.
+	 * @param filter predicate to filter. If result is true, event pass else it
+	 * is blocked.
+	 * @return the new filtered signal.
+	 */
+	public final Signal<V> filterFold(V initialize, final Predicate2<V, V> filter) {
+		return filterFold(initialize, filter, initialize, new AlwaysFilter2<V>());
+	}
+
+	/**
+	 * Filter the event according a criteria on the value and it's previous.
+	 *
+	 * @param initEmit  the first value to compare signal value.
+	 * @param fEmit predicate to filter. If result is true, event pass else it
+	 * is blocked.
+	 * @param initFinish  the first value to compare finish signal value.
+	 * @param fFinish predicate to filter finish. If result is true, event pass else it
+	 * is blocked.
+	 * @return the new filtered signal.
+	 */
+	public final Signal<V> filterFold(final V initEmit, final Predicate2<V, V> fEmit, final V initFinish, final Predicate2<V, V> fFinish) {
+		final Signal<V> signal = new ConcretSignal<V>(this);
+
+		this.subscribeDiscreet(new Procedure1<V>() {
+
+			private V previous = initEmit;
+
+			@Override
+			public void invoke(V value) {
+				if (signal.isRunning() && fEmit.invoke(previous, value)) {
+					signal.emit(value);
+				}
+				previous = value;
+			}
+		});
+
+		this.subscribeFinish(new Procedure1<V>() {
+
+			private V previous = initFinish;
+
+			@Override
+			public void invoke(V value) {
+				if (signal.isRunning() && fFinish.invoke(previous, value)) {
+					signal.emitFinish(value);
+				}
+				previous = value;
+			}
+		});
+
+		return signal;
+	}
+
+	/**
 	 * Transform the react's value according the supplied function.
 	 *
 	 * @param <R> The transformed react's value data type.
@@ -443,6 +545,7 @@ public abstract class Signal<V> {
 
 	/**
 	 * Fold current value with previous one.
+	 * <b>Finish signal</b> is transformed with the same functor.
 	 *
 	 * @param function specify the action to perform between previous value and
 	 * current.
@@ -497,6 +600,7 @@ public abstract class Signal<V> {
 
 	/**
 	 * Fold current value with previous one.
+	 * <b>Finish signal</b> is transformed with the same functor.
 	 *
 	 * @param function specify the action to perform between previous value and
 	 * current.

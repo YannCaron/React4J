@@ -19,6 +19,7 @@ package fr.cyann.react;
 import fr.cyann.functional.Procedure1;
 import fr.cyann.base.Package;
 import fr.cyann.functional.Function2;
+import fr.cyann.functional.Predicate2;
 
 /**
  * Var class. Describe a variable that changes in time.
@@ -146,6 +147,18 @@ public class Var<V> extends Signal<V> {
 		});
 
 		return signal;
+	}
+
+	/**
+	 * Filter the event according a criteria on the value and it's previous.<br>
+	 * <b>Finish signal</b> is not filtered.
+	 *
+	 * @param filter predicate to filter. If result is true, event pass else it
+	 * is blocked.
+	 * @return the new filtered signal.
+	 */
+	public final Signal<V> filterFold(final Predicate2<V, V> filter) {
+		return super.filterFold(getValue(), filter);
 	}
 
 	/**
