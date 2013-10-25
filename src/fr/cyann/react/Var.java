@@ -263,6 +263,14 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> weak() {
+		return (Var<V>) super.weak();
+	}
+
+	/**
 	Gets a textual representation of the object.
 	@return the textual representation.
 	 */

@@ -753,7 +753,7 @@ public abstract class Signal<V> {
 	 *
 	 * @return The weak signal.
 	 */
-	public final Signal<V> weak() {
+	public Signal<V> weak() {
 		final Signal<V> signal = new Signal<V>() {
 		};
 		// no parent

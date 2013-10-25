@@ -33,10 +33,6 @@ import junit.framework.TestCase;
  */
 public class SignalTest extends TestCase {
 
-	public SignalTest(String testName) {
-		super(testName);
-	}
-
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -96,7 +92,7 @@ public class SignalTest extends TestCase {
 			}
 		});
 
-		t1.merge(t2.weak().toVar(0), new Function2<Integer, Integer, Integer>() {
+		t1.merge(t2.weak(), new Function2<Integer, Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Integer arg1, Integer arg2) {

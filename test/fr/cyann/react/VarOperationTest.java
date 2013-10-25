@@ -46,6 +46,7 @@ public class VarOperationTest extends TestCase {
 
 		Var<Integer> a = new Var<Integer>(1);
 		a.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -61,12 +62,60 @@ public class VarOperationTest extends TestCase {
 
 	}
 
+	public void testWikiOperation() {
+
+final Var<Integer> a = new Var<Integer>(1);
+final Var<Integer> b = new Var<Integer>(1);
+
+Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
+
+	@Override
+	public Integer invoke() {
+		return a.getValue() + b.getValue();
+	}
+}, a, b);
+
+sum.map(new Function1<String, Integer>() {
+
+	@Override
+	public String invoke(Integer value) {
+		return "Sum result= " + value;
+	}
+}).subscribe(new Procedure1<String>() {
+
+	@Override
+	public void invoke(String value) {
+		System.out.println(value);
+	}
+});
+
+a.setValue(1);
+// nothing appends
+
+a.setValue(2);
+// nothing appends
+
+b.setValue(8);
+// raise event
+// Sum result= 10 e.g. 2 + 8
+
+b.setValue(7);
+// nothing appends
+
+a.setValue(4);
+// nothing appends
+// Sum result= 1 e.g. 4 + 7
+
+
+	}
+
 	public void testSyncOperation() {
 
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(1);
 
 		Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -74,6 +123,7 @@ public class VarOperationTest extends TestCase {
 		}, a, b);
 
 		sum.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -106,6 +156,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(1);
 		final Var<Integer> c = new Var<Integer>(1);
 		final Operation<Integer> sum1 = Operation.syncOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -113,6 +164,7 @@ public class VarOperationTest extends TestCase {
 		}, a, b);
 
 		Operation<Integer> sum2 = Operation.syncOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return sum1.getValue() + c.getValue();
@@ -120,6 +172,7 @@ public class VarOperationTest extends TestCase {
 		}, sum1, c);
 
 		sum2.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -144,6 +197,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(1);
 
 		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -151,6 +205,7 @@ public class VarOperationTest extends TestCase {
 		}, a, b);
 
 		sum.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -183,6 +238,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> b = new Var<Integer>(1);
 		final Var<Integer> c = new Var<Integer>(1);
 		final Operation<Integer> sum1 = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -190,6 +246,7 @@ public class VarOperationTest extends TestCase {
 		}, a, b);
 
 		Operation<Integer> sum2 = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return sum1.getValue() + c.getValue();
@@ -197,6 +254,7 @@ public class VarOperationTest extends TestCase {
 		}, sum1, c);
 
 		sum2.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -221,6 +279,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
 		final Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -228,11 +287,13 @@ public class VarOperationTest extends TestCase {
 		}, a, b);
 
 		sum.map(new Function1<String, Integer>() {
+
 			@Override
 			public String invoke(Integer value) {
 				return "sum result = " + value;
 			}
 		}).subscribe(new Procedure1<String>() {
+
 			@Override
 			public void invoke(String value) {
 				Tools.results.add(value);
@@ -240,21 +301,25 @@ public class VarOperationTest extends TestCase {
 		});
 
 		Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return sum.getValue() + 1;
 			}
 		}, sum).filter(new Predicate1<Integer>() {
+
 			@Override
 			public boolean invoke(Integer value) {
 				return (value <= 10);
 			}
 		}).map(new Function1<String, Integer>() {
+
 			@Override
 			public String invoke(Integer value) {
 				return "increment of sum = " + value;
 			}
 		}).subscribe(new Procedure1<String>() {
+
 			@Override
 			public void invoke(String value) {
 				Tools.results.add(value);
@@ -286,6 +351,7 @@ public class VarOperationTest extends TestCase {
 
 		ListVar<Integer> list = ListVar.newInstance(new ArrayList<Integer>());
 		list.subscribe(new Procedure1<List<Integer>>() {
+
 			@Override
 			public void invoke(List<Integer> values) {
 				for (Integer value : values) {
@@ -309,6 +375,7 @@ public class VarOperationTest extends TestCase {
 
 		ListVar<Var<Integer>> list = ListVar.newInstance(new ArrayList<Var<Integer>>());
 		list.subscribe(new Procedure1<List<Var<Integer>>>() {
+
 			@Override
 			public void invoke(List<Var<Integer>> values) {
 				for (Var<Integer> value : values) {
@@ -320,6 +387,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
 		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -341,6 +409,7 @@ public class VarOperationTest extends TestCase {
 		final Var<Integer> a = new Var<Integer>(1);
 		final Var<Integer> b = new Var<Integer>(2);
 		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
+
 			@Override
 			public Integer invoke() {
 				return a.getValue() + b.getValue();
@@ -353,6 +422,7 @@ public class VarOperationTest extends TestCase {
 
 		ListVar<Var<Integer>> list2 = ListVar.newInstance(new ArrayList<Var<Integer>>());
 		list2.subscribe(new Procedure1<List<Var<Integer>>>() {
+
 			@Override
 			public void invoke(List<Var<Integer>> values) {
 				for (Var<Integer> value : values) {
@@ -376,6 +446,7 @@ public class VarOperationTest extends TestCase {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);
@@ -410,6 +481,7 @@ public class VarOperationTest extends TestCase {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {
+
 			@Override
 			public void invoke(Integer value) {
 				Tools.results.add(value);

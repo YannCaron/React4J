@@ -9,11 +9,9 @@ import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
-import fr.cyann.react.ListVar;
 import fr.cyann.react.MouseReact;
 import fr.cyann.react.Operation;
 import fr.cyann.react.ReactManager;
-import fr.cyann.react.Signal;
 import fr.cyann.react.TimeReact;
 import fr.cyann.react.Var;
 import fr.cyann.reactdemo.ui.swing.RLabel;
@@ -27,9 +25,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import fr.cyann.reactdemo.ui.Circle;
 import fr.cyann.reactdemo.ui.DrawPanel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * The ReactDemo main class. Creation date: 18 oct. 2013.
@@ -59,10 +54,10 @@ public class ReactDemo {
 	}).toVar(0);
 
 	public static void initLabelsReact() {
-		// when mouse is pressed say "pressed" otherwise say "released"
-		// concatenate message with mouse position
+// when mouse is pressed say "pressed" otherwise say "released"
+// concatenate message with mouse position and update each time it is necessary
 
-		// declare the mouse reactor
+// declare the mouse reactor
 		Var<String> mouseAndTime = MouseReact.hold().filter(MouseReact.BUTTON1).map(new Function1<String, Integer>() {
 
 			@Override
@@ -103,18 +98,6 @@ public class ReactDemo {
 			}
 		});
 		label2.setText(counters);
-
-		List<Integer> li = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8));
-		ListVar<Integer> list = ListVar.newInstance(li);
-
-		Var<Integer> elements = list.elementsEvery(TimeReact.every(500L)).toVar(0);
-		elements.subscribe(new Procedure1<Integer>() {
-
-			@Override
-			public void invoke(Integer arg1) {
-				System.out.println("Element " + arg1);
-			}
-		}).disposeOnFinished();
 	}
 
 	public static void initCursor() {
