@@ -28,7 +28,7 @@ public class CommonReactTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Tools.initResults();
+		TestTools.initResults();
 	}
 
 	/**
@@ -40,20 +40,20 @@ public class CommonReactTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println("range " + arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(10, Tools.results.size());
-		assertEquals(80, Tools.results.get(0));
-		assertEquals(79, Tools.results.get(1));
-		assertEquals(78, Tools.results.get(2));
-		assertEquals(77, Tools.results.get(3));
-		assertEquals(75, Tools.results.get(5));
-		assertEquals(80, Tools.results.get(6));
-		assertEquals(79, Tools.results.get(7));
+		assertEquals(10, TestTools.results.size());
+		assertEquals(80, TestTools.results.get(0));
+		assertEquals(79, TestTools.results.get(1));
+		assertEquals(78, TestTools.results.get(2));
+		assertEquals(77, TestTools.results.get(3));
+		assertEquals(75, TestTools.results.get(5));
+		assertEquals(80, TestTools.results.get(6));
+		assertEquals(79, TestTools.results.get(7));
 	}
 
 	/**
@@ -65,20 +65,20 @@ public class CommonReactTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println("range " + arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(10, Tools.results.size());
-		assertEquals(75, Tools.results.get(0));
-		assertEquals(76, Tools.results.get(1));
-		assertEquals(77, Tools.results.get(2));
-		assertEquals(78, Tools.results.get(3));
-		assertEquals(80, Tools.results.get(5));
-		assertEquals(75, Tools.results.get(6));
-		assertEquals(76, Tools.results.get(7));
+		assertEquals(10, TestTools.results.size());
+		assertEquals(75, TestTools.results.get(0));
+		assertEquals(76, TestTools.results.get(1));
+		assertEquals(77, TestTools.results.get(2));
+		assertEquals(78, TestTools.results.get(3));
+		assertEquals(80, TestTools.results.get(5));
+		assertEquals(75, TestTools.results.get(6));
+		assertEquals(76, TestTools.results.get(7));
 	}
 
 	/**
@@ -90,23 +90,23 @@ public class CommonReactTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println("range " + arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(50, Tools.results.size());
+		assertEquals(50, TestTools.results.size());
 
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(0)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(1)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(2)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(3)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(4)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(5)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(6)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(7)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(8)).longValue(), 3);
-		Tools.assertWithTolerence(77, ((Integer) Tools.results.get(9)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(0)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(1)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(2)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(3)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(4)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(5)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(6)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(7)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(8)).longValue(), 3);
+		TestTools.assertWithTolerence(77, ((Integer) TestTools.results.get(9)).longValue(), 3);
 	}
 }

@@ -19,7 +19,9 @@ package fr.cyann.react;
 import fr.cyann.functional.Procedure1;
 import fr.cyann.base.Package;
 import fr.cyann.functional.Function2;
+import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Predicate2;
+import fr.cyann.functional.Tuple;
 
 /**
  * Var class. Describe a variable that changes in time.
@@ -74,16 +76,6 @@ public class Var<V> extends Signal<V> {
 		super.emit(value);
 	}
 
-	/**
-	Emit a finish signal.
-	@param value the signal value.
-	 */
-	@Override
-	public void emitFinish(V value) {
-		this.value = value;
-		super.emitFinish(value);
-	}
-
 	// method
 	public V getValue() {
 		return value;
@@ -97,59 +89,28 @@ public class Var<V> extends Signal<V> {
 		this.value = value;
 		super.emit(value);
 	}
-	/*
-	@Override
-	public final <R> Var<R> map(final Function1<R, V> function) {
-	return super.map(function).toVar(function.invoke(getValue()));
-	}*/
 
+	// simplify casting
 	/**
-	Merge two signal together. If any signal emit, the resulting signal will
-	emit. Consider this operation like an <b>and</b> boolean operation.
-	
-	@param <X> Type of the resulting var.
-	@param <W> Type of the merged var.
-	@param merge the var to merge with.
-	@param mapfold the map fold transformation function.<br>It's goal is to merge the two values together and returned in the desired type.
-	@return the new merged signal.
+	 * {@inheritDoc}
 	 */
-	public final <X, W> Var<X> merge(final Var<W> merge, final Function2<X, V, W> mapfold) {
-		links.add(merge);
-		final Var<X> signal = new Var(mapfold.invoke(getValue(), merge.getValue()), this);
-
-		this.subscribe(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				signal.emit(mapfold.invoke(value, merge.getValue()));
-			}
-		});
-		merge.subscribe(new Procedure1<W>() {
-
-			@Override
-			public void invoke(W value) {
-				signal.emit(mapfold.invoke(getValue(), value));
-			}
-		});
-		this.subscribeFinish(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				signal.emitFinish(mapfold.invoke(value, merge.getValue()));
-			}
-		});
-		merge.subscribeFinish(new Procedure1<W>() {
-
-			@Override
-			public void invoke(W value) {
-				signal.emit(mapfold.invoke(getValue(), value));
-			}
-		});
-
-		return signal;
+	@Override
+	public Var<V> subscribe(final Signal<V> signal) {
+		super.subscribe(signal);
+		return this;
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Signal<V> unSubscribe(Procedure1<V> subscriber) {
+		super.unSubscribe(subscriber);
+		return this;
+	}
+
+	// <editor-fold defaultstate="collapsed" desc="high order functions">
+		/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
 	 *
@@ -166,108 +127,86 @@ public class Var<V> extends Signal<V> {
 	 */
 	@Override
 	public final Signal<V> fold(final Function2<V, V, V> function) {
-		return fold(getValue(), function, getValue(), function);
+		return fold(getValue(), function);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public final Signal<V> fold(final Function2<V, V, V> fEmit, final Function2<V, V, V> fFinish) {
-		return fold(getValue(), fEmit, getValue(), fFinish);
-	}
-
-	/**
-	Synchrinize two callback together.
-	@param <V> the callback type.
-	 */
-	private static abstract class SyncProcedure1<V> implements Procedure1<V> {
-
-		private SyncProcedure1 with;
-		private boolean invoked = false;
-
-		public void setWith(SyncProcedure1 with) {
-			this.with = with;
-		}
-
-		@Override
-		public synchronized void invoke(V value) {
-			if (with.invoked) {
-				invokeF(value);
-				invoked = false;
-				with.invoked = false;
-			} else {
-				this.invoked = true;
-			}
-		}
-
-		public abstract void invokeF(V value);
-	}
-
-	/**
-	Synchronize signal together. The both signals should be emited before
-	resulting signal will emit.<br>
-	Consider this operation like an <b>or</b> boolean operation.
 	
-	@param <X> Type of the resulting var.
-	@param <W> Type of the merged var.
-	@param sync the var to merge with.
-	@param mapfold the map fold transformation function.<br>It's goal is to merge the two values together and returned in the desired type.
-	@return the new merged signal.
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="signal operations">
+	/**
+	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
 	 */
-	public final <X, W> Var<X> sync(final Var<W> sync, final Function2<X, V, W> mapfold) {
-		links.add(sync);
-		final Var<X> signal = new Var(mapfold.invoke(getValue(), sync.getValue()), this);
+	public <W> Var<Tuple<V, W>> merge(final Var<W> merge) {
+		return merge(merge, new TupleFold<V, W>());
+	}
 
-		SyncProcedure1<V> p1 = new SyncProcedure1<V>() {
+	/**
+	 * @see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Var, fr.cyann.functional.Function2) 
+	 */
+	public <X, W> Var<X> merge(final Var<W> right, final Function2<X, V, W> mapfold) {
+		return super.merge(value, right.getValue(), right, mapfold);
+	}
 
-			@Override
-			public void invokeF(V value) {
-				signal.emit(mapfold.invoke(value, sync.getValue()));
-			}
-		};
-		SyncProcedure1<W> p2 = new SyncProcedure1<W>() {
+	/**
+	@see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public <W> Var<Tuple<V, W>> sync(final Var<W> merge) {
+		return sync(merge, new TupleFold<V, W>());
+	}
 
-			@Override
-			public void invokeF(W value) {
-				signal.emit(mapfold.invoke(getValue(), value));
-			}
-		};
-		p1.setWith(p2);
-		p2.setWith(p1);
+	/**
+	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public final <X, W> Var<X> sync(final Var<W> right, final Function2<X, V, W> mapfold) {
+		return super.sync(getValue(), right.getValue(), right, mapfold);
+	}
 
-		this.subscribe(p1);
-		sync.subscribe(p2);
+	/**
+	@see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public <W> Var<Tuple<V, W>> then(final Var<W> merge) {
+		return then(merge, new TupleFold<V, W>());
+	}
 
-		SyncProcedure1<V> pf1 = new SyncProcedure1<V>() {
+	/**
+	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public <W, X> Var<X> then(final Var<W> right, final Function2<X, V, W> mapfold) {
+		return super.then(value, right.getValue(), right, mapfold);
+	}
 
-			@Override
-			public void invokeF(V value) {
-				signal.emitFinish(mapfold.invoke(value, sync.getValue()));
-			}
-		};
-		SyncProcedure1<W> pf2 = new SyncProcedure1<W>() {
+		/**
+	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public <W> Var<Tuple<V, W>> when(final Var<W> right) {
+		return when(right, new TupleFold<V, W>());
+	}
 
-			@Override
-			public void invokeF(W value) {
-				signal.emitFinish(mapfold.invoke(getValue(), value));
-			}
-		};
-		pf1.setWith(pf2);
-		pf2.setWith(pf1);
+	/**
+	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 */
+	public <W, X> Var<X> when(final Var<W> when, final Function2<X, V, W> mapfold) {
+		return super.when(getValue(), when.getValue(), when, mapfold);
+	}
 
-		this.subscribeFinish(pf1);
-		sync.subscribeFinish(pf2);
+	// </editor-fold>
 
-		return signal;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public <W> Signal<V> disposeWhen(Signal<W> signal) {
+		super.disposeWhen(signal);
+		return this;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Var<V> weak() {
-		return (Var<V>) super.weak();
+	public Signal<V> disposeWhen(final Predicate1<V> predicate) {
+		super.disposeWhen(predicate);
+		return this;
 	}
 
 	/**

@@ -14,33 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package fr.cyann.react;
-
-import java.util.ArrayList;
-import java.util.List;
+package fr.cyann.functional;
 
 /**
- * The Tools class.
- * Creation date: 19 oct. 2013.
+ * The Tuple class.
+ * Creation date: 26 oct. 2013.
  * @author CyaNn 
  * @version v0.1
  */
-public final class Tools {
 
-	private Tools() {
-	}
 
-	public final static List<Object> results = new ArrayList<Object>();
+public class Tuple<V, W> {
 	
-	public final static void initResults () {
-		results.clear();
-	}
-		
-	public final static void assertWithTolerence(long time1, long time2, long tolerance) {
-		if (Math.abs(time1 - time2) > tolerance) {
-			String msg = "Assertion error, range expected [" + (time1 - tolerance) + "-" + (time1 + tolerance) + "], found " + time2;
-			throw new AssertionError(msg);
-		}
+	public final V left;
+	public final W right;
+
+	public Tuple(V left, W right) {
+		this.left = left;
+		this.right = right;
 	}
 	
 }

@@ -28,6 +28,7 @@ import java.util.List;
 public class React<A> {
 
 	private List<Procedure1<A>> subscribers;
+	private Procedure1<A> afterEmit;
 
 	public React() {
 		subscribers = new ArrayList<Procedure1<A>>();
@@ -41,14 +42,28 @@ public class React<A> {
 		this.subscribers.remove(subscriber);
 	}
 
+	public void subscriptLast(Procedure1<A> subscriber) {
+		afterEmit = subscriber;
+	}
+
+	public Procedure1<A> unSubscriptLast() {
+		Procedure1<A> p = afterEmit;
+		afterEmit = null;
+		return p;
+	}
+
 	public void clearSubscribe() {
 		this.subscribers.clear();
+		afterEmit = null;
 	}
 
 	@Package
 	synchronized React<A> emit(A value) {
 		for (Procedure1<A> subscriber : subscribers) {
 			subscriber.invoke(value);
+		}
+		if (afterEmit != null) {
+			afterEmit.invoke(value);
 		}
 		return this;
 	}

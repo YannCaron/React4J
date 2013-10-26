@@ -32,7 +32,7 @@ public class ListVarTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Tools.initResults();
+		TestTools.initResults();
 	}
 
 	public void testElements() throws InterruptedException {
@@ -40,7 +40,7 @@ public class ListVarTest extends TestCase {
 		List<Integer> li = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8));
 		ListVar<Integer> list = ListVar.newInstance(li);
 
-		Var<Integer> elements = list.elementsEvery(TimeReact.every(100)).toVar(0);
+		Var<Integer> elements = list.elementsEvery(TimeReact.every(50)).toVar(0);
 		elements.map(new Function1<String, Integer>() {
 
 			@Override
@@ -51,23 +51,23 @@ public class ListVarTest extends TestCase {
 			@Override
 			public void invoke(String arg1) {
 				System.out.println(arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
-		}).disposeOnFinished();
+		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(10, Tools.results.size());
-		assertEquals("Element 1", Tools.results.get(0));
-		assertEquals("Element 2", Tools.results.get(1));
-		assertEquals("Element 3", Tools.results.get(2));
-		assertEquals("Element 4", Tools.results.get(3));
-		assertEquals("Element 5", Tools.results.get(4));
-		assertEquals("Element 6", Tools.results.get(5));
-		assertEquals("Element 7", Tools.results.get(6));
-		assertEquals("Element 8", Tools.results.get(7));
-		assertEquals("Element 1", Tools.results.get(8));
-		assertEquals("Element 2", Tools.results.get(9));
+		assertEquals(10, TestTools.results.size());
+		assertEquals("Element 1", TestTools.results.get(0));
+		assertEquals("Element 2", TestTools.results.get(1));
+		assertEquals("Element 3", TestTools.results.get(2));
+		assertEquals("Element 4", TestTools.results.get(3));
+		assertEquals("Element 5", TestTools.results.get(4));
+		assertEquals("Element 6", TestTools.results.get(5));
+		assertEquals("Element 7", TestTools.results.get(6));
+		assertEquals("Element 8", TestTools.results.get(7));
+		assertEquals("Element 1", TestTools.results.get(8));
+		assertEquals("Element 2", TestTools.results.get(9));
 		
 	}
 }

@@ -39,7 +39,7 @@ public class VarOperationTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Tools.initResults();
+		TestTools.initResults();
 	}
 
 	public void testVar() {
@@ -49,63 +49,99 @@ public class VarOperationTest extends TestCase {
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		assertEquals(Integer.valueOf(1), a.getValue());
 
 		a.setValue(7);
-		assertEquals(1, Tools.results.size());
-		assertEquals(Integer.valueOf(7), Tools.results.get(0));
+		assertEquals(1, TestTools.results.size());
+		assertEquals(Integer.valueOf(7), TestTools.results.get(0));
 
 	}
 
 	public void testWikiOperation() {
 
-final Var<Integer> a = new Var<Integer>(1);
-final Var<Integer> b = new Var<Integer>(1);
+		final Var<Integer> a = new Var<Integer>(1);
+		final Var<Integer> b = new Var<Integer>(1);
 
-Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
+		Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
 
-	@Override
-	public Integer invoke() {
-		return a.getValue() + b.getValue();
+			@Override
+			public Integer invoke() {
+				return a.getValue() + b.getValue();
+			}
+		}, a, b);
+
+		sum.map(new Function1<String, Integer>() {
+
+			@Override
+			public String invoke(Integer value) {
+				return "Sum result= " + value;
+			}
+		}).subscribe(new Procedure1<String>() {
+
+			@Override
+			public void invoke(String value) {
+				System.out.println(value);
+			}
+		});
+
+		a.setValue(1);
+		// nothing appends
+
+		a.setValue(2);
+		// nothing appends
+
+		b.setValue(8);
+		// raise event
+		// Sum result= 10 e.g. 2 + 8
+
+		b.setValue(7);
+		// nothing appends
+
+		a.setValue(4);
+		// nothing appends
+		// Sum result= 1 e.g. 4 + 7
+
 	}
-}, a, b);
 
-sum.map(new Function1<String, Integer>() {
+	public void testWikiOperation2() {
 
-	@Override
-	public String invoke(Integer value) {
-		return "Sum result= " + value;
-	}
-}).subscribe(new Procedure1<String>() {
+		final Var<Integer> a = new Var<Integer>(1);
+		final Var<Integer> b = new Var<Integer>(2);
 
-	@Override
-	public void invoke(String value) {
-		System.out.println(value);
-	}
-});
+		Operation<Integer> sum = Operation.mergeOperation(new Function<Integer>() {
 
-a.setValue(1);
-// nothing appends
+			@Override
+			public Integer invoke() {
+				return a.getValue() + b.getValue();
+			}
+		}, a, b);
 
-a.setValue(2);
-// nothing appends
+		sum.map(new Function1<String, Integer>() {
 
-b.setValue(8);
-// raise event
-// Sum result= 10 e.g. 2 + 8
+			@Override
+			public String invoke(Integer value) {
+				return "Sum result= " + value;
+			}
+		}).subscribe(new Procedure1<String>() {
 
-b.setValue(7);
-// nothing appends
+			@Override
+			public void invoke(String value) {
+				System.out.println(value);
+			}
+		});
 
-a.setValue(4);
-// nothing appends
-// Sum result= 1 e.g. 4 + 7
+		a.setValue(7);
+		// nothing appends
+		// Sum result= 9 e.g. 7 + 2
 
+		b.setValue(8);
+		// raise event
+		// Sum result= 15 e.g. 7 + 8
 
 	}
 
@@ -126,27 +162,27 @@ a.setValue(4);
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		assertEquals(Integer.valueOf(2), sum.getValue());
 
 		a.setValue(7);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		a.setValue(7);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		b.setValue(8);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		b.setValue(8);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		a.setValue(7);
-		assertEquals(2, Tools.results.size());
+		assertEquals(2, TestTools.results.size());
 
 	}
 
@@ -175,19 +211,19 @@ a.setValue(4);
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		assertEquals(Integer.valueOf(3), sum2.getValue());
 
 		a.setValue(7);
 		b.setValue(8);
 		c.setValue(2);
 
-		assertEquals(1, Tools.results.size());
-		assertEquals(Integer.valueOf(17), Tools.results.get(0));
+		assertEquals(1, TestTools.results.size());
+		assertEquals(Integer.valueOf(17), TestTools.results.get(0));
 
 	}
 
@@ -208,27 +244,27 @@ a.setValue(4);
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		assertEquals(Integer.valueOf(2), sum.getValue());
 
 		a.setValue(7);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		a.setValue(7);
-		assertEquals(2, Tools.results.size());
+		assertEquals(2, TestTools.results.size());
 
 		b.setValue(8);
-		assertEquals(3, Tools.results.size());
+		assertEquals(3, TestTools.results.size());
 
 		b.setValue(8);
-		assertEquals(4, Tools.results.size());
+		assertEquals(4, TestTools.results.size());
 
 		a.setValue(7);
-		assertEquals(5, Tools.results.size());
+		assertEquals(5, TestTools.results.size());
 
 	}
 
@@ -257,21 +293,21 @@ a.setValue(4);
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		assertEquals(Integer.valueOf(3), sum2.getValue());
 
 		a.setValue(7);
 		b.setValue(8);
 		c.setValue(2);
 
-		assertEquals(3, Tools.results.size());
-		assertEquals(Integer.valueOf(9), Tools.results.get(0));
-		assertEquals(Integer.valueOf(16), Tools.results.get(1));
-		assertEquals(Integer.valueOf(17), Tools.results.get(2));
+		assertEquals(3, TestTools.results.size());
+		assertEquals(Integer.valueOf(9), TestTools.results.get(0));
+		assertEquals(Integer.valueOf(16), TestTools.results.get(1));
+		assertEquals(Integer.valueOf(17), TestTools.results.get(2));
 
 	}
 
@@ -296,7 +332,7 @@ a.setValue(4);
 
 			@Override
 			public void invoke(String value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
@@ -322,19 +358,19 @@ a.setValue(4);
 
 			@Override
 			public void invoke(String value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
 		a.setValue(5);
 		b.setValue(7);
 
-		System.out.println(Tools.results);
+		System.out.println(TestTools.results);
 
-		//assertEquals(3, Tools.results.size());
-		assertEquals("sum result = 7", Tools.results.get(0));
-		assertEquals("increment of sum = 8", Tools.results.get(1));
-		assertEquals("sum result = 12", Tools.results.get(2));
+		//assertEquals(3, TestTools.results.size());
+		assertEquals("sum result = 7", TestTools.results.get(0));
+		assertEquals("increment of sum = 8", TestTools.results.get(1));
+		assertEquals("sum result = 12", TestTools.results.get(2));
 
 	}
 
@@ -355,7 +391,7 @@ a.setValue(4);
 			@Override
 			public void invoke(List<Integer> values) {
 				for (Integer value : values) {
-					Tools.results.add(Integer.valueOf(value));
+					TestTools.results.add(Integer.valueOf(value));
 				}
 			}
 		});
@@ -367,7 +403,7 @@ a.setValue(4);
 		list.remove(2);
 		list.set(2, 7);
 
-		assertEquals(Tools.results, 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 4, 1, 2, 7);
+		assertEquals(TestTools.results, 1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 4, 1, 2, 7);
 
 	}
 
@@ -379,7 +415,7 @@ a.setValue(4);
 			@Override
 			public void invoke(List<Var<Integer>> values) {
 				for (Var<Integer> value : values) {
-					Tools.results.add(value.getValue());
+					TestTools.results.add(value.getValue());
 				}
 			}
 		});
@@ -400,7 +436,7 @@ a.setValue(4);
 
 		a.setValue(7);
 
-		assertEquals(Tools.results, 1, 1, 2, 1, 2, 3, 7, 2, 9, 7, 2, 9);
+		assertEquals(TestTools.results, 1, 1, 2, 1, 2, 3, 7, 2, 9, 7, 2, 9);
 	}
 
 	public void testListReactVarAddAll() {
@@ -426,7 +462,7 @@ a.setValue(4);
 			@Override
 			public void invoke(List<Var<Integer>> values) {
 				for (Var<Integer> value : values) {
-					Tools.results.add(value.getValue());
+					TestTools.results.add(value.getValue());
 				}
 			}
 		});
@@ -434,7 +470,7 @@ a.setValue(4);
 		list2.addAll(list);
 		a.setValue(7);
 
-		assertEquals(Tools.results, 1, 2, 3, 7, 2, 9, 7, 2, 9);
+		assertEquals(TestTools.results, 1, 2, 3, 7, 2, 9, 7, 2, 9);
 	}
 
 	public void testSync1() {
@@ -442,14 +478,14 @@ a.setValue(4);
 		final Var<Integer> a = new Var<Integer>(0);
 		final Var<Integer> b = new Var<Integer>(0);
 
-		Signal<Integer> r = a.sync(b, new Signal.KeepFirstFold<Integer, Integer>() {
+		Signal<Integer> r = a.sync(b, new Signal.KeepLeftFold<Integer, Integer>() {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 				System.out.println(value);
 			}
 		});
@@ -457,16 +493,16 @@ a.setValue(4);
 		a.setValue(10);
 		a.setValue(20);
 		a.setValue(10);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		b.setValue(50);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		b.setValue(50);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		a.setValue(10);
-		assertEquals(2, Tools.results.size());
+		assertEquals(2, TestTools.results.size());
 
 	}
 
@@ -476,40 +512,180 @@ a.setValue(4);
 		final Var<Integer> b = new Var<Integer>(0);
 		final Var<Integer> c = new Var<Integer>(0);
 
-		Signal<Integer> r = a.sync(b, new Signal.KeepFirstFold<Integer, Integer>() {
-		}).sync(c, new Signal.KeepFirstFold<Integer, Integer>() {
+		Signal<Integer> r = a.sync(b, new Signal.KeepLeftFold<Integer, Integer>() {
+		}).sync(c, new Signal.KeepLeftFold<Integer, Integer>() {
 		});
 
 		r.subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 				System.out.println(value);
 			}
 		});
 
 		b.setValue(50);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		b.setValue(70);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		a.setValue(10);
 		a.setValue(20);
 		a.setValue(10);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		c.setValue(80);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		a.setValue(10);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		b.setValue(10);
-		assertEquals(1, Tools.results.size());
+		assertEquals(1, TestTools.results.size());
 
 		c.setValue(10);
-		assertEquals(2, Tools.results.size());
+		assertEquals(2, TestTools.results.size());
 
 	}
+
+	public void testThen() {
+
+		final Var<Integer> a = new Var<Integer>(0);
+		final Var<Integer> b = new Var<Integer>(0);
+
+		Var<Integer> r = a.then(b, new Signal.KeepLeftFold<Integer, Integer>() {
+		});
+
+		r.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				TestTools.results.add(value);
+				System.out.println(value);
+			}
+		});
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(20);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET B must");
+		b.setValue(50);
+		assertEquals(1, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(1, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(1, TestTools.results.size());
+		
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(1, TestTools.results.size());
+
+		System.out.println("SET B must");
+		b.setValue(50);
+		assertEquals(2, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(2, TestTools.results.size());
+
+		System.out.println("SET B must");
+		b.setValue(50);
+		assertEquals(3, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(3, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(3, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(3, TestTools.results.size());
+
+	}
+
+
+	public void testWhen() {
+
+		final Var<Integer> a = new Var<Integer>(0);
+		final Var<Integer> b = new Var<Integer>(0);
+
+		Var<Integer> r = a.when(b, new Signal.KeepLeftFold<Integer, Integer>() {
+		});
+
+		r.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				TestTools.results.add(value);
+				System.out.println(value);
+			}
+		});
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(20);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(0, TestTools.results.size());
+
+		System.out.println("SET A must");
+		a.setValue(10);
+		assertEquals(1, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(1, TestTools.results.size());
+
+		System.out.println("SET A must");
+		a.setValue(10);
+		assertEquals(2, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(2, TestTools.results.size());
+
+		System.out.println("SET B");
+		b.setValue(50);
+		assertEquals(2, TestTools.results.size());
+
+		System.out.println("SET A must");
+		a.setValue(10);
+		assertEquals(3, TestTools.results.size());
+
+		System.out.println("SET A");
+		a.setValue(10);
+		assertEquals(3, TestTools.results.size());
+
+	}
+
 }

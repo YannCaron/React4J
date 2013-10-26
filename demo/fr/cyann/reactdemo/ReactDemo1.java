@@ -12,6 +12,7 @@ import fr.cyann.functional.Procedure1;
 import fr.cyann.react.MouseReact;
 import fr.cyann.react.Operation;
 import fr.cyann.react.ReactManager;
+import fr.cyann.react.Signal;
 import fr.cyann.react.TimeReact;
 import fr.cyann.react.Var;
 import fr.cyann.reactdemo.ui.swing.RLabel;
@@ -27,12 +28,12 @@ import fr.cyann.reactdemo.ui.Circle;
 import fr.cyann.reactdemo.ui.DrawPanel;
 
 /**
- * The ReactDemo main class. Creation date: 18 oct. 2013.
+ * The ReactDemo1 main class. Creation date: 18 oct. 2013.
  *
  * @author CyaNn
  * @version v0.1
  */
-public class ReactDemo {
+public class ReactDemo1 {
 
 	private static final RLabel label1 = new RLabel();
 	private static final RLabel label2 = new RLabel();
@@ -54,22 +55,17 @@ public class ReactDemo {
 	}).toVar(0);
 
 	public static void initLabelsReact() {
-// when mouse is pressed say "pressed" otherwise say "released"
-// concatenate message with mouse position and update each time it is necessary
+		// when mouse is pressed say "pressed" otherwise say "released"
+		// concatenate message with mouse position and update each time it is necessary
 
-// declare the mouse reactor
-		Var<String> mouseAndTime = MouseReact.hold().filter(MouseReact.BUTTON1).map(new Function1<String, Integer>() {
-
-			@Override
-			public String invoke(Integer value) {
-				// when mouse button is pressed
-				return "button pressed";
-			}
-		}).otherwise(new Function1<String, String>() {
+		// declare the mouse reactor
+		Var<String> mouseAndTime = MouseReact.button1().map(new Function1<String, Boolean>() {
 
 			@Override
-			public String invoke(String arg1) {
-				// when it is released
+			public String invoke(Boolean arg1) {
+				if (arg1) {
+					return "button pressed";
+				}
 				return "button released";
 			}
 		}).toVar("no button yet !").merge(mouseX, new Function2<String, String, Integer>() {
@@ -109,7 +105,18 @@ public class ReactDemo {
 	public static void initAnim() {
 
 		// when mouse button is old, then create a new circle every 50 ms
-		MouseReact.hold().filter(MouseReact.BUTTON1).during(TimeReact.every(10)).subscribe(new Procedure1<Integer>() {
+		final Signal<Integer> pulse = TimeReact.every(10);
+
+		MouseReact.button1().flatMap(false, new Function1<Signal<Integer>, Boolean>() {
+
+			@Override
+			public Signal<Integer> invoke(Boolean arg1) {
+				if (arg1) {
+					return pulse;
+				}
+				return null;
+			}
+		}).subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer value) {
@@ -194,6 +201,46 @@ public class ReactDemo {
 
 	}
 
+	public static void initTest() {
+
+		final Signal<Integer> fps1 = TimeReact.framePerSecond(25);
+		final Signal<Integer> fps2 = TimeReact.framePerSecond(1);
+		final Signal<Integer> delay = TimeReact.once(500);
+
+
+		MouseReact.button1().feedBackLoop(new Function1<Signal, Boolean>() {
+
+			@Override
+			public Signal invoke(Boolean arg1) {
+				return delay;
+			}
+		}).subscribe(new Procedure1<Boolean>() {
+
+			@Override
+			public void invoke(Boolean arg1) {
+				System.out.println("EMIT");
+			}
+		});
+/*
+		MouseReact.button1().flatMap(false, new Function1<Signal<Integer>, Boolean>() {
+
+			@Override
+			public Signal<Integer> invoke(Boolean arg1) {
+				if (arg1) {
+					return fps1;
+				}
+				return null;
+			}
+		}).subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				System.out.println(arg1);
+			}
+		});*/
+
+	}
+
 	public static void main(String[] args) {
 
 		JFrame frame = new JFrame();
@@ -218,7 +265,11 @@ public class ReactDemo {
 		frame.setVisible(true);
 
 		initLabelsReact();
+		initTest();
+
+		/*
+		
 		initCursor();
-		initAnim();
+		initAnim();*/
 	}
 }

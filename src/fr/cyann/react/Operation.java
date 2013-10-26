@@ -76,7 +76,7 @@ public class Operation<V> extends Var<V> {
 		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
 			@Override
 			public Var invoke(Var signal1, Var signal2) {
-				return signal1.merge(signal2, new Signal.KeepFirstFold());
+				return signal1.merge(signal2, new Signal.KeepLeftFold());
 			}
 		}, signals);
 	}
@@ -85,7 +85,7 @@ public class Operation<V> extends Var<V> {
 		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
 			@Override
 			public Var invoke(Var signal1, Var signal2) {
-				return signal1.sync(signal2, new Signal.KeepFirstFold());
+				return signal1.sync(signal2, new Signal.KeepLeftFold());
 			}
 		}, signals);
 	}

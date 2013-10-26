@@ -37,7 +37,7 @@ public class CommonReact {
 			@Override
 			public Integer invoke(Integer arg1, Integer arg2) {
 				if ((arg1 >= to && step > 0) || (arg1 <= to && step < 0)) {
-					every.emitFinish(arg1);
+					//every.dispose();
 					return from;
 				} else {
 					return arg1 + step;

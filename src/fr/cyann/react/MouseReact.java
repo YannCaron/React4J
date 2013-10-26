@@ -29,41 +29,10 @@ import java.awt.event.MouseEvent;
  * @author CyaNn
  * @version v0.1
  */
-public class MouseReact extends AbstractReact<Integer> {
+public class MouseReact<T> extends AbstractReact<T> {
 
 	// const
 	private static final Toolkit TK = Toolkit.getDefaultToolkit();
-
-	/**
-	 * Predefined filter. Filter on the button 1 when mouse is pressed or released.
-	 */
-	public static Predicate1<Integer> BUTTON1 = new Predicate1<Integer>() {
-
-		@Override
-		public boolean invoke(Integer value) {
-			return value.equals(1);
-		}
-	};
-	/**
-	 * Predefined filter. Filter on the button 2 when mouse is pressed or released.
-	 */
-	public static Predicate1<Integer> BUTTON2 = new Predicate1<Integer>() {
-
-		@Override
-		public boolean invoke(Integer value) {
-			return value.equals(1);
-		}
-	};
-	/**
-	 * Predefined filter. Filter on the button 3 when mouse is pressed or released.
-	 */
-	public static Predicate1<Integer> BUTTON3 = new Predicate1<Integer>() {
-
-		@Override
-		public boolean invoke(Integer value) {
-			return value.equals(1);
-		}
-	};
 
 	/**
 	 * Template method (GoF). Do not override it !<br>
@@ -81,7 +50,7 @@ public class MouseReact extends AbstractReact<Integer> {
 
 	// general factory
 	private static MouseReact createListener(final Predicate1<MouseEvent> filter, final Function1<Integer, MouseEvent> map, long eventMask) {
-		final MouseReact react = new MouseReact();
+		final MouseReact<Integer> react = new MouseReact<Integer>();
 
 		AWTEventListener listener = new AWTEventListener() {
 
@@ -104,73 +73,21 @@ public class MouseReact extends AbstractReact<Integer> {
 	}
 
 	// factories
-	/**
-	 * React that emit event when any mouse button is pressed.
-	 * @return The corresponding mouse react.
-	 */
-	public static MouseReact press() {
-		return createListener(new Predicate1<MouseEvent>() {
-
-			@Override
-			public boolean invoke(MouseEvent event) {
-				return event.getID() == MouseEvent.MOUSE_PRESSED;
-			}
-		}, new Function1<Integer, MouseEvent>() {
-
-			@Override
-			public Integer invoke(MouseEvent event) {
-				return event.getButton();
-			}
-		}, AWTEvent.MOUSE_EVENT_MASK);
-	}
-
-	/**
-	 * React that emit event when any mouse button is released.
-	 * @return The corresponding mouse react.
-	 */
-	public static MouseReact release() {
-		return createListener(new Predicate1<MouseEvent>() {
-
-			@Override
-			public boolean invoke(MouseEvent event) {
-				return event.getID() == MouseEvent.MOUSE_RELEASED;
-			}
-		}, new Function1<Integer, MouseEvent>() {
-
-			@Override
-			public Integer invoke(MouseEvent event) {
-				return event.getButton();
-			}
-		}, AWTEvent.MOUSE_EVENT_MASK);
-	}
-
-	/**
-	 * React that emit event when any mouse button is pressed and finish event when mouse button is released.<br>
-	 * It create a long signal that is framed.
-	 * @return The corresponding mouse react.
-	 */
-	public static MouseReact hold() {
-		final MouseReact react = new MouseReact() {
-
-			@Override
-			public void start() {
-				super.start();
-			}
-		};
+	private static MouseReact<Boolean> createButtonListener(final int buttonNumber) {
+		final MouseReact<Boolean> react = new MouseReact<Boolean>();
 
 		AWTEventListener listener = new AWTEventListener() {
 
 			@Override
 			public void eventDispatched(AWTEvent e) {
-				if (e instanceof java.awt.event.MouseEvent) {
-					java.awt.event.MouseEvent ev = (java.awt.event.MouseEvent) e;
+				if (e instanceof MouseEvent) {
+					MouseEvent ev = (MouseEvent) e;
 
-					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_PRESSED) {
-						react.emit(ev.getButton());
+					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_PRESSED && ev.getButton() == buttonNumber) {
+						react.emit(true);
 					}
-
-					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_RELEASED) {
-						react.emitFinish(ev.getButton());
+					if (react.isRunning() && ev.getID() == MouseEvent.MOUSE_RELEASED && ev.getButton() == buttonNumber) {
+						react.emit(false);
 					}
 				}
 			}
@@ -179,6 +96,19 @@ public class MouseReact extends AbstractReact<Integer> {
 		TK.addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK);
 
 		return react;
+
+	}
+
+	public static MouseReact<Boolean> button1() {
+		return createButtonListener(1);
+	}
+
+	public static MouseReact<Boolean> button2() {
+		return createButtonListener(2);
+	}
+
+	public static MouseReact<Boolean> button3() {
+		return createButtonListener(3);
 	}
 
 	/**

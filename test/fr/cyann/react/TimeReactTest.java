@@ -34,7 +34,7 @@ public class TimeReactTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Tools.initResults();
+		TestTools.initResults();
 	}
 
 	/**
@@ -45,16 +45,16 @@ public class TimeReactTest extends TestCase {
 		Signal<Integer> s = TimeReact.once(250L).subscribe(new Procedure1<Integer>() {
 			@Override
 			public void invoke(Integer event) {
-				Tools.results.add(event);
+				TestTools.results.add(event);
 			}
 		});
 
 		Thread.currentThread().sleep(150L);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		Thread.currentThread().sleep(150L);
-		assertEquals(1, Tools.results.size());
-		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
+		assertEquals(1, TestTools.results.size());
+		TestTools.assertWithTolerence(250, ((Integer) TestTools.results.get(0)), 5);
 
 		s.dispose();
 	}
@@ -67,7 +67,7 @@ public class TimeReactTest extends TestCase {
 		Signal<Integer> s = TimeReact.every(250L).subscribe(new Procedure1<Integer>() {
 			@Override
 			public void invoke(Integer event) {
-				Tools.results.add(event);
+				TestTools.results.add(event);
 				try {
 					System.out.println("TEST EVERY");
 					Thread.currentThread().sleep(100L);
@@ -78,19 +78,19 @@ public class TimeReactTest extends TestCase {
 		});
 
 		Thread.currentThread().sleep(150L);
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 
 		Thread.currentThread().sleep(110L);
-		assertEquals(1, Tools.results.size());
-		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
+		assertEquals(1, TestTools.results.size());
+		TestTools.assertWithTolerence(250, ((Integer) TestTools.results.get(0)), 5);
 
 		Thread.currentThread().sleep(350L);
-		assertEquals(2, Tools.results.size());
-		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
+		assertEquals(2, TestTools.results.size());
+		TestTools.assertWithTolerence(250, ((Integer) TestTools.results.get(0)), 5);
 
 		Thread.currentThread().sleep(350L);
-		assertEquals(3, Tools.results.size());
-		Tools.assertWithTolerence(250, ((Integer) Tools.results.get(0)), 5);
+		assertEquals(3, TestTools.results.size());
+		TestTools.assertWithTolerence(250, ((Integer) TestTools.results.get(0)), 5);
 
 		s.dispose();
 	}
@@ -103,7 +103,7 @@ public class TimeReactTest extends TestCase {
 		Signal<Integer> s = TimeReact.randomly(50, 150).subscribe(new Procedure1<Integer>() {
 			@Override
 			public void invoke(Integer event) {
-				Tools.results.add(event);
+				TestTools.results.add(event);
 				System.out.println("TEST RANDOMLY" + event);
 			}
 		});
@@ -111,7 +111,7 @@ public class TimeReactTest extends TestCase {
 		Thread.currentThread().sleep(500L);
 
 		Integer prev = null;
-		for (Object obj : Tools.results) {
+		for (Object obj : TestTools.results) {
 			Integer ev = (Integer) obj;
 			assertTrue(ev >= 45);
 			assertTrue(ev <= 155);
@@ -130,7 +130,7 @@ public class TimeReactTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println(arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
 		});
 
@@ -141,17 +141,17 @@ public class TimeReactTest extends TestCase {
 			}
 		}).toVar(0);
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
 
-		assertEquals(4, Tools.results.size());
-		Tools.assertWithTolerence(250, (Integer) Tools.results.get(0), 5);
-		Tools.assertWithTolerence(250, (Integer) Tools.results.get(1), 5);
-		Tools.assertWithTolerence(250, (Integer) Tools.results.get(2), 5);
-		Tools.assertWithTolerence(250, (Integer) Tools.results.get(3), 5);
+		assertEquals(4, TestTools.results.size());
+		TestTools.assertWithTolerence(250, (Integer) TestTools.results.get(0), 5);
+		TestTools.assertWithTolerence(250, (Integer) TestTools.results.get(1), 5);
+		TestTools.assertWithTolerence(250, (Integer) TestTools.results.get(2), 5);
+		TestTools.assertWithTolerence(250, (Integer) TestTools.results.get(3), 5);
 
 		System.out.println(cumul);
-		Tools.assertWithTolerence(1000, cumul.getValue(), 5);
+		TestTools.assertWithTolerence(1000, cumul.getValue(), 5);
 
 		s.dispose();
 		cumul.dispose();

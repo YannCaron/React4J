@@ -36,7 +36,7 @@ public class SignalTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		Tools.initResults();
+		TestTools.initResults();
 	}
 	/*
 	public void testThen() throws InterruptedException {
@@ -80,7 +80,7 @@ public class SignalTest extends TestCase {
 
 			@Override
 			public void invoke(Integer arg1) {
-				Tools.results.add("T1");
+				TestTools.results.add("T1");
 			}
 		});
 
@@ -88,11 +88,11 @@ public class SignalTest extends TestCase {
 
 			@Override
 			public void invoke(Integer arg1) {
-				Tools.results.add("T2");
+				TestTools.results.add("T2");
 			}
 		});
 
-		t1.merge(t2.weak(), new Function2<Integer, Integer, Integer>() {
+		t1.merge(t2.weak().toVar(0), new Function2<Integer, Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Integer arg1, Integer arg2) {
@@ -101,8 +101,8 @@ public class SignalTest extends TestCase {
 		}).dispose();
 
 		Thread.currentThread().sleep(170);
-		assertNotSame(0, Tools.results.size());
-		for (Object item : Tools.results) {
+		assertNotSame(0, TestTools.results.size());
+		for (Object item : TestTools.results) {
 			assertEquals("T2", item.toString());
 		}
 
@@ -123,7 +123,7 @@ public class SignalTest extends TestCase {
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
@@ -132,11 +132,11 @@ public class SignalTest extends TestCase {
 		a.setValue(3);
 		a.setValue(4);
 
-		assertEquals(4, Tools.results.size());
-		assertEquals(1, Tools.results.get(0));
-		assertEquals(3, Tools.results.get(1));
-		assertEquals(6, Tools.results.get(2));
-		assertEquals(10, Tools.results.get(3));
+		assertEquals(4, TestTools.results.size());
+		assertEquals(1, TestTools.results.get(0));
+		assertEquals(3, TestTools.results.get(1));
+		assertEquals(6, TestTools.results.get(2));
+		assertEquals(10, TestTools.results.get(3));
 
 		a.dispose();
 		s.dispose();
@@ -161,10 +161,10 @@ public class SignalTest extends TestCase {
 			}
 		}).toVar(0);
 
-		Tools.assertWithTolerence(a.getValue(), 0, 5);
+		TestTools.assertWithTolerence(a.getValue(), 0, 5);
 		assertEquals(b.getValue(), 0, 5);
 		Thread.sleep(410);
-		Tools.assertWithTolerence(a.getValue(), 400, 5);
+		TestTools.assertWithTolerence(a.getValue(), 400, 5);
 		assertEquals(b.getValue(), 8, 5);
 
 		a.dispose();
@@ -178,15 +178,15 @@ public class SignalTest extends TestCase {
 
 			@Override
 			public void invoke(Integer value) {
-				Tools.results.add(value);
+				TestTools.results.add(value);
 			}
 		});
 
 		Thread.sleep(380);
-		assertEquals(7, Tools.results.size());
+		assertEquals(7, TestTools.results.size());
 
 		int i = 0;
-		for (Object o : Tools.results) {
+		for (Object o : TestTools.results) {
 			int v = (Integer) o;
 			assertEquals(i + 1, v);
 			i++;
@@ -205,7 +205,7 @@ public class SignalTest extends TestCase {
 			@Override
 			public void invoke(Float arg1) {
 				System.out.println("Average=" + arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
 		});
 
@@ -214,17 +214,17 @@ public class SignalTest extends TestCase {
 		a.setValue(30);
 		a.setValue(40);
 
-		assertEquals(Float.valueOf(5.0f), Tools.results.get(0));
-		assertEquals(Float.valueOf(10.0f), Tools.results.get(1));
-		assertEquals(Float.valueOf(15.0f), Tools.results.get(2));
-		assertEquals(Float.valueOf(20.0f), Tools.results.get(3));
+		assertEquals(Float.valueOf(5.0f), TestTools.results.get(0));
+		assertEquals(Float.valueOf(10.0f), TestTools.results.get(1));
+		assertEquals(Float.valueOf(15.0f), TestTools.results.get(2));
+		assertEquals(Float.valueOf(20.0f), TestTools.results.get(3));
 
 		average.dispose();
 	}
 
 	public void testDisposeCounter() {
 
-		Signal<Integer> s = MouseReact.press();
+		Signal<Boolean> s = MouseReact.button1();
 		assertEquals(Integer.valueOf(1), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
@@ -235,10 +235,10 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMerge() {
 
-		Signal<Integer> s = MouseReact.press().toVar(0).merge(TimeReact.every(100).toVar(0), new Function2<Integer, Integer, Integer>() {
+		Signal<Integer> s = MouseReact.button1().toVar(false).merge(TimeReact.every(100).toVar(0), new Function2<Integer, Boolean, Integer>() {
 
 			@Override
-			public Integer invoke(Integer arg1, Integer arg2) {
+			public Integer invoke(Boolean arg1, Integer arg2) {
 				return 0;
 			}
 		});
@@ -253,10 +253,10 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeFilter() {
 
-		Signal s = MouseReact.press().filter(new Predicate1<Integer>() {
+		Signal s = MouseReact.button1().filter(new Predicate1<Boolean>() {
 
 			@Override
-			public boolean invoke(Integer arg) {
+			public boolean invoke(Boolean arg) {
 				return false;
 			}
 		});
@@ -271,10 +271,10 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMap() {
 
-		Signal s = MouseReact.press().map(new Function1<String, Integer>() {
+		Signal s = MouseReact.button1().map(new Function1<String, Boolean>() {
 
 			@Override
-			public String invoke(Integer arg1) {
+			public String invoke(Boolean arg1) {
 				return arg1.toString();
 			}
 		});
@@ -285,34 +285,6 @@ public class SignalTest extends TestCase {
 
 		assertEquals(Integer.valueOf(0), ReactManager.getInstance().getReactCounter().getValue());
 
-	}
-
-	public void testDisposeOnFinish() throws InterruptedException {
-
-		Signal s = TimeReact.every(50).until(TimeReact.once(130)).subscribe(new Procedure1<Integer>() {
-
-			@Override
-			public void invoke(Integer value) {
-				System.out.println("RUN");
-				Tools.results.add(value);
-			}
-		}).subscribeFinish(new Procedure1<Integer>() {
-
-			@Override
-			public void invoke(Integer value) {
-				System.out.println("FINISH");
-				Tools.results.add(value);
-			}
-		}).disposeOnFinished();
-
-		assertEquals(0, Tools.results.size());
-		Thread.currentThread().sleep(200);
-		assertEquals(4, Tools.results.size());
-
-		Thread.currentThread().sleep(200);
-		assertEquals(4, Tools.results.size());
-
-		s.dispose();
 	}
 
 	public void testOperationDisposeWhen() throws InterruptedException {
@@ -344,21 +316,21 @@ public class SignalTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println(arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
-		}).disposeOnFinished();
+		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(8, Tools.results.size());
-		assertEquals(1, Tools.results.get(0));
-		assertEquals(2, Tools.results.get(1));
-		assertEquals(3, Tools.results.get(2));
-		assertEquals(4, Tools.results.get(3));
-		assertEquals(3, Tools.results.get(4));
-		assertEquals(4, Tools.results.get(5));
-		assertEquals(7, Tools.results.get(6));
-		assertEquals(8, Tools.results.get(7));
+		assertEquals(8, TestTools.results.size());
+		assertEquals(1, TestTools.results.get(0));
+		assertEquals(2, TestTools.results.get(1));
+		assertEquals(3, TestTools.results.get(2));
+		assertEquals(4, TestTools.results.get(3));
+		assertEquals(3, TestTools.results.get(4));
+		assertEquals(4, TestTools.results.get(5));
+		assertEquals(7, TestTools.results.get(6));
+		assertEquals(8, TestTools.results.get(7));
 	}
 
 	public void testFilterFold2() throws InterruptedException {
@@ -371,15 +343,15 @@ public class SignalTest extends TestCase {
 			@Override
 			public void invoke(Integer arg1) {
 				System.out.println(arg1);
-				Tools.results.add(arg1);
+				TestTools.results.add(arg1);
 			}
-		}).disposeOnFinished();
+		});
 
-		assertEquals(0, Tools.results.size());
+		assertEquals(0, TestTools.results.size());
 		Thread.currentThread().sleep(1010);
-		assertEquals(3, Tools.results.size());
-		assertEquals(2, Tools.results.get(0));
-		assertEquals(2, Tools.results.get(1));
-		assertEquals(4, Tools.results.get(2));
+		assertEquals(3, TestTools.results.size());
+		assertEquals(2, TestTools.results.get(0));
+		assertEquals(2, TestTools.results.get(1));
+		assertEquals(4, TestTools.results.get(2));
 	}
 }
