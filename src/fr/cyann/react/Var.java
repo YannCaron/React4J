@@ -111,14 +111,6 @@ public class Var<V> extends Signal<V> {
 
 	// <editor-fold defaultstate="collapsed" desc="high order functions">
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Var<V> filterSwitch(final Var<Boolean> filter) {
-		return super.filterSwitch(filter).toVar(getValue());
-	}
-
-	/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
 	 *
@@ -140,6 +132,25 @@ public class Var<V> extends Signal<V> {
 
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="signal operations">
+	/**
+	 * @see Signal#edge(fr.cyann.react.Signal) 
+	 * Initialize the edge signal with its var value.
+	 */
+	public Var<V> edge(final Var<Boolean> filter) {
+		Var<V> var = super.edge(filter).toVar(getValue());
+		filter.emit(filter.getValue());
+		return var;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> edge(final Signal<Boolean> filter) {
+		Var<V> var = super.edge(filter).toVar(getValue());
+		return var;
+	}
+
 	/**
 	@see  Signal#mergeSame(fr.cyann.react.Signal) 
 	 */

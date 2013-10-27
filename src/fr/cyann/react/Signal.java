@@ -51,6 +51,9 @@ public abstract class Signal<V> {
 			super(parent);
 		}
 	}
+	/**
+	Pre defined map to give the string representation of the signal.
+	 */
 	public static final Function1<String, Object> TOSTRING_MAP = new Function1<String, Object>() {
 
 		@Override
@@ -61,6 +64,9 @@ public abstract class Signal<V> {
 
 	public static class AlwaysFilter<V> implements Predicate1<V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg) {
 			return true;
@@ -69,6 +75,9 @@ public abstract class Signal<V> {
 
 	public static class NeverFilter<V> implements Predicate1<V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg) {
 			return true;
@@ -80,10 +89,17 @@ public abstract class Signal<V> {
 		private int count = 0;
 		private final int limit;
 
+		/**
+		Constructor to specify limit.
+		@param limit the skip to limit.
+		 */
 		public SkipToFilter(int limit) {
 			this.limit = limit;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg) {
 			count++;
@@ -100,6 +116,9 @@ public abstract class Signal<V> {
 			this.limit = limit;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg) {
 			count++;
@@ -109,6 +128,9 @@ public abstract class Signal<V> {
 
 	public static class AlwaysFilter2<V> implements Predicate2<V, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg1, V arg2) {
 			return true;
@@ -117,6 +139,9 @@ public abstract class Signal<V> {
 
 	public static class NeverFilter2<V> implements Predicate2<V, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg1, V arg2) {
 			return false;
@@ -125,6 +150,9 @@ public abstract class Signal<V> {
 
 	public static class DropRepeatFilter<V> implements Predicate2<V, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg1, V arg2) {
 			return arg1 != arg2;
@@ -133,6 +161,9 @@ public abstract class Signal<V> {
 
 	public static class RaiseRepeatFilter<V> implements Predicate2<V, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public boolean invoke(V arg1, V arg2) {
 			return arg1 == arg2;
@@ -141,6 +172,9 @@ public abstract class Signal<V> {
 
 	public static class KeepLeftFold<V, W> implements Function2<V, V, W> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public V invoke(V arg1, W arg2) {
 			return arg1;
@@ -149,6 +183,9 @@ public abstract class Signal<V> {
 
 	public static class KeepRightFold<V, W> implements Function2<W, V, W> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public W invoke(V arg1, W arg2) {
 			return arg2;
@@ -157,6 +194,9 @@ public abstract class Signal<V> {
 
 	public static class TupleFold<V, W> implements Function2<Tuple<V, W>, V, W> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Tuple<V, W> invoke(V arg1, W arg2) {
 			return new Tuple<V, W>(arg1, arg2);
@@ -165,6 +205,9 @@ public abstract class Signal<V> {
 
 	public static class CountFold<V extends Number> implements Function2<Integer, Integer, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Integer invoke(Integer arg1, V arg2) {
 			return arg1 + 1;
@@ -173,6 +216,9 @@ public abstract class Signal<V> {
 
 	public static class SumFold<V extends Number> implements Function2<Float, Float, V> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Float invoke(Float arg1, V arg2) {
 			return arg1.floatValue() + arg2.floatValue();
@@ -181,6 +227,9 @@ public abstract class Signal<V> {
 
 	public static class SumFoldInteger implements Function2<Integer, Integer, Integer> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Integer invoke(Integer arg1, Integer arg2) {
 			return arg1 + arg2;
@@ -189,12 +238,11 @@ public abstract class Signal<V> {
 
 	public static class AverageFold<V extends Number> implements Function2<Float, Float, V> {
 
-		private float i;
+		private float i = 1;
 
-		public AverageFold() {
-			this.i = 1;
-		}
-
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Float invoke(Float arg1, V arg2) {
 			float sum = arg1 * i;
@@ -399,29 +447,6 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Filter the event if the filter signal is true in time. If false, signal is discarded.<br>
-	Run like an electronival bipolar junction transistor.... haaa 2N2222...
-	@param filter the filter signal to filter on.
-	@return the resulting signal.
-	 */
-	public Signal<V> filterSwitch(final Var<Boolean> filter) {
-		links.add(filter);
-		final Signal<V> signal = new ConcretSignal<V>(this);
-
-		this.subscribeDiscret(new Procedure1<V>() {
-
-			@Override
-			public void invoke(V value) {
-				if (signal.isRunning() && filter.getValue()) {
-					signal.emit(value);
-				}
-			}
-		});
-
-		return signal;
-	}
-
-	/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
 	 *
@@ -488,101 +513,6 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	 * Like map, but return value is signal.<br>
-	 * Be carefull signal is disposed after usage. Alwayse create a new one.
-	 * @param <R> The transformed react's value data type.
-	 * @param init the initial value
-	 * @param function the function to transform data.
-	 * @return the signal react.
-	 */
-	public <R> Signal<R> switchMap(final V init, final Function1<Signal<R>, V> function) {
-		final Signal<R> signal = new ConcretSignal<R>(this);
-
-		final Procedure1<R> p = new Procedure1<R>() {
-
-			@Override
-			public void invoke(R arg1) {
-				signal.emit(arg1);
-			}
-		};
-
-		this.subscribeDiscret(new Procedure1<V>() {
-
-			Signal<R> current;
-
-			{
-				current = function.invoke(init);
-				if (current != null) {
-					current.subscribe(p);
-					current.dispose();
-				}
-			}
-
-			@Override
-			public void invoke(V arg1) {
-				if (current != null) {
-					current.unSubscribe(p);
-					current.dispose();
-				}
-
-				current = function.invoke(arg1);
-
-				if (current != null) {
-					current.subscribe(p);
-				}
-			}
-		});
-
-		return signal;
-	}
-
-	/**
-	Feedback signal emited by function is created after each current signal are emited.<br>
-	The resulting signal wait after feedback to emit in its turn.<br>
-	This method can be used to smooth fitful signals or wait after feedback events (works like a control system).
-	@param function the function that produce the feedback signal.
-	@return the resulting signal.
-	*/
-	public Signal<V> feedBackLoop(final Function1<Signal, V> function) {
-		final Signal<V> signal = new ConcretSignal<V>(this);
-
-		final Tools.SwitchProcedure<V> p = new Tools.SwitchProcedure<V>(null, signal, null) {
-
-			@Override
-			public void invokeF(Signal<V> signal, Signal right, V value) {
-				signal.emit(value);
-				if (right != null) {
-					right.unSubscribe(this);
-				}
-			}
-		};
-
-		this.subscribeDiscret(new Procedure1<V>() {
-
-			Signal current;
-
-			@Override
-			public void invoke(V arg1) {
-				p.setValue(arg1);
-
-				if (current != null) {
-					current.unSubscribe(p);
-					current.dispose();
-				}
-
-				current = function.invoke(arg1);
-
-				if (current != null) {
-					p.setRight(current);
-					current.subscribe(p);
-				}
-			}
-		});
-
-		return signal;
-	}
-
-	/**
 	 * Fold current value with previous one.
 	 * <b>Finish signal</b> is transformed with the same functor.
 	 *
@@ -639,6 +569,135 @@ public abstract class Signal<V> {
 
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="signal operations">
+	/**
+	When input signal (edge one) emit signal, this signal can emit, otherwise signals are skipped.<br>
+	Run like an electronical bipolar junction transistor.... haaa 2N2222...
+	@param edge the filter signal to filter on.
+	@return the resulting signal.
+	 */
+	public Signal<V> edge(final Signal<Boolean> edge) {
+		links.add(edge);
+		final Signal<V> signal = new ConcretSignal<V>(this);
+
+		final Procedure1<V> p = new Procedure1<V>() {
+
+			@Override
+			public void invoke(V arg1) {
+				signal.emit(arg1);
+			}
+		};
+
+		edge.subscribeDiscret(new Procedure1<Boolean>() {
+
+			@Override
+			public void invoke(Boolean value) {
+				if (signal.isRunning() && value) {
+					Signal.this.unSubscribe(p);
+					Signal.this.subscribe(p);
+				} else {
+					Signal.this.unSubscribe(p);
+				}
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	 * Like map, but return value is signal.<br>
+	 * Be carefull signal is disposed after usage. Alwayse create a new one.
+	 * @param <R> The transformed react's value data type.
+	 * @param init the initial value
+	 * @param function the function to transform data.
+	 * @return the signal react.
+	 */
+	public <R> Signal<R> switchMap(final V init, final Function1<Signal<R>, V> function) {
+		final Signal<R> signal = new ConcretSignal<R>(this);
+
+		final Procedure1<R> p = new Procedure1<R>() {
+
+			@Override
+			public void invoke(R arg1) {
+				signal.emit(arg1);
+			}
+		};
+
+		this.subscribeDiscret(new Procedure1<V>() {
+
+			Signal<R> current;
+
+			{
+				current = function.invoke(init);
+				if (current != null) {
+					current.subscribe(p);
+					current.dispose();
+				}
+			}
+
+			@Override
+			public void invoke(V arg1) {
+				if (current != null) {
+					current.unSubscribe(p);
+					current.dispose();
+				}
+
+				current = function.invoke(arg1);
+
+				if (current != null) {
+					current.subscribe(p);
+				}
+			}
+		});
+
+		return signal;
+	}
+
+	/**
+	Feedback signal emited by function is created after each current signal are emited.<br>
+	The resulting signal wait after feedback to emit in its turn.<br>
+	This method can be used to smooth fitful signals or wait after feedback events (works like a control system).
+	@param function the function that produce the feedback signal.
+	@return the resulting signal.
+	 */
+	public Signal<V> feedBackLoop(final Function1<Signal, V> function) {
+		final Signal<V> signal = new ConcretSignal<V>(this);
+
+		final Tools.SwitchProcedure<V> p = new Tools.SwitchProcedure<V>(null, signal, null) {
+
+			@Override
+			public void invokeF(Signal<V> signal, Signal right, V value) {
+				signal.emit(value);
+				if (right != null) {
+					right.unSubscribe(this);
+				}
+			}
+		};
+
+		this.subscribeDiscret(new Procedure1<V>() {
+
+			Signal current;
+
+			@Override
+			public void invoke(V arg1) {
+				p.setValue(arg1);
+
+				if (current != null) {
+					current.unSubscribe(p);
+					current.dispose();
+				}
+
+				current = function.invoke(arg1);
+
+				if (current != null) {
+					p.setRight(current);
+					current.subscribe(p);
+				}
+			}
+		});
+
+		return signal;
+	}
+
 	public Signal<V> mergeSame(final Signal<V> right) {
 		links.add(right);
 		final Signal<V> signal = new ConcretSignal<V>(this);
@@ -908,7 +967,7 @@ public abstract class Signal<V> {
 	Skip first emitions until the limit is reached.
 	@param limit the limit to reach.
 	@return the new filtered signal.
-	*/
+	 */
 	public Signal<V> skipTo(int limit) {
 		return this.filter(new SkipToFilter<V>(limit));
 	}
@@ -917,7 +976,7 @@ public abstract class Signal<V> {
 	Skip last emitions after the limit is reached.
 	@param limit the limit to reach.
 	@return the new filtered signal.
-	*/
+	 */
 	public Signal<V> skipFrom(int limit) {
 		return this.filter(new SkipFromFilter<V>(limit));
 	}
@@ -967,7 +1026,7 @@ public abstract class Signal<V> {
 		}
 		disposed = true;
 
-		react.clearSubscribe();
+		react.clearSubscribes();
 
 		for (Signal link : links) {
 			link.dispose();

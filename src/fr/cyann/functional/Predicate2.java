@@ -17,12 +17,18 @@
 package fr.cyann.functional;
 
 /**
- * The Predicate1 interface. Give the possibility to create a predicate functor with one parameter.
+ * The Predicate1 interface.<br> Give the ability to create a predicate functor with one parameter.<br>
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1
  */
 public interface Predicate2<A1, A2> {
 
+	/**
+	The run method. Called by high order function.
+	@param arg1 the first argument.
+	@param arg2 the second argument.
+	@return a boolean value.
+	 */
 	boolean invoke(A1 arg1, A2 arg2);
 }

@@ -17,13 +17,16 @@
 package fr.cyann.functional;
 
 /**
- * The Procedure1 interface. Give the possibility to create a functor with one argument and no returned value.
+ * The Procedure1 interface.<br> Give the ability to create a functor with one argument and no returned value.<br>
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1
  */
 public interface Procedure1<A1> {
-	
+
+	/**
+	The run method. Called by high order function.
+	@param arg1 the first argument.
+	 */
 	void invoke(A1 arg1);
-	
 }

@@ -17,13 +17,17 @@
 package fr.cyann.functional;
 
 /**
- * The Function interface. Give the possibility to create a functor with only a return parameter.
+ * The Function interface.<br> Give the ability to create a functor with only a return parameter.<br>
  * Creation date: 9 oct. 2013.
  * @author Yann Caron
  * @version v0.1
  */
 public interface Function<R> {
 
+	/**
+	The run method. Called by high order function.
+	@return any value.
+	*/
 	public R invoke();
 
 }

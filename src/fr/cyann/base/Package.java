@@ -18,7 +18,7 @@ package fr.cyann.base;
 
 /**
  * The Package interface.<br>
- * Use to see if scope of the attribute is package.
+ * Use to see if scope of the attribute is package.<br>
  * Creation date: 11 oct. 2013.
  * @author Yann Caron 
  * @version v0.1

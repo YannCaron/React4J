@@ -52,7 +52,7 @@ public class React<A> {
 		return p;
 	}
 
-	public void clearSubscribe() {
+	public void clearSubscribes() {
 		this.subscribers.clear();
 		afterEmit = null;
 	}

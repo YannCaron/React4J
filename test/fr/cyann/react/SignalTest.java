@@ -410,4 +410,40 @@ public class SignalTest extends TestCase {
 		assertEquals(4, TestTools.results.size());
 
 	}
+
+	public void testEdge() {
+
+		Var<Boolean> edge = new Var<Boolean>(false);
+		Var<Integer> a = new Var<Integer>(0);
+		Var<Integer> optionalA = a.edge(edge);
+
+		optionalA.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer value) {
+				TestTools.results.add(value);
+			}
+		});
+
+		a.setValue(1);
+		a.setValue(2);
+		assertEquals(0, TestTools.results.size());
+
+		edge.setValue(true);
+		edge.setValue(true);
+		a.setValue(3);
+		a.setValue(4);
+		a.setValue(5);
+		a.setValue(7);
+		edge.setValue(false);
+		a.setValue(8);
+
+		assertEquals(4, TestTools.results.size());
+		assertEquals(3, TestTools.results.get(0));
+		assertEquals(4, TestTools.results.get(1));
+		assertEquals(5, TestTools.results.get(2));
+		assertEquals(7, TestTools.results.get(3));
+
+
+	}
 }

@@ -17,13 +17,15 @@
 package fr.cyann.functional;
 
 /**
- * The Procedure interface. Give the possibility to create a functor without argument nor returned value.
+ * The Procedure interface.<br> Give the ability to create a functor without argument nor returned value.<br>
  * Creation date: 9 oct. 2013.
  * @author Yann Caron 
  * @version v0.1
  */
 public interface Procedure {
-	
+
+	/**
+	The run method. Called by high order function.
+	 */
 	void invoke();
-	
 }

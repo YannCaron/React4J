@@ -217,7 +217,7 @@ public class ReactDemo1 {
 				System.out.println("EMIT");
 			}
 		});*/
-
+/*
 		MouseReact.button1().switchMap(false, new Function1<Signal<Integer>, Boolean>() {
 
 			@Override
@@ -234,7 +234,8 @@ public class ReactDemo1 {
 				System.out.println(arg1);
 			}
 		});
-
+*/
+		
 	}
 
 	public static void main(String[] args) {
