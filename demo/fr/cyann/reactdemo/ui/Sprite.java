@@ -16,51 +16,49 @@
  */
 package fr.cyann.reactdemo.ui;
 
-import fr.cyann.react.Signal;
-import fr.cyann.react.Var;
-import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 
 /**
- * The Circle class.
- * Creation date: 17 oct. 2013.
- * @author CyaNn
+ * The Sprite class.
+ * Creation date: 27 oct. 2013.
+ * @author CyaNn 
  * @version v0.1
  */
-public class Circle extends Shape {
+public class Sprite extends Shape {
 
-	private final Var<Integer> size;
-	public final Color shapeColor, fillColor;
+	private Image img;
+	private int width, height;
 
-	public Circle(int initSize) {
-		size = new Var<Integer>(initSize);
-		shapeColor = new Color(255, 255, 255, 200);
-		fillColor = new Color(255, 255, 255, 100);
+	public Sprite(String name) {
+		try {
+			img = ImageIO.read(this.getClass().getResource(name));
+			width = img.getWidth(null);
+			height = img.getHeight(null);
+		} catch (IOException ex) {
+			Logger.getLogger(Sprite.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 
-	public void setSize(Signal<Integer> signal) {
-		signal.subscribe(size);
+	public int getHeight() {
+		return height;
 	}
 
-	public int getSize() {
-		return size.getValue();
+	public int getWidth() {
+		return width;
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
-		size.dispose();
 	}
-
+	
 	@Override
 	public void draw(Graphics g) {
-		int s = size.getValue();
-		int ms = s / 2;
-
-		g.setColor(fillColor);
-		g.fillOval(x.getValue() - ms, y.getValue(), s, s);
-
-		g.setColor(shapeColor);
-		g.drawOval(x.getValue() - ms, y.getValue(), s, s);
+		g.drawImage(img, x.getValue(), y.getValue(), null);
 	}
 }

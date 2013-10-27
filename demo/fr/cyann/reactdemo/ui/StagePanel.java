@@ -23,42 +23,68 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 
 /**
- * The DrawPanel class.
+ * The StagePanel class.
  * Creation date: 17 oct. 2013.
  * @author CyaNn
  * @version v0.1
  */
-public class DrawPanel extends JPanel {
+public class StagePanel extends JPanel {
 
-	private final List<Circle> shapes;
+	private final List<Shape> shapes;
 	private final Var<Integer> count;
 
-	public DrawPanel() {
-		shapes = new ArrayList<Circle>();
+	private final Var<Integer> width, height;
+	
+	public StagePanel() {
+		shapes = new ArrayList<Shape>();
 		count = new Var<Integer>(0);
+		width = new Var<Integer>(getWidth());
+		height = new Var<Integer>(getHeight());
 
+		this.addComponentListener(new ComponentAdapter() {
+
+			@Override
+			public void componentResized(ComponentEvent e) {
+				super.componentResized(e);
+				width.setValue(e.getComponent().getWidth());
+				height.setValue(e.getComponent().getHeight());
+			}
+			
+		});
+		
 		TimeReact.framePerSecond(25).subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer arg1) {
-				DrawPanel.this.repaint();
+				StagePanel.this.repaint();
 			}
 		});
 
 	}
 
-	public synchronized void addShape(Circle e) {
+	public Var<Integer> getComponentHeight() {
+		return height;
+	}
+
+	public Var<Integer> getComponentWidth() {
+		return width;
+	}
+	
+	public synchronized void addShape(Shape e) {
 		shapes.add(e);
+		e.setStage(this);
 		count.setValue(shapes.size());
 	}
 
-	public synchronized void removeShape(Circle c) {
+	public synchronized void removeShape(Shape c) {
 		c.dispose();
 		shapes.remove(c);
 		count.setValue(shapes.size());
@@ -87,7 +113,7 @@ public class DrawPanel extends JPanel {
 		g2.fill(new Rectangle2D.Float(0, 0, this.getWidth(), this.getHeight()));
 
 		synchronized (this) {
-			for (Circle shape : shapes) {
+			for (Shape shape : shapes) {
 				shape.draw(g2);
 			}
 		}

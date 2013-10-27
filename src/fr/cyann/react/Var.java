@@ -18,6 +18,7 @@ package fr.cyann.react;
 
 import fr.cyann.functional.Procedure1;
 import fr.cyann.base.Package;
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
 import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Predicate2;
@@ -110,6 +111,14 @@ public class Var<V> extends Signal<V> {
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="high order functions">
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public <R> Var<R> map(final Function1<R, V> function) {
+		return super.map(function).toVar(function.invoke(getValue()));
+	}
+
 	/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
@@ -260,6 +269,14 @@ public class Var<V> extends Signal<V> {
 	public Signal<V> disposeWhen(final Predicate1<V> predicate) {
 		super.disposeWhen(predicate);
 		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> weak() {
+		return super.weak().toVar(getValue());
 	}
 
 	/**
