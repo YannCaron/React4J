@@ -38,39 +38,6 @@ public class SignalTest extends TestCase {
 		super.setUp();
 		TestTools.initResults();
 	}
-	/*
-	public void testThen() throws InterruptedException {
-	
-	final Var<Integer> a = new Var<Integer>(0);
-	final Var<Integer> b = new Var<Integer>(0);
-	
-	Signal<Integer> c = a.then(new Function1<Signal<Integer>, Integer>() {
-	
-	@Override
-	public Signal<Integer> invoke(Integer arg1) {
-	return TimeReact.once(150);
-	}
-	});
-	
-	c.subscribe(new Procedure1<Integer>() {
-	
-	@Override
-	public void invoke(Integer value) {
-	System.out.println(value);
-	}
-	});
-	
-	b.setValue(1);
-	
-	a.setValue(10);
-	a.setValue(10);
-	
-	b.setValue(2);
-	b.setValue(2);
-	
-	Thread.currentThread().sleep(500);
-	
-	}*/
 
 	public void testWeak() throws InterruptedException {
 
@@ -353,5 +320,94 @@ public class SignalTest extends TestCase {
 		assertEquals(2, TestTools.results.get(0));
 		assertEquals(2, TestTools.results.get(1));
 		assertEquals(4, TestTools.results.get(2));
+	}
+
+	public void testSkipToFilter() {
+
+		Var<Integer> a = new Var<Integer>(0);
+		Var<Integer> a2 = a.skipTo(2);
+
+		a2.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				TestTools.results.add(arg1);
+			}
+		});
+
+		assertEquals(0, TestTools.results.size());
+
+		a.setValue(1);
+		a.setValue(2);
+		a.setValue(3);
+		a.setValue(4);
+
+		assertEquals(2, TestTools.results.size());
+		assertEquals(3, TestTools.results.get(0));
+		assertEquals(4, TestTools.results.get(1));
+
+	}
+
+	public void testSkipFromFilter() {
+
+		Var<Integer> a = new Var<Integer>(0);
+		Var<Integer> a2 = a.skipFrom(2);
+
+		a2.subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				TestTools.results.add(arg1);
+			}
+		});
+
+		assertEquals(0, TestTools.results.size());
+
+		a.setValue(1);
+		a.setValue(2);
+		a.setValue(3);
+		a.setValue(4);
+
+		assertEquals(2, TestTools.results.size());
+		assertEquals(1, TestTools.results.get(0));
+		assertEquals(2, TestTools.results.get(1));
+
+	}
+
+	public void testConstant() {
+
+		Var<Integer> a = new Var<Integer>(0);
+		a.toConstant().subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				TestTools.results.add(arg1);
+			}
+		});
+
+		assertEquals(0, TestTools.results.size());
+
+		a.setValue(1);
+		a.setValue(2);
+		a.setValue(3);
+		a.setValue(4);
+
+		assertEquals(0, TestTools.results.size());
+
+		a.toConstant().toVar().subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				TestTools.results.add(arg1);
+			}
+		});
+
+		a.setValue(1);
+		a.setValue(2);
+		a.setValue(3);
+		a.setValue(4);
+
+		assertEquals(4, TestTools.results.size());
+
 	}
 }

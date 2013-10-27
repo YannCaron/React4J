@@ -110,7 +110,15 @@ public class Var<V> extends Signal<V> {
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="high order functions">
-		/**
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> filterSwitch(final Var<Boolean> filter) {
+		return super.filterSwitch(filter).toVar(getValue());
+	}
+
+	/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
 	 *
@@ -129,10 +137,16 @@ public class Var<V> extends Signal<V> {
 	public final Signal<V> fold(final Function2<V, V, V> function) {
 		return fold(getValue(), function);
 	}
-	
-	// </editor-fold>
 
+	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="signal operations">
+	/**
+	@see  Signal#mergeSame(fr.cyann.react.Signal) 
+	 */
+	public Var<V> mergeSame(final Var<V> merge) {
+		return super.mergeSame(merge).toVar(getValue());
+	}
+
 	/**
 	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
 	 */
@@ -175,7 +189,7 @@ public class Var<V> extends Signal<V> {
 		return super.then(value, right.getValue(), right, mapfold);
 	}
 
-		/**
+	/**
 	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
 	 */
 	public <W> Var<Tuple<V, W>> when(final Var<W> right) {
@@ -190,7 +204,36 @@ public class Var<V> extends Signal<V> {
 	}
 
 	// </editor-fold>
+	// <editor-fold defaultstate="collapsed" desc="miscalaneous functions">
+	
+	/**
+	Return an constant object e.g. non varying.
+	@return the non varying signal.
+	*/
+	public Constant<V> toConstant() {
+		
+		Constant<V> signal = new Constant<V>(getValue(), this);
+		return signal;
+		
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> skipTo(int limit) {
+		return this.filter(new SkipToFilter<V>(limit)).toVar(getValue());
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> skipFrom(int limit) {
+		return this.filter(new SkipFromFilter<V>(limit)).toVar(getValue());
+	}
+
+	// </editor-fold>
 	/**
 	 * {@inheritDoc}
 	 */

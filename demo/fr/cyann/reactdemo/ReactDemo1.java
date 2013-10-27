@@ -107,7 +107,7 @@ public class ReactDemo1 {
 		// when mouse button is old, then create a new circle every 50 ms
 		final Signal<Integer> pulse = TimeReact.every(10);
 
-		MouseReact.button1().flatMap(false, new Function1<Signal<Integer>, Boolean>() {
+		MouseReact.button1().switchMap(false, new Function1<Signal<Integer>, Boolean>() {
 
 			@Override
 			public Signal<Integer> invoke(Boolean arg1) {
@@ -203,16 +203,12 @@ public class ReactDemo1 {
 
 	public static void initTest() {
 
-		final Signal<Integer> fps1 = TimeReact.framePerSecond(25);
-		final Signal<Integer> fps2 = TimeReact.framePerSecond(1);
-		final Signal<Integer> delay = TimeReact.once(500);
-
-
+/*
 		MouseReact.button1().feedBackLoop(new Function1<Signal, Boolean>() {
 
 			@Override
 			public Signal invoke(Boolean arg1) {
-				return delay;
+				return TimeReact.once(500);
 			}
 		}).subscribe(new Procedure1<Boolean>() {
 
@@ -220,14 +216,14 @@ public class ReactDemo1 {
 			public void invoke(Boolean arg1) {
 				System.out.println("EMIT");
 			}
-		});
-/*
-		MouseReact.button1().flatMap(false, new Function1<Signal<Integer>, Boolean>() {
+		});*/
+
+		MouseReact.button1().switchMap(false, new Function1<Signal<Integer>, Boolean>() {
 
 			@Override
-			public Signal<Integer> invoke(Boolean arg1) {
-				if (arg1) {
-					return fps1;
+			public Signal<Integer> invoke(Boolean pressed) {
+				if (pressed) {
+					return TimeReact.every(100);
 				}
 				return null;
 			}
@@ -237,7 +233,7 @@ public class ReactDemo1 {
 			public void invoke(Integer arg1) {
 				System.out.println(arg1);
 			}
-		});*/
+		});
 
 	}
 
