@@ -155,7 +155,7 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	 * @see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Var, fr.cyann.functional.Function2) 
+	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
 	 */
 	public <X, W> Var<X> merge(final Var<W> right, final Function2<X, V, W> mapfold) {
 		return super.merge(value, right.getValue(), right, mapfold);
@@ -205,18 +205,17 @@ public class Var<V> extends Signal<V> {
 
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="miscalaneous functions">
-	
 	/**
 	Return an constant object e.g. non varying.
 	@return the non varying signal.
-	*/
+	 */
 	public Constant<V> toConstant() {
-		
+
 		Constant<V> signal = new Constant<V>(getValue(), this);
 		return signal;
-		
+
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */

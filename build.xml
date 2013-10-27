@@ -70,4 +70,29 @@
     nbproject/build-impl.xml file. 
 
     -->
+	
+	<target name="-javadoc-build" description="Generate the documentation for companyproject webservices">
+		<delete dir="doc" failonerror="false"/>
+		<mkdir dir="doc"/>
+		<javadoc packagenames="fr.cyann.*"
+             defaultexcludes="yes"
+             destdir="doc"
+             author="true"
+             version="true"
+             use="true"
+			 executable="/System/Library/Java/JavaVirtualMachines/JDK 1.7.0 Developer Preview.jdk/Contents/Home/bin/javadoc"
+             windowtitle="React4J - Functional Reactive Programming for Java">
+			<doctitle><![CDATA[<h1>React4J - Functional Reactive Programming for Java</h1>]]>
+			</doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; 2013 Yann Caron. All Rights Reserved.</i>]]>
+			</bottom>
+			<sourcefiles>
+				<fileset dir="src/">
+					<include name="**/*.java"/>
+					<exclude name="**/react/Tools.java" />
+				</fileset>
+			</sourcefiles>
+		</javadoc>
+	</target>
+
 </project>

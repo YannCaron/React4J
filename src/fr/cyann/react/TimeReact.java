@@ -129,7 +129,7 @@ public class TimeReact extends AbstractReact<Integer> {
 	 * interval has elapsed.
 	 *
 	 * @param timeout time to wait before emitting message
-	 * @return the time react
+	 * @return the time react.
 	 */
 	public static TimeReact every(final long timeout) {
 		return newInstance(new TimeRunnable() {
@@ -145,11 +145,12 @@ public class TimeReact extends AbstractReact<Integer> {
 	}
 
 	/**
-	 * Factory to create a time based react. Emit a signal whenever the time
-	 * interval has elapsed.
-	 *
-	 * @param timeout time to wait before emitting message
-	 * @return the time react
+	Factory to create a time based react. Emit a signal whenever the time
+	interval has elapsed.
+	
+	@param min the minimum timeout.
+	@param max the maximim timeout.
+	@return the time react.
 	 */
 	public static TimeReact randomly(final int min, final int max) {
 		return newInstance(new TimeRunnable() {
@@ -172,8 +173,8 @@ public class TimeReact extends AbstractReact<Integer> {
 	 * Factory to create a time based react. Emit a signal at regular time
 	 * interval (consider the observer function elapsed time).
 	 *
-	 * @param timeout time to wait before emitting message
-	 * @return the time react
+	 * @param fps frame per second amount.
+	 * @return the time react.
 	 */
 	public static TimeReact framePerSecond(final int fps) {
 		final long timeout = 1000L / fps;

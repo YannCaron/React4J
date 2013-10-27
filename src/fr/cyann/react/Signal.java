@@ -677,7 +677,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#mergeSame(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
 	 */
 	public <W> Var<Tuple<V, W>> merge(final V init, final W initMerge, final Signal<W> right) {
 		return merge(init, initMerge, right, new TupleFold<V, W>());
@@ -746,7 +746,7 @@ public abstract class Signal<V> {
 	Consider this operation like an <b>and</b> boolean operation.
 	
 	@param init the initial value of signal.
-	@param initMerge the initial value of mergeSame signal.
+	@param initSync the initial value of mergeSame signal.
 	@param <X> Type of the resulting var.
 	@param <W> Type of the sync var.
 	@param right the var to mergeSame with.
