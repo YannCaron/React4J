@@ -19,7 +19,7 @@ package fr.cyann.react;
 /**
  * The Constant class.
  * Creation date: 27 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public class Constant<V> extends Var<V> {

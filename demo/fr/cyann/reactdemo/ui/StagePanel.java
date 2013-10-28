@@ -33,19 +33,22 @@ import javax.swing.JPanel;
 /**
  * The StagePanel class.
  * Creation date: 17 oct. 2013.
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
 public class StagePanel extends JPanel {
+
+	private static final Color bg = new Color(94, 63, 107);
 
 	private final List<Shape> shapes;
 	private final Var<Integer> count;
 
 	private final Var<Integer> width, height;
-	
+
 	public StagePanel() {
 		shapes = new ArrayList<Shape>();
 		count = new Var<Integer>(0);
+		System.out.println(getHeight());
 		width = new Var<Integer>(getWidth());
 		height = new Var<Integer>(getHeight());
 
@@ -57,9 +60,9 @@ public class StagePanel extends JPanel {
 				width.setValue(e.getComponent().getWidth());
 				height.setValue(e.getComponent().getHeight());
 			}
-			
+
 		});
-		
+
 		TimeReact.framePerSecond(25).subscribe(new Procedure1<Integer>() {
 
 			@Override
@@ -70,14 +73,14 @@ public class StagePanel extends JPanel {
 
 	}
 
-	public Var<Integer> getComponentHeight() {
+	public Var<Integer> getRHeight() {
 		return height;
 	}
 
-	public Var<Integer> getComponentWidth() {
+	public Var<Integer> getRWidth() {
 		return width;
 	}
-	
+
 	public synchronized void addShape(Shape e) {
 		shapes.add(e);
 		e.setStage(this);
@@ -109,7 +112,7 @@ public class StagePanel extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 			RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-		g2.setColor(Color.DARK_GRAY);
+		g2.setColor(bg);
 		g2.fill(new Rectangle2D.Float(0, 0, this.getWidth(), this.getHeight()));
 
 		synchronized (this) {

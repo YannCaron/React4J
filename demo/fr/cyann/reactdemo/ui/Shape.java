@@ -16,61 +16,85 @@
  */
 package fr.cyann.reactdemo.ui;
 
+import fr.cyann.functional.Function;
+import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
-import fr.cyann.functional.Procedure1;
+import fr.cyann.react.Operation;
 import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
 import java.awt.Graphics;
+import java.awt.print.Book;
 
 /**
  * The Shape class.
  * Creation date: 27 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron
  * @version v0.1
  */
 public abstract class Shape {
 
 	protected final Var<Integer> x, y;
-	private final Var<Boolean> out;
-	private Var<Boolean> tmpout;
+	private final Var<Boolean> out, outTop, outBottom, outLeft, outRight;
 
 	public Shape() {
 		x = new Var<Integer>(0);
 		y = new Var<Integer>(0);
 		out = new Var<Boolean>(false);
+		outTop = new Var<Boolean>(false);
+		outBottom = new Var<Boolean>(false);
+		outLeft = new Var<Boolean>(false);
+		outRight = new Var<Boolean>(false);
 	}
-
-	public void setStage(StagePanel stage) {
-		Var<Boolean> xout = x.merge(stage.getComponentWidth(), new Function2<Boolean, Integer, Integer>() {
-
-			@Override
-			public Boolean invoke(Integer arg1, Integer arg2) {
-				return arg1 < 0 || arg1 > arg2;
-			}
-		});
-		Var<Boolean> yout = y.merge(stage.getComponentHeight(), new Function2<Boolean, Integer, Integer>() {
+	public void setStage(final StagePanel stage) {
+		y.map(new Function1<Boolean, Integer>() {
 
 			@Override
-			public Boolean invoke(Integer arg1, Integer arg2) {
-				return arg1 < 0 || arg1 > arg2;
+			public Boolean invoke(Integer arg1) {
+				return arg1 < 0;
 			}
-		});
-		tmpout = xout.merge(yout, new Function2<Boolean, Boolean, Boolean>() {
+		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outTop);
+
+		y.map(new Function1<Boolean, Integer>() {
 
 			@Override
-			public Boolean invoke(Boolean arg1, Boolean arg2) {
-				return arg1 || arg2;
+			public Boolean invoke(Integer arg1) {
+				return arg1 > stage.getRHeight().getValue();
 			}
-		}).subscribe(out);
+		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outBottom);
+
+		x.map(new Function1<Boolean, Integer>() {
+
+			@Override
+			public Boolean invoke(Integer arg1) {
+				return arg1 < 0;
+			}
+		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outLeft);
+
+		x.map(new Function1<Boolean, Integer>() {
+
+			@Override
+			public Boolean invoke(Integer arg1) {
+				return arg1 > stage.getRWidth().getValue();
+			}
+		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outRight);
+
+		Operation.mergeOperation(new Function<Boolean>() {
+
+			@Override
+			public Boolean invoke() {
+				return outTop.getValue() || outBottom.getValue() || outLeft.getValue() || outRight.getValue();
+			}
+		}, outTop, outBottom, outLeft, outRight).dump(out);
+
 	}
 
 	public void setX(Var<Integer> var) {
-		var.subscribe(x);
+		var.dump(x);
 		x.setValue(var.getValue());
 	}
 
 	public void setY(Var<Integer> var) {
-		var.subscribe(y);
+		var.dump(y);
 		y.setValue(var.getValue());
 	}
 
@@ -86,13 +110,30 @@ public abstract class Shape {
 		return out;
 	}
 
+	public Var<Boolean> getOutBottom() {
+		return outBottom;
+	}
+
+	public Var<Boolean> getOutLeft() {
+		return outLeft;
+	}
+
+	public Var<Boolean> getOutRight() {
+		return outRight;
+	}
+
+	public Var<Boolean> getOutTop() {
+		return outTop;
+	}
+
 	public void dispose() {
 		x.dispose();
 		y.dispose();
 		out.dispose();
-		if (tmpout != null) {
-			tmpout.dispose();
-		}
+		outTop.dispose();
+		outBottom.dispose();
+		outLeft.dispose();
+		outRight.dispose();
 	}
 
 	public abstract void draw(Graphics g);

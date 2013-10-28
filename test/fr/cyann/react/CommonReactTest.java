@@ -21,7 +21,7 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author CyaNn
+ * @author Yann Caron
  */
 public class CommonReactTest extends TestCase {
 

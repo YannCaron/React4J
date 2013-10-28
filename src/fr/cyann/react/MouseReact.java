@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent;
 /**
  * The MouseReact class. Creation date: 13 oct. 2013.
  * All factories of mouse reacts.
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
 public class MouseReact<T> extends AbstractReact<T> {

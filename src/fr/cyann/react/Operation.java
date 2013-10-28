@@ -24,7 +24,7 @@ import fr.cyann.functional.Procedure1;
  * The SyncOperation class.<br>
  * The event is emited when each elements have been changed.
  *
- * @author caronyn
+ * @author Yann Caron
  */
 public class Operation<V> extends Var<V> {
 
@@ -44,11 +44,13 @@ public class Operation<V> extends Var<V> {
 				sync = signal;
 			} else {
 				sync = fold.invoke(sync, signal);
+				links.add(signal);
 			}
 		}
 
 		if (sync != null) {
 			sync.subscribe(new Procedure1<V>() {
+
 				@Override
 				public void invoke(V value) {
 					Operation.this.react.emit(Operation.this.getValue());
@@ -57,6 +59,7 @@ public class Operation<V> extends Var<V> {
 		}
 
 		links.add(sync);
+
 	}
 
 	public Operation(Function<V> operation, Function<Signal> fold, Signal... signals) {
@@ -64,6 +67,7 @@ public class Operation<V> extends Var<V> {
 		this.operation = operation;
 
 		fold.invoke().subscribe(new Procedure1<V>() {
+
 			@Override
 			public void invoke(V value) {
 				Operation.this.react.emit(Operation.this.getValue());
@@ -74,6 +78,7 @@ public class Operation<V> extends Var<V> {
 
 	public static <V> Operation<V> mergeOperation(Function<V> operation, Var... signals) {
 		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
+
 			@Override
 			public Var invoke(Var signal1, Var signal2) {
 				return signal1.mergeSame(signal2);
@@ -83,6 +88,7 @@ public class Operation<V> extends Var<V> {
 
 	public static <V> Operation<V> syncOperation(Function<V> operation, Var... signals) {
 		return new Operation<V>(operation, new Function2<Var, Var, Var>() {
+
 			@Override
 			public Var invoke(Var signal1, Var signal2) {
 				return signal1.sync(signal2, new Signal.KeepLeftFold());

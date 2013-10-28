@@ -154,6 +154,13 @@ This is our reactive RLabel in action (updated on each mouse event) :
 That's it, with a small handful of lines of code ! In fact, only one line, method call are chained !
 With **java 8** and **closures**, this code will be drastically reduced. When [Issue#9](https://bitbucket.org/yann_caron/react4j/issue/9/jdk8-lambda-ready) will be resolved, **React4J** will be ready to accept Java 8 closures.
 
+## Combination framework ##
+
+React4J is based on functional monadic idea and inherit their combination capabilities.
+This is an illustration of differents functions available in React4J :
+
+![functions of React4J](https://bitbucket.org/yann_caron/react4j/downloads/React4J%20-%20functions.png)
+
 ## Demo ##
 FRP will bring a great innovation in the GUI frameworks as well as in the field of video games development ! **I am actually minding about robotic applications of FRP to describe the Robot behaviours in case of its sensors events.**
 

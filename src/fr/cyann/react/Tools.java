@@ -22,7 +22,7 @@ import fr.cyann.functional.Procedure1;
 /**
  * The Tools class.
  * Creation date: 26 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public class Tools {

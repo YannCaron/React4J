@@ -26,7 +26,7 @@ import javax.imageio.ImageIO;
 /**
  * The Sprite class.
  * Creation date: 27 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public class Sprite extends Shape {

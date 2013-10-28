@@ -23,7 +23,7 @@ import fr.cyann.base.Package;
  * Represent the super class of all continuous react un the library.<br>
  * Should be realized in case of new continuous react creation.
  * Creation date: 14 oct. 2013.
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
 public abstract class AbstractReact<V> extends Signal<V> {

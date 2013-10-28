@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  *
- * @author caronyn
+ * @author Yann Caron
  */
 public class React<A> {
 

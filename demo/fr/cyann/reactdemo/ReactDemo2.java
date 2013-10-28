@@ -1,17 +1,26 @@
 /*
- * Copyright (C) 2013 CyaNn
- * License modality not yet defined.
+ * Copyright (C) 2013 Yann Caron
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Less General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Less General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 package fr.cyann.reactdemo;
 
-import fr.cyann.functional.Function;
 import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
-import fr.cyann.functional.Predicate1;
 import fr.cyann.functional.Procedure1;
 import fr.cyann.react.Constant;
 import fr.cyann.react.MouseReact;
-import fr.cyann.react.Operation;
 import fr.cyann.react.ReactManager;
 import fr.cyann.react.Signal;
 import fr.cyann.react.TimeReact;
@@ -28,21 +37,18 @@ import javax.swing.border.EmptyBorder;
 import fr.cyann.reactdemo.ui.Circle;
 import fr.cyann.reactdemo.ui.StagePanel;
 import fr.cyann.reactdemo.ui.Sprite;
-import javax.swing.JTabbedPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.util.Random;
 
 /**
  * The ReactDemo1 main class. Creation date: 18 oct. 2013.
  *
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
-public class ReactDemo1 {
+public class ReactDemo2 {
 
 	private static final RLabel label1 = new RLabel();
 	private static final RLabel label2 = new RLabel();
-	private static final StagePanel particule = new StagePanel();
 	private static final StagePanel game = new StagePanel();
 	private static final Circle cursor = new Circle(25);
 	private static final Var<Integer> mouseX = MouseReact.positionX().map(new Function1<Integer, Integer>() {
@@ -59,6 +65,7 @@ public class ReactDemo1 {
 			return arg1 - (cursor.getSize() / 2 + 10);
 		}
 	}).toVar(0);
+	private static final Random rnd = new Random();
 
 	public static void initLabelsReact() {
 		// when mouse is pressed say "pressed" otherwise say "released"
@@ -92,7 +99,7 @@ public class ReactDemo1 {
 
 		label1.setText(mouseAndTime);
 
-		Var<String> counters = particule.getShapeCounter().merge(ReactManager.getInstance().getReactCounter(), new Function2<String, Integer, Integer>() {
+		Var<String> counters = game.getShapeCounter().merge(ReactManager.getInstance().getReactCounter(), new Function2<String, Integer, Integer>() {
 
 			@Override
 			public String invoke(Integer arg1, Integer arg2) {
@@ -102,97 +109,101 @@ public class ReactDemo1 {
 		label2.setText(counters);
 	}
 
-	public static void initCursor() {
-		particule.addShape(cursor);
-		cursor.setX(mouseX);
-		cursor.setY(mouseY);
-	}
-	private static Signal<Integer> tab1React;
+	private static void addBackgroundElements(int freq, final String fileName, final int velY) {
 
-	public static void initAnim() {
-
-		// when mouse button is old, then create a new circle every 50 ms
-		tab1React = TimeReact.every(10).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
+		// speed lines
+		TimeReact.randomly(freq, freq * 5).subscribe(new Procedure1<Integer>() {
 
 			@Override
-			public void invoke(Integer value) {
-				// create circle
-				final Circle circle = new Circle(5);
-				particule.addShape(circle);
+			public void invoke(Integer arg1) {
+				final Var<Integer> counter = TimeReact.framePerSecond(25).fold(0, new Signal.CountFold<Integer>()).toVar(0);
 
-				// determine random velocity and angle constant in time
-				double velAngle = Math.random() * Math.PI * 2;
-				double velSpeed = Math.random() * 10;
-				final double velX = Math.cos(velAngle) * velSpeed;
-				final double velY = Math.sin(velAngle) * velSpeed;
-
-				final int mx = mouseX.getValue();
-				final int my = mouseY.getValue();
-
-				// create reactive counter every 25 fps
-				final Var<Integer> counter = TimeReact.framePerSecond(25).fold(0, new Function2<Integer, Integer, Integer>() {
-
-					@Override
-					public Integer invoke(Integer arg1, Integer arg2) {
-						return arg1 + 1;
-					}
-				}).map(new Function1<Integer, Integer>() {
+				final Sprite speedLine = new Sprite(fileName);
+				final Var<Integer> x = game.getRWidth().weak().map(new Function1<Integer, Integer>() {
 
 					@Override
 					public Integer invoke(Integer arg1) {
-						return arg1.intValue();
+						return (int) (rnd.nextFloat() * arg1);
 					}
-				}).toVar(0);
-
-				// creation reactive operation between counter and constants to calculate x coordonate
-				final Signal<Integer> x = counter.map(new Function1<Integer, Integer>() {
+				});
+				final Var<Integer> y = counter.map(new Function1<Integer, Integer>() {
 
 					@Override
 					public Integer invoke(Integer value) {
-						return mx + (int) (velX * value);
+						return (velY * value);
 					}
 				});
 
-				// creation reactive operation between counter and constants to calculate y coordonate
-				final Signal<Integer> y = counter.map(new Function1<Integer, Integer>() {
+				speedLine.getOutBottom().subscribe(new Procedure1<Boolean>() {
 
 					@Override
-					public Integer invoke(Integer value) {
-						return my + (int) (velY * value);
-					}
-				});
-
-				// creation reactive operation between counter and constants to calculate circle size
-				Signal<Integer> size = counter.map(new Function1<Integer, Integer>() {
-
-					@Override
-					public Integer invoke(Integer value) {
-						double factor = Math.sin((double) value / 10 - Math.PI / 4);
-						return 50 + (int) (50 * factor);
-					}
-				});
-
-				size.disposeWhen(new Predicate1<Integer>() {
-
-					@Override
-					public boolean invoke(Integer value) {
-						if (value == 1) {
-							particule.removeShape(circle);
-							x.dispose();
-							y.dispose();
-							return true;
+					public void invoke(Boolean arg1) {
+						if (arg1) {
+							game.removeShape(speedLine);
 						}
-						return false;
 					}
 				});
 
-				// set reacts to component
-				//circle.setX(x);
-				//circle.setY(y);
-				circle.setSize(size);
+				speedLine.setX(x);
+				speedLine.setY(y);
+				game.addShape(speedLine);
+
 			}
 		});
+	}
 
+	private static void addEnnemies(int freq, final String fileName, final int vel) {
+		TimeReact.randomly(freq, freq * 2).subscribe(new Procedure1<Integer>() {
+
+			@Override
+			public void invoke(Integer arg1) {
+				final Var<Integer> timer = TimeReact.framePerSecond(25).toVar(0);
+
+				final Sprite ennemy = new Sprite(fileName);
+
+				Signal<Integer> randomVel = TimeReact.every(1000);
+				final int ix = (int) (rnd.nextFloat() * game.getRWidth().getValue());
+				final int iy = (int) (rnd.nextFloat() * game.getRHeight().getValue()) / 3;
+				
+				final Var<Integer> velX = randomVel.toVar(vel).map(new Function1<Integer, Integer>() {
+
+					@Override
+					public Integer invoke(Integer arg1) {
+						return (rnd.nextInt(vel * 2)) - vel;
+					}
+				});
+
+				final Var<Integer> velY = randomVel.toVar(vel).map(new Function1<Integer, Integer>() {
+
+					@Override
+					public Integer invoke(Integer arg1) {
+						return (rnd.nextInt(vel * 2)) - vel;
+					}
+				});
+
+				final Var<Integer> x = timer.fold(ix, new Function2<Integer, Integer, Integer>() {
+
+					@Override
+					public Integer invoke(Integer arg1, Integer arg2) {
+						return arg1 + velX.getValue();
+					}
+				});
+
+				final Var<Integer> y = timer.fold(iy, new Function2<Integer, Integer, Integer>() {
+
+					@Override
+					public Integer invoke(Integer arg1, Integer arg2) {
+						return arg1 + velY.getValue();
+					}
+				});
+
+
+				ennemy.setX(x);
+				ennemy.setY(y);
+
+				game.addShape(ennemy);
+			}
+		}).emit(0);
 	}
 
 	public static void createGameBehaviours() {
@@ -204,17 +215,27 @@ public class ReactDemo1 {
 			public Integer invoke(Integer value) {
 				return value - (player.getWidth() / 2);
 			}
-		}).toVar(0);
+		});
 		final Var<Integer> y = game.getRHeight().map(new Function1<Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Integer value) {
-				return value - 150;
+				return value - 100;
 			}
-		}).toVar(0);
+		});
 
-		// fire
+		// speed lines
+		addBackgroundElements(25, "/img/speedLine.png", 50);
+
+		// stars
+		addBackgroundElements(100, "/img/starBig.png", 5);
+		addBackgroundElements(50, "/img/starSmall.png", 15);
+
+		// shoots
+		
 		TimeReact.every(50).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
+
+			final int velY = 50;
 
 			@Override
 			public void invoke(Integer value) {
@@ -224,21 +245,20 @@ public class ReactDemo1 {
 				final Sprite fire1 = new Sprite("/img/laserGreen.png");
 				final Sprite fire2 = new Sprite("/img/laserGreen.png");
 
-				final int velY = 50;
 				final Constant<Integer> fx = x.weak().toConstant();
 				final Var<Integer> fx2 = x.weak().toConstant().map(new Function1<Integer, Integer>() {
 
 					@Override
-					public Integer invoke(Integer arg1) {
-						return arg1 + player.getWidth() - 10;
+					public Integer invoke(Integer value) {
+						return value + player.getWidth() - 10;
 					}
 				});
 
 				final Var<Integer> fy = counter.map(new Function1<Integer, Integer>() {
 
 					@Override
-					public Integer invoke(Integer arg1) {
-						return y.getValue() - (velY * arg1);
+					public Integer invoke(Integer value) {
+						return y.getValue() - (velY * value);
 					}
 				});
 
@@ -247,12 +267,6 @@ public class ReactDemo1 {
 					@Override
 					public void invoke(Boolean arg1) {
 						if (arg1) {
-							counter.dispose();
-							fy.dispose();
-							fire1.dispose();
-							fire2.dispose();
-							fx.dispose();
-							fx2.dispose();
 							game.removeShape(fire1);
 							game.removeShape(fire2);
 						}
@@ -268,6 +282,9 @@ public class ReactDemo1 {
 				game.addShape(fire2);
 			}
 		});
+
+		// ennemies
+		addEnnemies(2500, "/img/enemyShip.png", 15);
 
 		player.setX(x);
 		player.setY(y);
@@ -288,11 +305,7 @@ public class ReactDemo1 {
 		label1.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label2.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		final JTabbedPane tab = new JTabbedPane(JTabbedPane.BOTTOM);
-		//tab.add("particles", particule);
-		tab.add("game", game);
-
-		frame.add(tab);
+		frame.add(game);
 		frame.add(Box.createRigidArea(new Dimension(0, 10)));
 		frame.add(label1);
 		frame.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -303,26 +316,7 @@ public class ReactDemo1 {
 		frame.pack();
 		frame.setVisible(true);
 
-		tab.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (tab1React != null) {
-					tab1React.dispose();
-				}
-
-
-				switch (tab.getSelectedIndex()) {
-					case 0:
-						initAnim();
-						break;
-				}
-			}
-		});
-
 		initLabelsReact();
-		//initCursor();
-		//initAnim();
 		createGameBehaviours();
 
 	}

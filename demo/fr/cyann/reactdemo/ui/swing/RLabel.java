@@ -21,8 +21,7 @@ import fr.cyann.react.Var;
 import javax.swing.JLabel;
 
 /**
- * @exclude
- * @author caronyn
+ * @author Yann Caron
  */
 public class RLabel extends JLabel {
 

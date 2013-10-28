@@ -24,7 +24,7 @@ import java.awt.Graphics;
 /**
  * The Circle class.
  * Creation date: 17 oct. 2013.
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
 public class Circle extends Shape {
@@ -39,7 +39,7 @@ public class Circle extends Shape {
 	}
 
 	public void setSize(Signal<Integer> signal) {
-		signal.subscribe(size);
+		signal.dump(size);
 	}
 
 	public int getSize() {

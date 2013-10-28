@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The ReactManager class.
  * Creation date: 20 oct. 2013.
- * @author CyaNn
+ * @author Yann Caron
  * @version v0.1
  */
 public class ReactManager {

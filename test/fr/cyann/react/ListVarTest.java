@@ -25,7 +25,7 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author caronyn
+ * @author Yann Caron
  */
 public class ListVarTest extends TestCase {
 

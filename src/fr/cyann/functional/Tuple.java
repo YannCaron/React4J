@@ -19,7 +19,7 @@ package fr.cyann.functional;
 /**
  * The Tuple class.<br>Represents a couple of associative values.<br>
  * Creation date: 26 oct. 2013.
- * @author CyaNn 
+ * @author Yann Caron 
  * @version v0.1
  */
 public class Tuple<V, W> {

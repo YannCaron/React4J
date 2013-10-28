@@ -279,7 +279,7 @@ public abstract class Signal<V> {
 
 	/**
 	Constructor that set the parent of the signal. Used for monadic approach.
-	@param parent 
+	@param parent
 	 */
 	@Package
 	Signal(Signal parent) {
@@ -403,16 +403,16 @@ public abstract class Signal<V> {
 		return this;
 	}
 
-	public Signal<V> subscribe(final Signal<V> signal) {
-		react.subscribe(new Procedure1<V>() {
+	public Signal<V> dump(final Signal<V> signal) {
+		signal.setParent(this);
+
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
 				signal.emit(value);
 			}
 		});
-
-		start();
 
 		return this;
 	}
@@ -736,7 +736,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> merge(final V init, final W initMerge, final Signal<W> right) {
 		return merge(init, initMerge, right, new TupleFold<V, W>());
@@ -746,7 +746,7 @@ public abstract class Signal<V> {
 	Associative method.<br>
 	Merge two signal together. If any signal emit, the resulting signal will
 	emit. Consider this operation like an <b>or</b> boolean operation.
-	
+
 	@param init the initial value of signal.
 	@param initMerge the initial value of mergeSame signal.
 	@param <X> Type of the resulting var.
@@ -793,7 +793,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	@see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> sync(final V init, final W initMerge, final Signal<W> right) {
 		return sync(init, initMerge, right, new TupleFold<V, W>());
@@ -803,7 +803,7 @@ public abstract class Signal<V> {
 	Associative method.<br>
 	Synchronize signal together. The both signals should be before resulting signal will be emited.<br>
 	Consider this operation like an <b>and</b> boolean operation.
-	
+
 	@param init the initial value of signal.
 	@param initSync the initial value of mergeSame signal.
 	@param <X> Type of the resulting var.
@@ -850,7 +850,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	@see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> then(final V init, final W initMerge, final Signal<W> right) {
 		return then(init, initMerge, right, new TupleFold<V, W>());
@@ -859,7 +859,7 @@ public abstract class Signal<V> {
 	/**
 	Associative method.<br>
 	Synchronize signal together. The first then the second signals should be emited before resulting signal will emit.
-	
+
 	@param init the initial value of signal.
 	@param initThen the initial value of then signal.
 	@param <X> Type of the resulting var.
@@ -906,7 +906,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> when(final V init, final W initMerge, final Signal<W> right) {
 		return when(init, initMerge, right, new TupleFold<V, W>());
@@ -915,7 +915,7 @@ public abstract class Signal<V> {
 	/**
 	Associative method.<br>
 	Synchronize signal together. The second then the first signals should be emited before resulting signal will emit.
-	
+
 	@param init the initial value of signal.
 	@param initWhen the initial value of then signal.
 	@param <X> Type of the resulting var.
@@ -1050,7 +1050,7 @@ public abstract class Signal<V> {
 		};
 		// no parent
 
-		this.subscribeDiscret(new Procedure1<V>() {
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {

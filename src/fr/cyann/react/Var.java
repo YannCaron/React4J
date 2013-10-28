@@ -26,20 +26,22 @@ import fr.cyann.functional.Tuple;
 
 /**
  * Var class. Describe a variable that changes in time.
- * @author caronyn
+ *
+ * @author Yann Caron
  */
 public class Var<V> extends Signal<V> {
 
 	// attribute
 	/**
-	Value decorated by this generic type.
+	 * Value decorated by this generic type.
 	 */
 	protected V value;
 
 	// constructor
 	/**
-	Default constructor.
-	@param value the initial value.
+	 * Default constructor.
+	 *
+	 * @param value the initial value.
 	 */
 	public Var(V value) {
 		super();
@@ -47,9 +49,11 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	Constructor for ReactManager only (avoid stack overflow with the counter react).
-	@param value the initial value.
-	@param count is ReactManaget count this.
+	 * Constructor for ReactManager only (avoid stack overflow with the counter
+	 * react).
+	 *
+	 * @param value the initial value.
+	 * @param count is ReactManaget count this.
 	 */
 	@Package
 	Var(V value, boolean count) {
@@ -58,9 +62,10 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	Var constructor for chained signals.
-	@param value the initial value.
-	@param parent chain with the parent.
+	 * Var constructor for chained signals.
+	 *
+	 * @param value the initial value.
+	 * @param parent chain with the parent.
 	 */
 	public Var(V value, Signal parent) {
 		super(parent);
@@ -68,8 +73,9 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	Emit a signal
-	@param value the signal value.
+	 * Emit a signal
+	 *
+	 * @param value the signal value.
 	 */
 	@Override
 	public void emit(V value) {
@@ -83,8 +89,9 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	Value mutator.
-	@param value the value to set.
+	 * Value mutator.
+	 *
+	 * @param value the value to set.
 	 */
 	public synchronized void setValue(V value) {
 		this.value = value;
@@ -96,8 +103,8 @@ public class Var<V> extends Signal<V> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Var<V> subscribe(final Signal<V> signal) {
-		super.subscribe(signal);
+	public Var<V> subscribe(Procedure1<V> subscriber) {
+		super.subscribe(subscriber);
 		return this;
 	}
 
@@ -105,7 +112,16 @@ public class Var<V> extends Signal<V> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Signal<V> unSubscribe(Procedure1<V> subscriber) {
+	public Var<V> dump(final Signal<V> signal) {
+		super.dump(signal);
+		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> unSubscribe(Procedure1<V> subscriber) {
 		super.unSubscribe(subscriber);
 		return this;
 	}
@@ -116,19 +132,37 @@ public class Var<V> extends Signal<V> {
 	 */
 	@Override
 	public <R> Var<R> map(final Function1<R, V> function) {
-		return super.map(function).toVar(function.invoke(getValue()));
+		final Var<R> result = super.map(function).toVar(function.invoke(getValue()));
+
+		result.subscribeDiscret(new Procedure1<R>() {
+
+			@Override
+			public void invoke(R value) {
+				result.value = value;
+			}
+		});
+
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Var<V> filter(final Predicate1<V> function) {
+		return super.filter(function).toVar(getValue());
 	}
 
 	/**
 	 * Filter the event according a criteria on the value and it's previous.<br>
 	 * <b>Finish signal</b> is not filtered.
 	 *
-	 * @param filter predicate to filter. If result is true, event pass else it
-	 * is blocked.
+	 * @param filter predicate to filter. If result is true, event pass else it is
+	 * blocked.
 	 * @return the new filtered signal.
 	 */
-	public final Signal<V> filterFold(final Predicate2<V, V> filter) {
-		return super.filterFold(getValue(), filter);
+	public final Var<V> filterFold(final Predicate2<V, V> filter) {
+		return super.filterFold(getValue(), filter).toVar(getValue());
 	}
 
 	/**
@@ -142,8 +176,8 @@ public class Var<V> extends Signal<V> {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="signal operations">
 	/**
-	 * @see Signal#edge(fr.cyann.react.Signal) 
-	 * Initialize the edge signal with its var value.
+	 * @see Signal#edge(fr.cyann.react.Signal) Initialize the edge signal with its
+	 * var value.
 	 */
 	public Var<V> edge(final Var<Boolean> filter) {
 		Var<V> var = super.edge(filter).toVar(getValue());
@@ -161,63 +195,71 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	@see  Signal#mergeSame(fr.cyann.react.Signal) 
+	 * @see Signal#mergeSame(fr.cyann.react.Signal)
 	 */
 	public Var<V> mergeSame(final Var<V> merge) {
 		return super.mergeSame(merge).toVar(getValue());
 	}
 
 	/**
-	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#merge(java.lang.Object, java.lang.Object,
+	 * fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> merge(final Var<W> merge) {
 		return merge(merge, new TupleFold<V, W>());
 	}
 
 	/**
-	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#merge(java.lang.Object, java.lang.Object,
+	 * fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <X, W> Var<X> merge(final Var<W> right, final Function2<X, V, W> mapfold) {
 		return super.merge(value, right.getValue(), right, mapfold);
 	}
 
 	/**
-	@see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> sync(final Var<W> merge) {
 		return sync(merge, new TupleFold<V, W>());
 	}
 
 	/**
-	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public final <X, W> Var<X> sync(final Var<W> right, final Function2<X, V, W> mapfold) {
 		return super.sync(getValue(), right.getValue(), right, mapfold);
 	}
 
 	/**
-	@see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> then(final Var<W> merge) {
 		return then(merge, new TupleFold<V, W>());
 	}
 
 	/**
-	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W, X> Var<X> then(final Var<W> right, final Function2<X, V, W> mapfold) {
 		return super.then(value, right.getValue(), right, mapfold);
 	}
 
 	/**
-	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> when(final Var<W> right) {
 		return when(right, new TupleFold<V, W>());
 	}
 
 	/**
-	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2) 
+	 * @see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W, X> Var<X> when(final Var<W> when, final Function2<X, V, W> mapfold) {
 		return super.when(getValue(), when.getValue(), when, mapfold);
@@ -226,8 +268,9 @@ public class Var<V> extends Signal<V> {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="miscalaneous functions">
 	/**
-	Return an constant object e.g. non varying.
-	@return the non varying signal.
+	 * Return an constant object e.g. non varying.
+	 *
+	 * @return the non varying signal.
 	 */
 	public Constant<V> toConstant() {
 
@@ -280,8 +323,9 @@ public class Var<V> extends Signal<V> {
 	}
 
 	/**
-	Gets a textual representation of the object.
-	@return the textual representation.
+	 * Gets a textual representation of the object.
+	 *
+	 * @return the textual representation.
 	 */
 	@Override
 	public String toString() {

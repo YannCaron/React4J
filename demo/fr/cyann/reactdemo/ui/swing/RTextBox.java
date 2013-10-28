@@ -25,7 +25,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author caronyn
+ * @author Yann Caron
  */
 public class RTextBox extends JTextField {
 
@@ -54,7 +54,7 @@ public class RTextBox extends JTextField {
 	}
 
 	public void setText(Var<String> value) {
-		value.subscribe(react);
+		value.dump(react);
 	}
 
 	public Var<String> getRText() {
