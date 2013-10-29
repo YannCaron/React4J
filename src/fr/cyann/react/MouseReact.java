@@ -49,7 +49,7 @@ public class MouseReact<T> extends AbstractReact<T> {
 	}
 
 	// general factory
-	private static MouseReact createListener(final Predicate1<MouseEvent> filter, final Function1<Integer, MouseEvent> map, long eventMask) {
+	private static MouseReact<Integer> createListener(final Predicate1<MouseEvent> filter, final Function1<MouseEvent, Integer> map, long eventMask) {
 		final MouseReact<Integer> react = new MouseReact<Integer>();
 
 		AWTEventListener listener = new AWTEventListener() {
@@ -115,14 +115,14 @@ public class MouseReact<T> extends AbstractReact<T> {
 	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
 	 * @return The corresponding mouse react.
 	 */
-	public static MouseReact positionX() {
+	public static MouseReact<Integer> positionX() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override
 			public boolean invoke(MouseEvent event) {
 				return true;
 			}
-		}, new Function1<Integer, MouseEvent>() {
+		}, new Function1<MouseEvent, Integer>() {
 
 			@Override
 			public Integer invoke(MouseEvent event) {
@@ -135,14 +135,14 @@ public class MouseReact<T> extends AbstractReact<T> {
 	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
 	 * @return The corresponding mouse react.
 	 */
-	public static MouseReact positionY() {
+	public static MouseReact<Integer> positionY() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override
 			public boolean invoke(MouseEvent event) {
 				return true;
 			}
-		}, new Function1<Integer, MouseEvent>() {
+		}, new Function1<MouseEvent, Integer>() {
 
 			@Override
 			public Integer invoke(MouseEvent event) {

@@ -202,7 +202,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMerge() {
 
-		Signal<Integer> s = MouseReact.button1().toVar(false).merge(TimeReact.every(100).toVar(0), new Function2<Integer, Boolean, Integer>() {
+		Signal<Integer> s = MouseReact.button1().toVar(false).merge(TimeReact.every(100).toVar(0), new Function2<Boolean, Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Boolean arg1, Integer arg2) {
@@ -238,7 +238,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMap() {
 
-		Signal s = MouseReact.button1().map(new Function1<String, Boolean>() {
+		Signal s = MouseReact.button1().map(new Function1<Boolean, String>() {
 
 			@Override
 			public String invoke(Boolean arg1) {

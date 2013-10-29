@@ -75,7 +75,7 @@ public class VarOperationTest extends TestCase {
 			}
 		}, a, b);
 
-		sum.map(new Function1<String, Integer>() {
+		sum.map(new Function1<Integer, String>() {
 
 			@Override
 			public String invoke(Integer value) {
@@ -121,7 +121,7 @@ public class VarOperationTest extends TestCase {
 			}
 		}, a, b);
 
-		sum.map(new Function1<String, Integer>() {
+		sum.map(new Function1<Integer, String>() {
 
 			@Override
 			public String invoke(Integer value) {
@@ -322,7 +322,7 @@ public class VarOperationTest extends TestCase {
 			}
 		}, a, b);
 
-		sum.map(new Function1<String, Integer>() {
+		sum.map(new Function1<Integer, String>() {
 
 			@Override
 			public String invoke(Integer value) {
@@ -348,7 +348,7 @@ public class VarOperationTest extends TestCase {
 			public boolean invoke(Integer value) {
 				return (value <= 10);
 			}
-		}).map(new Function1<String, Integer>() {
+		}).map(new Function1<Integer, String>() {
 
 			@Override
 			public String invoke(Integer value) {
@@ -589,7 +589,7 @@ public class VarOperationTest extends TestCase {
 		System.out.println("SET A");
 		a.setValue(10);
 		assertEquals(1, TestTools.results.size());
-		
+
 		System.out.println("SET A");
 		a.setValue(10);
 		assertEquals(1, TestTools.results.size());

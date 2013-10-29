@@ -67,7 +67,7 @@ public class ListVar<V> extends Var<List<V>> implements List<V> {
 
 	public Var<V> elementsEvery(final Signal every) {
 		final List<V> clone = Collections.unmodifiableList(value);
-		return CommonReact.newRange(0, clone.size() - 1, 1, every).toVar(0).map(new Function1<V, Integer>() {
+		return CommonReact.newRange(0, clone.size() - 1, 1, every).toVar(0).map(new Function1<Integer, V>() {
 
 			@Override
 			public V invoke(Integer index) {

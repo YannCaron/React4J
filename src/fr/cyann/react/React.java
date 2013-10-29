@@ -42,7 +42,7 @@ public class React<A> {
 		this.subscribers.remove(subscriber);
 	}
 
-	public void subscriptLast(Procedure1<A> subscriber) {
+	public void subscribeLast(Procedure1<A> subscriber) {
 		afterEmit = subscriber;
 	}
 

@@ -34,7 +34,7 @@ import java.util.List;
  * @author Yann Caron
  * @version v0.1
  */
-public abstract class Signal<V> {
+public class Signal<V> {
 
 	protected final React<V> react;
 	protected boolean running = true;
@@ -43,18 +43,10 @@ public abstract class Signal<V> {
 	private boolean disposed = false;
 	protected final List<Signal> links;
 
-	// inner class
-	@Package
-	static class ConcretSignal<V> extends Signal<V> {
-
-		public ConcretSignal(Signal parent) {
-			super(parent);
-		}
-	}
 	/**
-	Pre defined map to give the string representation of the signal.
+	 * Pre defined map to give the string representation of the signal.
 	 */
-	public static final Function1<String, Object> TOSTRING_MAP = new Function1<String, Object>() {
+	public static final Function1<Object, String> TOSTRING_MAP = new Function1<Object, String>() {
 
 		@Override
 		public String invoke(Object arg1) {
@@ -90,8 +82,9 @@ public abstract class Signal<V> {
 		private final int limit;
 
 		/**
-		Constructor to specify limit.
-		@param limit the skip to limit.
+		 * Constructor to specify limit.
+		 *
+		 * @param limit the skip to limit.
 		 */
 		public SkipToFilter(int limit) {
 			this.limit = limit;
@@ -170,7 +163,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class KeepLeftFold<V, W> implements Function2<V, V, W> {
+	public static class KeepLeftFold<W, V> implements Function2<V, W, V> {
 
 		/**
 		 * {@inheritDoc}
@@ -181,7 +174,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class KeepRightFold<V, W> implements Function2<W, V, W> {
+	public static class KeepRightFold<V, W> implements Function2<V, W, W> {
 
 		/**
 		 * {@inheritDoc}
@@ -192,7 +185,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class TupleFold<V, W> implements Function2<Tuple<V, W>, V, W> {
+	public static class TupleFold<V, W> implements Function2<V, W, Tuple<V, W>> {
 
 		/**
 		 * {@inheritDoc}
@@ -203,7 +196,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class CountFold<V extends Number> implements Function2<Integer, Integer, V> {
+	public static class CountFold<V extends Number> implements Function2<Integer, V, Integer> {
 
 		/**
 		 * {@inheritDoc}
@@ -214,7 +207,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class SumFold<V extends Number> implements Function2<Float, Float, V> {
+	public static class SumFold<V extends Number> implements Function2<Float, V, Float> {
 
 		/**
 		 * {@inheritDoc}
@@ -236,7 +229,7 @@ public abstract class Signal<V> {
 		}
 	}
 
-	public static class AverageFold<V extends Number> implements Function2<Float, Float, V> {
+	public static class AverageFold<V extends Number> implements Function2<Float, V, Float> {
 
 		private float i = 1;
 
@@ -253,8 +246,9 @@ public abstract class Signal<V> {
 	// constructor
 
 	/**
-	Special constructor. Enable the counter or not.
-	@param count if counter is enables.
+	 * Special constructor. Enable the counter or not.
+	 *
+	 * @param count if counter is enables.
 	 */
 	@Package
 	Signal(boolean count) {
@@ -268,7 +262,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Default constructor.
+	 * Default constructor.
 	 */
 	/**
 	 * Default constructor.
@@ -278,8 +272,9 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Constructor that set the parent of the signal. Used for monadic approach.
-	@param parent
+	 * Constructor that set the parent of the signal. Used for monadic approach.
+	 *
+	 * @param parent
 	 */
 	@Package
 	Signal(Signal parent) {
@@ -289,8 +284,9 @@ public abstract class Signal<V> {
 
 	// property
 	/**
-	Return if signal is able to start.
-	@return true if signal is able to start, false otherwise.
+	 * Return if signal is able to start.
+	 *
+	 * @return true if signal is able to start, false otherwise.
 	 */
 	@Package
 	boolean isEnable() {
@@ -298,7 +294,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Enable the signal to start.
+	 * Enable the signal to start.
 	 */
 	@Package
 	void enable() {
@@ -306,7 +302,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Disable the signal to start.
+	 * Disable the signal to start.
 	 */
 	@Package
 	void disable() {
@@ -314,16 +310,18 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Get if signal is started.
-	@return true if started, false otherwise.
+	 * Get if signal is started.
+	 *
+	 * @return true if started, false otherwise.
 	 */
 	public boolean isRunning() {
 		return running;
 	}
 
 	/**
-	Set parent to create react chain.
-	@param parent the parent.
+	 * Set parent to create react chain.
+	 *
+	 * @param parent the parent.
 	 */
 	@Package
 	void setParent(Signal parent) {
@@ -332,7 +330,7 @@ public abstract class Signal<V> {
 
 	// method
 	/**
-	Start the chained signals to emit.
+	 * Start the chained signals to emit.
 	 */
 	public void start() {
 		if (enabled) {
@@ -348,7 +346,8 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Stop the chained signals to emit.<br>Has influence on events only. Var and operations continues to emit.
+	 * Stop the chained signals to emit.<br>Has influence on events only. Var and
+	 * operations continues to emit.
 	 */
 	public void stop() {
 		running = false;
@@ -363,7 +362,7 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Stop then start the chained signals.
+	 * Stop then start the chained signals.
 	 */
 	public void reset() {
 		stop();
@@ -431,7 +430,7 @@ public abstract class Signal<V> {
 	 * @return the new filtered signal.
 	 */
 	public Signal<V> filter(final Predicate1<V> function) {
-		final Signal<V> signal = new ConcretSignal<V>(this);
+		final Signal<V> signal = new Signal<V>(this);
 
 		this.subscribeDiscret(new Procedure1<V>() {
 
@@ -451,8 +450,8 @@ public abstract class Signal<V> {
 	 * <b>Finish signal</b> is not filtered.
 	 *
 	 * @param initialize the first value to compare signal value.
-	 * @param filter predicate to filter. If result is true, event pass else it
-	 * is blocked.
+	 * @param filter predicate to filter. If result is true, event pass else it is
+	 * blocked.
 	 * @return the new filtered signal.
 	 */
 	public Signal<V> filterFold(V initialize, final Predicate2<V, V> filter) {
@@ -462,16 +461,16 @@ public abstract class Signal<V> {
 	/**
 	 * Filter the event according a criteria on the value and it's previous.
 	 *
-	 * @param initEmit  the first value to compare signal value.
-	 * @param fEmit predicate to filter. If result is true, event pass else it
-	 * is blocked.
-	 * @param initFinish  the first value to compare finish signal value.
-	 * @param fFinish predicate to filter finish. If result is true, event pass else it
-	 * is blocked.
+	 * @param initEmit the first value to compare signal value.
+	 * @param fEmit predicate to filter. If result is true, event pass else it is
+	 * blocked.
+	 * @param initFinish the first value to compare finish signal value.
+	 * @param fFinish predicate to filter finish. If result is true, event pass
+	 * else it is blocked.
 	 * @return the new filtered signal.
 	 */
 	public Signal<V> filterFold(final V initEmit, final Predicate2<V, V> fEmit, final V initFinish, final Predicate2<V, V> fFinish) {
-		final Signal<V> signal = new ConcretSignal<V>(this);
+		final Signal<V> signal = new Signal<V>(this);
 
 		this.subscribeDiscret(new Procedure1<V>() {
 
@@ -496,8 +495,8 @@ public abstract class Signal<V> {
 	 * @param function the function to transform data.
 	 * @return the new transformed react.
 	 */
-	public <R> Signal<R> map(final Function1<R, V> function) {
-		final Signal<R> signal = new ConcretSignal<R>(this);
+	public <R> Signal<R> map(final Function1<V, R> function) {
+		final Signal<R> signal = new Signal<R>(this);
 
 		this.subscribeDiscret(new Procedure1<V>() {
 
@@ -521,7 +520,7 @@ public abstract class Signal<V> {
 	 * @return the new value.
 	 */
 	public Signal<V> fold(final Function2<V, V, V> function) {
-		final Signal<V> signal = new ConcretSignal<V>(this);
+		final Signal<V> signal = new Signal<V>(this);
 
 		this.subscribeDiscret(new Procedure1<V>() {
 
@@ -550,7 +549,7 @@ public abstract class Signal<V> {
 	 * @param initialize the first value to fold.
 	 * @return the new value.
 	 */
-	public <W> Var<W> fold(final W initialize, final Function2<W, W, V> function) {
+	public <W> Var<W> fold(final W initialize, final Function2<W, V, W> function) {
 		final Var<W> signal = new Var<W>(initialize, this);
 
 		this.subscribeDiscret(new Procedure1<V>() {
@@ -570,14 +569,16 @@ public abstract class Signal<V> {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="signal operations">
 	/**
-	When input signal (edge one) emit signal, this signal can emit, otherwise signals are skipped.<br>
-	Run like an electronical bipolar junction transistor.... haaa 2N2222...
-	@param edge the filter signal to filter on.
-	@return the resulting signal.
+	 * When input signal (edge one) emit signal, this signal can emit, otherwise
+	 * signals are skipped.<br>
+	 * Run like an electronical bipolar junction transistor.... haaa 2N2222...
+	 *
+	 * @param edge the filter signal to filter on.
+	 * @return the resulting signal.
 	 */
 	public Signal<V> edge(final Signal<Boolean> edge) {
 		links.add(edge);
-		final Signal<V> signal = new ConcretSignal<V>(this);
+		final Signal<V> signal = new Signal<V>(this);
 
 		final Procedure1<V> p = new Procedure1<V>() {
 
@@ -606,13 +607,14 @@ public abstract class Signal<V> {
 	/**
 	 * Like map, but return value is signal.<br>
 	 * Be carefull signal is disposed after usage. Alwayse create a new one.
+	 *
 	 * @param <R> The transformed react's value data type.
 	 * @param init the initial value
 	 * @param function the function to transform data.
 	 * @return the signal react.
 	 */
-	public <R> Signal<R> switchMap(final V init, final Function1<Signal<R>, V> function) {
-		final Signal<R> signal = new ConcretSignal<R>(this);
+	public <R> Signal<R> switchMap(final V init, final Function1<V, Signal<R>> function) {
+		final Signal<R> signal = new Signal<R>(this);
 
 		final Procedure1<R> p = new Procedure1<R>() {
 
@@ -653,14 +655,17 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	Feedback signal emited by function is created after each current signal are emited.<br>
-	The resulting signal wait after feedback to emit in its turn.<br>
-	This method can be used to smooth fitful signals or wait after feedback events (works like a control system).
-	@param function the function that produce the feedback signal.
-	@return the resulting signal.
+	 * Feedback signal emited by function is created after each current signal are
+	 * emited.<br>
+	 * The resulting signal wait after feedback to emit in its turn.<br>
+	 * This method can be used to smooth fitful signals or wait after feedback
+	 * events (works like a control system).
+	 *
+	 * @param function the function that produce the feedback signal.
+	 * @return the resulting signal.
 	 */
-	public Signal<V> feedBackLoop(final Function1<Signal, V> function) {
-		final Signal<V> signal = new ConcretSignal<V>(this);
+	public Signal<V> feedBackLoop(final Function1<V, Signal> function) {
+		final Signal<V> signal = new Signal<V>(this);
 
 		final Tools.SwitchProcedure<V> p = new Tools.SwitchProcedure<V>(null, signal, null) {
 
@@ -700,7 +705,7 @@ public abstract class Signal<V> {
 
 	public Signal<V> mergeSame(final Signal<V> right) {
 		links.add(right);
-		final Signal<V> signal = new ConcretSignal<V>(this);
+		final Signal<V> signal = new Signal<V>(this);
 
 		Tools.MergeProcedure1<V, V> p1 = new Tools.MergeProcedure1<V, V>() {
 
@@ -736,26 +741,28 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#merge(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
+	 * @see Signal#merge(java.lang.Object, java.lang.Object,
+	 * fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> merge(final V init, final W initMerge, final Signal<W> right) {
 		return merge(init, initMerge, right, new TupleFold<V, W>());
 	}
 
 	/**
-	Associative method.<br>
-	Merge two signal together. If any signal emit, the resulting signal will
-	emit. Consider this operation like an <b>or</b> boolean operation.
-
-	@param init the initial value of signal.
-	@param initMerge the initial value of mergeSame signal.
-	@param <X> Type of the resulting var.
-	@param <W> Type of the merged var.
-	@param right the var to mergeSame with.
-	@param mapfold the map fold transformation function.<br>It's goal is to mergeSame the two values together and returned in the desired type.
-	@return the new merged signal.
+	 * Associative method.<br>
+	 * Merge two signal together. If any signal emit, the resulting signal will
+	 * emit. Consider this operation like an <b>or</b> boolean operation.
+	 *
+	 * @param init the initial value of signal.
+	 * @param initMerge the initial value of mergeSame signal.
+	 * @param <X> Type of the resulting var.
+	 * @param <W> Type of the merged var.
+	 * @param right the var to mergeSame with.
+	 * @param mapfold the map fold transformation function.<br>It's goal is to
+	 * mergeSame the two values together and returned in the desired type.
+	 * @return the new merged signal.
 	 */
-	public <X, W> Var<X> merge(final V init, final W initMerge, final Signal<W> right, final Function2<X, V, W> mapfold) {
+	public <X, W> Var<X> merge(final V init, final W initMerge, final Signal<W> right, final Function2<V, W, X> mapfold) {
 		links.add(right);
 		final Var<X> signal = new Var(mapfold.invoke(init, initMerge), this);
 
@@ -793,26 +800,29 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
+	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> sync(final V init, final W initMerge, final Signal<W> right) {
 		return sync(init, initMerge, right, new TupleFold<V, W>());
 	}
 
 	/**
-	Associative method.<br>
-	Synchronize signal together. The both signals should be before resulting signal will be emited.<br>
-	Consider this operation like an <b>and</b> boolean operation.
-
-	@param init the initial value of signal.
-	@param initSync the initial value of mergeSame signal.
-	@param <X> Type of the resulting var.
-	@param <W> Type of the sync var.
-	@param right the var to mergeSame with.
-	@param mapfold the map fold transformation function.<br>It's goal is to mergeSame the two values together and returned in the desired type.
-	@return the new merged signal.
+	 * Associative method.<br>
+	 * Synchronize signal together. The both signals should be before resulting
+	 * signal will be emited.<br>
+	 * Consider this operation like an <b>and</b> boolean operation.
+	 *
+	 * @param init the initial value of signal.
+	 * @param initSync the initial value of mergeSame signal.
+	 * @param <X> Type of the resulting var.
+	 * @param <W> Type of the sync var.
+	 * @param right the var to mergeSame with.
+	 * @param mapfold the map fold transformation function.<br>It's goal is to
+	 * mergeSame the two values together and returned in the desired type.
+	 * @return the new merged signal.
 	 */
-	public final <X, W> Var<X> sync(final V init, final W initSync, final Signal<W> right, final Function2<X, V, W> mapfold) {
+	public final <X, W> Var<X> sync(final V init, final W initSync, final Signal<W> right, final Function2<V, W, X> mapfold) {
 		links.add(right);
 		final Var<X> signal = new Var(mapfold.invoke(init, initSync), this);
 
@@ -850,25 +860,28 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
+	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> then(final V init, final W initMerge, final Signal<W> right) {
 		return then(init, initMerge, right, new TupleFold<V, W>());
 	}
 
 	/**
-	Associative method.<br>
-	Synchronize signal together. The first then the second signals should be emited before resulting signal will emit.
-
-	@param init the initial value of signal.
-	@param initThen the initial value of then signal.
-	@param <X> Type of the resulting var.
-	@param <W> Type of the then var.
-	@param right the var to mergeSame with.
-	@param mapfold the map fold transformation function.<br>It's goal is to mergeSame the two values together and returned in the desired type.
-	@return the new merged signal.
+	 * Associative method.<br>
+	 * Synchronize signal together. The first then the second signals should be
+	 * emited before resulting signal will emit.
+	 *
+	 * @param init the initial value of signal.
+	 * @param initThen the initial value of then signal.
+	 * @param <X> Type of the resulting var.
+	 * @param <W> Type of the then var.
+	 * @param right the var to mergeSame with.
+	 * @param mapfold the map fold transformation function.<br>It's goal is to
+	 * mergeSame the two values together and returned in the desired type.
+	 * @return the new merged signal.
 	 */
-	public <W, X> Var<X> then(final V init, final W initThen, final Signal<W> right, final Function2<X, V, W> mapfold) {
+	public <W, X> Var<X> then(final V init, final W initThen, final Signal<W> right, final Function2<V, W, X> mapfold) {
 		links.add(right);
 		final Var<X> signal = new Var(mapfold.invoke(init, initThen), this);
 
@@ -906,25 +919,28 @@ public abstract class Signal<V> {
 	}
 
 	/**
-	@see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal, fr.cyann.functional.Function2)
+	 * @see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
+	 * fr.cyann.functional.Function2)
 	 */
 	public <W> Var<Tuple<V, W>> when(final V init, final W initMerge, final Signal<W> right) {
 		return when(init, initMerge, right, new TupleFold<V, W>());
 	}
 
 	/**
-	Associative method.<br>
-	Synchronize signal together. The second then the first signals should be emited before resulting signal will emit.
-
-	@param init the initial value of signal.
-	@param initWhen the initial value of then signal.
-	@param <X> Type of the resulting var.
-	@param <W> Type of the when var.
-	@param right the var to mergeSame with.
-	@param mapfold the map fold transformation function.<br>It's goal is to mergeSame the two values together and returned in the desired type.
-	@return the new merged signal.
+	 * Associative method.<br>
+	 * Synchronize signal together. The second then the first signals should be
+	 * emited before resulting signal will emit.
+	 *
+	 * @param init the initial value of signal.
+	 * @param initWhen the initial value of then signal.
+	 * @param <X> Type of the resulting var.
+	 * @param <W> Type of the when var.
+	 * @param right the var to mergeSame with.
+	 * @param mapfold the map fold transformation function.<br>It's goal is to
+	 * mergeSame the two values together and returned in the desired type.
+	 * @return the new merged signal.
 	 */
-	public <W, X> Var<X> when(final V init, final W initWhen, final Signal<W> right, final Function2<X, V, W> mapfold) {
+	public <W, X> Var<X> when(final V init, final W initWhen, final Signal<W> right, final Function2<V, W, X> mapfold) {
 		links.add(right);
 		final Var<X> signal = new Var(mapfold.invoke(init, initWhen), this);
 
@@ -964,18 +980,20 @@ public abstract class Signal<V> {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="miscalaneous functions">
 	/**
-	Skip first emitions until the limit is reached.
-	@param limit the limit to reach.
-	@return the new filtered signal.
+	 * Skip first emitions until the limit is reached.
+	 *
+	 * @param limit the limit to reach.
+	 * @return the new filtered signal.
 	 */
 	public Signal<V> skipTo(int limit) {
 		return this.filter(new SkipToFilter<V>(limit));
 	}
 
 	/**
-	Skip last emitions after the limit is reached.
-	@param limit the limit to reach.
-	@return the new filtered signal.
+	 * Skip last emitions after the limit is reached.
+	 *
+	 * @param limit the limit to reach.
+	 * @return the new filtered signal.
 	 */
 	public Signal<V> skipFrom(int limit) {
 		return this.filter(new SkipFromFilter<V>(limit));
@@ -1008,7 +1026,7 @@ public abstract class Signal<V> {
 	}
 
 	public Signal<V> disposeAfterEmit() {
-		react.subscriptLast(new Procedure1<V>() {
+		react.subscribeLast(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {

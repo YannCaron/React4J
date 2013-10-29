@@ -18,25 +18,39 @@ package fr.cyann.reactdemo.ui;
 
 import fr.cyann.functional.Function;
 import fr.cyann.functional.Function1;
-import fr.cyann.functional.Function2;
 import fr.cyann.react.Operation;
 import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
 import java.awt.Graphics;
-import java.awt.print.Book;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * The Shape class.
- * Creation date: 27 oct. 2013.
+ * The Shape class. Creation date: 27 oct. 2013.
+ *
  * @author Yann Caron
  * @version v0.1
  */
 public abstract class Shape {
 
+	public enum Type {
+
+		PLAYER, ENNEMY, SHOOT_PLAYER, SHOOT_ENNEMY, OTHER;
+	}
+
 	protected final Var<Integer> x, y;
 	private final Var<Boolean> out, outTop, outBottom, outLeft, outRight;
+	final Signal<Shape> collision, smoothCollision;
+	private final List<Signal> links;
+	private final Type type;
 
-	public Shape() {
+	public abstract int getWidth();
+
+	public abstract int getHeight();
+
+	public Shape(Type type) {
+		this.type = type;
+		links = new ArrayList<Signal>();
 		x = new Var<Integer>(0);
 		y = new Var<Integer>(0);
 		out = new Var<Boolean>(false);
@@ -44,9 +58,12 @@ public abstract class Shape {
 		outBottom = new Var<Boolean>(false);
 		outLeft = new Var<Boolean>(false);
 		outRight = new Var<Boolean>(false);
+		collision = new Signal<Shape>();
+		smoothCollision = collision.filterFold(null, new Signal.DropRepeatFilter<Shape>());
 	}
+
 	public void setStage(final StagePanel stage) {
-		y.map(new Function1<Boolean, Integer>() {
+		y.map(new Function1<Integer, Boolean>() {
 
 			@Override
 			public Boolean invoke(Integer arg1) {
@@ -54,15 +71,15 @@ public abstract class Shape {
 			}
 		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outTop);
 
-		y.map(new Function1<Boolean, Integer>() {
+		y.map(new Function1<Integer, Boolean>() {
 
 			@Override
 			public Boolean invoke(Integer arg1) {
-				return arg1 > stage.getRHeight().getValue();
+				return arg1 + getHeight() > stage.getRHeight().getValue();
 			}
 		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outBottom);
 
-		x.map(new Function1<Boolean, Integer>() {
+		x.map(new Function1<Integer, Boolean>() {
 
 			@Override
 			public Boolean invoke(Integer arg1) {
@@ -70,11 +87,11 @@ public abstract class Shape {
 			}
 		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outLeft);
 
-		x.map(new Function1<Boolean, Integer>() {
+		x.map(new Function1<Integer, Boolean>() {
 
 			@Override
 			public Boolean invoke(Integer arg1) {
-				return arg1 > stage.getRWidth().getValue();
+				return arg1 + getWidth() > stage.getRWidth().getValue();
 			}
 		}).filterFold(new Signal.DropRepeatFilter<Boolean>()).dump(outRight);
 
@@ -86,6 +103,10 @@ public abstract class Shape {
 			}
 		}, outTop, outBottom, outLeft, outRight).dump(out);
 
+	}
+
+	public Type getType() {
+		return type;
 	}
 
 	public void setX(Var<Integer> var) {
@@ -126,6 +147,14 @@ public abstract class Shape {
 		return outTop;
 	}
 
+	public Signal<Shape> getCollision() {
+		return smoothCollision;
+	}
+
+	public boolean addLink(Signal e) {
+		return links.add(e);
+	}
+
 	public void dispose() {
 		x.dispose();
 		y.dispose();
@@ -134,6 +163,11 @@ public abstract class Shape {
 		outBottom.dispose();
 		outLeft.dispose();
 		outRight.dispose();
+		collision.dispose();
+		smoothCollision.dispose();
+		for (Signal link : links) {
+			link.dispose();
+		}
 	}
 
 	public abstract void draw(Graphics g);

@@ -22,8 +22,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 /**
- * The Circle class.
- * Creation date: 17 oct. 2013.
+ * The Circle class. Creation date: 17 oct. 2013.
+ *
  * @author Yann Caron
  * @version v0.1
  */
@@ -33,6 +33,7 @@ public class Circle extends Shape {
 	public final Color shapeColor, fillColor;
 
 	public Circle(int initSize) {
+		super(Type.OTHER);
 		size = new Var<Integer>(initSize);
 		shapeColor = new Color(255, 255, 255, 200);
 		fillColor = new Color(255, 255, 255, 100);
@@ -44,6 +45,16 @@ public class Circle extends Shape {
 
 	public int getSize() {
 		return size.getValue();
+	}
+
+	@Override
+	public int getWidth() {
+		return getSize();
+	}
+
+	@Override
+	public int getHeight() {
+		return getSize();
 	}
 
 	@Override
@@ -63,4 +74,5 @@ public class Circle extends Shape {
 		g.setColor(shapeColor);
 		g.drawOval(x.getValue() - ms, y.getValue(), s, s);
 	}
+
 }

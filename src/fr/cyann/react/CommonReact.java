@@ -23,7 +23,7 @@ import java.util.Random;
 /**
  * The CommonReact class.
  * Creation date: 24 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
 public class CommonReact {
@@ -48,7 +48,7 @@ public class CommonReact {
 
 	public static final Var<Integer> newRandom(final int from, final int to, final Signal every) {
 		final Random rnd = new Random();
-		return every.map(new Function1<Integer, Object>() {
+		return every.map(new Function1<Object, Integer>() {
 
 			@Override
 			public Integer invoke(Object arg1) {

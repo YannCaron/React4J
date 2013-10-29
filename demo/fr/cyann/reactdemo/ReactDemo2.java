@@ -35,6 +35,7 @@ import javax.swing.JFrame;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import fr.cyann.reactdemo.ui.Circle;
+import fr.cyann.reactdemo.ui.Shape;
 import fr.cyann.reactdemo.ui.StagePanel;
 import fr.cyann.reactdemo.ui.Sprite;
 import java.util.Random;
@@ -72,7 +73,7 @@ public class ReactDemo2 {
 		// concatenate message with mouse position and update each time it is necessary
 
 		// declare the mouse reactor
-		Var<String> mouseAndTime = MouseReact.button1().map(new Function1<String, Boolean>() {
+		Var<String> mouseAndTime = MouseReact.button1().map(new Function1<Boolean, String>() {
 
 			@Override
 			public String invoke(Boolean arg1) {
@@ -81,14 +82,14 @@ public class ReactDemo2 {
 				}
 				return "button released";
 			}
-		}).toVar("no button yet !").merge(mouseX, new Function2<String, String, Integer>() {
+		}).toVar("no button yet !").merge(mouseX, new Function2<String, Integer, String>() {
 
 			@Override
 			public String invoke(String arg1, Integer arg2) {
 				// add mouse x position
 				return arg1 + " ( x=" + arg2;
 			}
-		}).merge(mouseY, new Function2<String, String, Integer>() {
+		}).merge(mouseY, new Function2<String, Integer, String>() {
 
 			@Override
 			public String invoke(String arg1, Integer arg2) {
@@ -99,7 +100,7 @@ public class ReactDemo2 {
 
 		label1.setText(mouseAndTime);
 
-		Var<String> counters = game.getShapeCounter().merge(ReactManager.getInstance().getReactCounter(), new Function2<String, Integer, Integer>() {
+		Var<String> counters = game.getShapeCounter().merge(ReactManager.getInstance().getReactCounter(), new Function2<Integer, Integer, String>() {
 
 			@Override
 			public String invoke(Integer arg1, Integer arg2) {
@@ -107,6 +108,66 @@ public class ReactDemo2 {
 			}
 		});
 		label2.setText(counters);
+	}
+
+	private static void addExplosion(final int ix, final int iy, final String fileName) {
+
+		for (int i = 0; i < 25; i++) {
+			final Var<Integer> timer = TimeReact.framePerSecond(25).toVar(0);
+			final Sprite exp = new Sprite(fileName, Shape.Type.SHOOT_ENNEMY);
+
+			final double factor = 0.7;
+			final int vel = rnd.nextInt(100);
+			final double a = rnd.nextDouble() * Math.PI * 2;
+
+			final Var<Integer> velX = timer.fold((int) (Math.cos(a) * vel), new Function2<Integer, Integer, Integer>() {
+
+				@Override
+				public Integer invoke(Integer arg1, Integer arg2) {
+					return (int) (arg1 * factor);
+				}
+			});
+
+			final Var<Integer> velY = timer.fold((int) (Math.sin(a) * vel), new Function2<Integer, Integer, Integer>() {
+
+				@Override
+				public Integer invoke(Integer arg1, Integer arg2) {
+					return (int) (arg1 * factor);
+				}
+			});
+
+			Var<Integer> x = timer.fold(ix, new Function2<Integer, Integer, Integer>() {
+
+				@Override
+				public Integer invoke(Integer arg1, Integer arg2) {
+					return arg1 + velX.getValue();
+				}
+			});
+
+			Var<Integer> y = timer.fold(iy, new Function2<Integer, Integer, Integer>() {
+
+				@Override
+				public Integer invoke(Integer arg1, Integer arg2) {
+					return arg1 + velY.getValue();
+				}
+			});
+
+			Signal dispose = TimeReact.once(rnd.nextInt(400)).subscribe(new Procedure1<Integer>() {
+
+				@Override
+				public void invoke(Integer arg1) {
+					game.removeShape(exp);
+				}
+			});
+
+			exp.addLink(velX);
+			exp.addLink(velY);
+			exp.setX(x);
+			exp.setY(y);
+			exp.addLink(dispose);
+			game.addShape(exp);
+		}
+
 	}
 
 	private static void addBackgroundElements(int freq, final String fileName, final int velY) {
@@ -118,12 +179,14 @@ public class ReactDemo2 {
 			public void invoke(Integer arg1) {
 				final Var<Integer> counter = TimeReact.framePerSecond(25).fold(0, new Signal.CountFold<Integer>()).toVar(0);
 
-				final Sprite speedLine = new Sprite(fileName);
+				final Sprite speedLine = new Sprite(fileName, Shape.Type.OTHER);
+				final float random = rnd.nextFloat();
+
 				final Var<Integer> x = game.getRWidth().weak().map(new Function1<Integer, Integer>() {
 
 					@Override
 					public Integer invoke(Integer arg1) {
-						return (int) (rnd.nextFloat() * arg1);
+						return (int) (random * arg1);
 					}
 				});
 				final Var<Integer> y = counter.map(new Function1<Integer, Integer>() {
@@ -152,20 +215,60 @@ public class ReactDemo2 {
 		});
 	}
 
-	private static void addEnnemies(int freq, final String fileName, final int vel) {
+	public static void addEnnemyShoot(final int ix, final int iy, final int vel) {
+		final Var<Integer> timer = TimeReact.framePerSecond(25).toVar(0);
+
+		final Sprite shoot = new Sprite("/img/laserRed.png", Shape.Type.SHOOT_ENNEMY);
+
+		Var<Integer> x = new Var<Integer>(ix);
+		final Var<Integer> y = timer.fold(iy, new Function2<Integer, Integer, Integer>() {
+
+			@Override
+			public Integer invoke(Integer arg1, Integer arg2) {
+				return arg1 + vel;
+			}
+		});
+
+		shoot.getOutBottom().subscribe(new Procedure1<Boolean>() {
+
+			@Override
+			public void invoke(Boolean arg1) {
+				game.removeShape(shoot);
+			}
+		});
+
+		shoot.getCollision().subscribe(new Procedure1<Shape>() {
+
+			@Override
+			public void invoke(Shape arg1) {
+				if (arg1.getType() == Shape.Type.PLAYER) {
+					game.addToScore(-150);
+					addExplosion(arg1.getX() + arg1.getHeight() / 2, arg1.getY() + arg1.getWidth() / 2, "/img/laserRedShot.png");
+				}
+			}
+		});
+
+		shoot.setX(x);
+		shoot.setY(y);
+
+		game.addCollideShape(shoot);
+
+	}
+
+	private static void addEnnemies(int freq, final String fileName, final int vel, final boolean shoot) {
 		TimeReact.randomly(freq, freq * 2).subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer arg1) {
 				final Var<Integer> timer = TimeReact.framePerSecond(25).toVar(0);
 
-				final Sprite ennemy = new Sprite(fileName);
+				final Sprite ennemy = new Sprite(fileName, Shape.Type.ENNEMY);
 
-				Signal<Integer> randomVel = TimeReact.every(1000);
-				final int ix = (int) (rnd.nextFloat() * game.getRWidth().getValue());
+				Signal<Integer> changeVel = TimeReact.every(1000);
+				final int ix = (int) (rnd.nextFloat() * (game.getRWidth().getValue() - ennemy.getWidth()));
 				final int iy = (int) (rnd.nextFloat() * game.getRHeight().getValue()) / 3;
-				
-				final Var<Integer> velX = randomVel.toVar(vel).map(new Function1<Integer, Integer>() {
+
+				final Var<Integer> velX = changeVel.toVar(vel).map(new Function1<Integer, Integer>() {
 
 					@Override
 					public Integer invoke(Integer arg1) {
@@ -173,7 +276,7 @@ public class ReactDemo2 {
 					}
 				});
 
-				final Var<Integer> velY = randomVel.toVar(vel).map(new Function1<Integer, Integer>() {
+				final Var<Integer> velY = changeVel.toVar(vel).map(new Function1<Integer, Integer>() {
 
 					@Override
 					public Integer invoke(Integer arg1) {
@@ -197,17 +300,75 @@ public class ReactDemo2 {
 					}
 				});
 
+				Signal s1 = ennemy.getOutLeft().merge(ennemy.getOutRight(), new Function2<Boolean, Boolean, Boolean>() {
+
+					@Override
+					public Boolean invoke(Boolean arg1, Boolean arg2) {
+						return arg1 || arg2;
+					}
+				}).subscribe(new Procedure1<Boolean>() {
+
+					@Override
+					public void invoke(Boolean arg1) {
+						if (arg1) {
+							velX.setValue(-velX.getValue());
+						}
+					}
+				});
+
+				Signal s2 = ennemy.getOutTop().merge(ennemy.getOutBottom(), new Function2<Boolean, Boolean, Boolean>() {
+
+					@Override
+					public Boolean invoke(Boolean arg1, Boolean arg2) {
+						return arg1 || arg2;
+					}
+				}).subscribe(new Procedure1<Boolean>() {
+
+					@Override
+					public void invoke(Boolean arg1) {
+						if (arg1) {
+							velY.setValue(-velY.getValue());
+						}
+					}
+				});
+
+				ennemy.addLink(velX);
+				ennemy.addLink(velY);
+				ennemy.addLink(s1);
+				ennemy.addLink(s2);
+
+				ennemy.getCollision().subscribe(new Procedure1<Shape>() {
+
+					@Override
+					public void invoke(Shape arg1) {
+						if (arg1.getType() == Shape.Type.PLAYER) {
+							game.addToScore(-250);
+						}
+					}
+				});
+
+				if (shoot) {
+					Signal shoot = TimeReact.every(500).subscribe(new Procedure1<Integer>() {
+
+						@Override
+						public void invoke(Integer arg1) {
+							addEnnemyShoot(x.getValue() + ennemy.getWidth() / 2, y.getValue() + ennemy.getHeight(), 25);
+						}
+					});
+					ennemy.addLink(shoot);
+				}
 
 				ennemy.setX(x);
 				ennemy.setY(y);
 
-				game.addShape(ennemy);
+				game.addCollideShape(ennemy);
 			}
-		}).emit(0);
+		}).emit(
+			0);
 	}
 
 	public static void createGameBehaviours() {
-		final Sprite player = new Sprite("/img/player.png");
+		final Sprite player = new Sprite("/img/player.png", Shape.Type.PLAYER);
 
 		final Var<Integer> x = mouseX.map(new Function1<Integer, Integer>() {
 
@@ -228,12 +389,11 @@ public class ReactDemo2 {
 		addBackgroundElements(25, "/img/speedLine.png", 50);
 
 		// stars
-		addBackgroundElements(100, "/img/starBig.png", 5);
-		addBackgroundElements(50, "/img/starSmall.png", 15);
+		addBackgroundElements(50, "/img/starBig.png", 15);
+		addBackgroundElements(20, "/img/starSmall.png", 5);
 
 		// shoots
-		
-		TimeReact.every(50).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
+		Signal shoot = TimeReact.every(50).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
 
 			final int velY = 50;
 
@@ -242,8 +402,8 @@ public class ReactDemo2 {
 				// create reactive counter every 25 fps
 				final Var<Integer> counter = TimeReact.framePerSecond(25).fold(0, new Signal.CountFold<Integer>()).toVar(0);
 
-				final Sprite fire1 = new Sprite("/img/laserGreen.png");
-				final Sprite fire2 = new Sprite("/img/laserGreen.png");
+				final Sprite fire1 = new Sprite("/img/laserGreen.png", Shape.Type.SHOOT_PLAYER);
+				final Sprite fire2 = new Sprite("/img/laserGreen.png", Shape.Type.SHOOT_PLAYER);
 
 				final Constant<Integer> fx = x.weak().toConstant();
 				final Var<Integer> fx2 = x.weak().toConstant().map(new Function1<Integer, Integer>() {
@@ -273,23 +433,49 @@ public class ReactDemo2 {
 					}
 				});
 
+				fire1.getCollision().subscribe(new Procedure1<Shape>() {
+
+					@Override
+					public void invoke(Shape arg1) {
+						if (arg1.getType() == Shape.Type.ENNEMY) {
+							game.removeShape(arg1);
+							game.addToScore(50);
+							addExplosion(arg1.getX() + arg1.getHeight() / 2, arg1.getY() + arg1.getWidth() / 2, "/img/laserGreenShot.png");
+						}
+					}
+				});
+
+				fire2.getCollision().subscribe(new Procedure1<Shape>() {
+
+					@Override
+					public void invoke(Shape arg1) {
+						if (arg1.getType() == Shape.Type.ENNEMY) {
+							game.removeShape(arg1);
+							game.addToScore(50);
+							addExplosion(arg1.getX() + arg1.getHeight() / 2, arg1.getY() + arg1.getWidth() / 2, "/img/laserGreenShot.png");
+						}
+					}
+				});
+
 				fire1.setX(fx);
 				fire1.setY(fy);
 				fire2.setX(fx2);
 				fire2.setY(fy);
 
-				game.addShape(fire1);
-				game.addShape(fire2);
+				game.addCollideShape(fire1);
+				game.addCollideShape(fire2);
 			}
 		});
 
 		// ennemies
-		addEnnemies(2500, "/img/enemyShip.png", 15);
+		addEnnemies(2500, "/img/enemyShip.png", 15, true);
+		addEnnemies(5000, "/img/enemyUFO.png", 25, false);
 
+		player.addLink(shoot);
 		player.setX(x);
 		player.setY(y);
 
-		game.addShape(player);
+		game.addCollideShape(player);
 
 	}
 

@@ -72,11 +72,11 @@
     -->
 	
 	<target name="-javadoc-build" description="Generate the documentation for companyproject webservices">
-		<delete dir="doc" failonerror="false"/>
-		<mkdir dir="doc"/>
+		<delete dir="docs" failonerror="false"/>
+		<mkdir dir="docs"/>
 		<javadoc packagenames="fr.cyann.*"
              defaultexcludes="yes"
-             destdir="doc"
+             destdir="docs"
              author="true"
              version="true"
              use="true"

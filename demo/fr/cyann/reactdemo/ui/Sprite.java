@@ -26,7 +26,7 @@ import javax.imageio.ImageIO;
 /**
  * The Sprite class.
  * Creation date: 27 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
 public class Sprite extends Shape {
@@ -34,9 +34,10 @@ public class Sprite extends Shape {
 	private Image img;
 	private int width, height;
 
-	public Sprite(String name) {
+	public Sprite(String filtName, Type type) {
+		super(type);
 		try {
-			img = ImageIO.read(this.getClass().getResource(name));
+			img = ImageIO.read(this.getClass().getResource(filtName));
 			width = img.getWidth(null);
 			height = img.getHeight(null);
 		} catch (IOException ex) {
@@ -44,10 +45,12 @@ public class Sprite extends Shape {
 		}
 	}
 
+	@Override
 	public int getHeight() {
 		return height;
 	}
 
+	@Override
 	public int getWidth() {
 		return width;
 	}
@@ -56,7 +59,7 @@ public class Sprite extends Shape {
 	public void dispose() {
 		super.dispose();
 	}
-	
+
 	@Override
 	public void draw(Graphics g) {
 		g.drawImage(img, x.getValue(), y.getValue(), null);

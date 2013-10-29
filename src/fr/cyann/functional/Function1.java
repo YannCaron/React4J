@@ -19,10 +19,10 @@ package fr.cyann.functional;
 /**
  * The Function1 interface.<br> Give the ability to create a functor with one parameter and a return parameter.<br>
  * Creation date: 9 oct. 2013.
- * @author Yann Caron 
+ * @author Yann Caron
  * @version v0.1
  */
-public interface Function1<R, A1> {
+public interface Function1<A1, R> {
 
 	/**
 	The run method. Called by high order function.

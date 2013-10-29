@@ -131,7 +131,7 @@ public class Var<V> extends Signal<V> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public <R> Var<R> map(final Function1<R, V> function) {
+	public <R> Var<R> map(final Function1<V, R> function) {
 		final Var<R> result = super.map(function).toVar(function.invoke(getValue()));
 
 		result.subscribeDiscret(new Procedure1<R>() {
@@ -213,7 +213,7 @@ public class Var<V> extends Signal<V> {
 	 * @see Signal#merge(java.lang.Object, java.lang.Object,
 	 * fr.cyann.react.Signal, fr.cyann.functional.Function2)
 	 */
-	public <X, W> Var<X> merge(final Var<W> right, final Function2<X, V, W> mapfold) {
+	public <X, W> Var<X> merge(final Var<W> right, final Function2<V, W, X> mapfold) {
 		return super.merge(value, right.getValue(), right, mapfold);
 	}
 
@@ -229,7 +229,7 @@ public class Var<V> extends Signal<V> {
 	 * @see Signal#sync(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
 	 * fr.cyann.functional.Function2)
 	 */
-	public final <X, W> Var<X> sync(final Var<W> right, final Function2<X, V, W> mapfold) {
+	public final <X, W> Var<X> sync(final Var<W> right, final Function2<V, W, X> mapfold) {
 		return super.sync(getValue(), right.getValue(), right, mapfold);
 	}
 
@@ -245,7 +245,7 @@ public class Var<V> extends Signal<V> {
 	 * @see Signal#then(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
 	 * fr.cyann.functional.Function2)
 	 */
-	public <W, X> Var<X> then(final Var<W> right, final Function2<X, V, W> mapfold) {
+	public <W, X> Var<X> then(final Var<W> right, final Function2<V, W, X> mapfold) {
 		return super.then(value, right.getValue(), right, mapfold);
 	}
 
@@ -261,7 +261,7 @@ public class Var<V> extends Signal<V> {
 	 * @see Signal#when(java.lang.Object, java.lang.Object, fr.cyann.react.Signal,
 	 * fr.cyann.functional.Function2)
 	 */
-	public <W, X> Var<X> when(final Var<W> when, final Function2<X, V, W> mapfold) {
+	public <W, X> Var<X> when(final Var<W> when, final Function2<V, W, X> mapfold) {
 		return super.when(getValue(), when.getValue(), when, mapfold);
 	}
 

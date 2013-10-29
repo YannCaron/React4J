@@ -22,7 +22,7 @@ package fr.cyann.functional;
  * @author Yann Caron
  * @version v0.1
  */
-public interface Function2<R, A1, A2> {
+public interface Function2<A1, A2, R> {
 
 	/**
 	The run method. Called by high order function.

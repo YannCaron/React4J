@@ -41,7 +41,7 @@ public class ListVarTest extends TestCase {
 		ListVar<Integer> list = ListVar.newInstance(li);
 
 		Var<Integer> elements = list.elementsEvery(TimeReact.every(50)).toVar(0);
-		elements.map(new Function1<String, Integer>() {
+		elements.map(new Function1<Integer, String>() {
 
 			@Override
 			public String invoke(Integer value) {
@@ -68,6 +68,6 @@ public class ListVarTest extends TestCase {
 		assertEquals("Element 8", TestTools.results.get(7));
 		assertEquals("Element 1", TestTools.results.get(8));
 		assertEquals("Element 2", TestTools.results.get(9));
-		
+
 	}
 }
