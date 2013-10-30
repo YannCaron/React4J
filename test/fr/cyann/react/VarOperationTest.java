@@ -90,20 +90,20 @@ public class VarOperationTest extends TestCase {
 		});
 
 		a.setValue(1);
-		// nothing appends
+		// nothing happened
 
 		a.setValue(2);
-		// nothing appends
+		// nothing happened
 
 		b.setValue(8);
-		// raise event
+		// event raised
 		// Sum result= 10 e.g. 2 + 8
 
 		b.setValue(7);
-		// nothing appends
+		// nothing happened
 
 		a.setValue(4);
-		// nothing appends
+		// event raised
 		// Sum result= 1 e.g. 4 + 7
 
 	}
@@ -136,7 +136,7 @@ public class VarOperationTest extends TestCase {
 		});
 
 		a.setValue(7);
-		// nothing appends
+		// nothing happened
 		// Sum result= 9 e.g. 7 + 2
 
 		b.setValue(8);

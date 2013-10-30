@@ -118,10 +118,10 @@ public class StagePanel extends JPanel {
 	}
 
 	public synchronized void removeShape(Shape c) {
-		c.dispose();
 		shapes.remove(c);
 		collideShapes.remove(c);
 		count.setValue(shapes.size());
+		c.dispose();
 	}
 
 	public Var<Integer> getShapeCounter() {

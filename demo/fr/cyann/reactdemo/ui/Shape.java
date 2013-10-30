@@ -151,11 +151,11 @@ public abstract class Shape {
 		return smoothCollision;
 	}
 
-	public boolean addLink(Signal e) {
+	public synchronized boolean addLink(Signal e) {
 		return links.add(e);
 	}
 
-	public void dispose() {
+	public synchronized void dispose() {
 		x.dispose();
 		y.dispose();
 		out.dispose();

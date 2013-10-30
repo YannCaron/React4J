@@ -2,12 +2,44 @@
 
 Welcome to **React4J**. This library aim to introduce Functional Reactive Programming in Java programming language.
 
+It works with **Java 6, 7, and 8** versions. It have a total support or the **Java's 8 Lambdas** feature and can be also used with previous java version using the **anonymous inner classes**. React4J can also be embeded in **Android** project, just by adding the React4J.jar to it.
+
+# Purpose
+
 Functional Reactive Programming (FRP) is a high-level functional architecture that aims to work with interactions and time. It provides control flow structures for time. FRP consider states as time-varying values.
 
-It was inspired by Scala.react library currently developed by [Ingo Maier](https://github.com/ingoem) and [Martin Odersky](http://fr.wikipedia.org/wiki/Martin_Odersky) see https://github.com/ingoem/scala-react.
-Some behaviors have been patterned after Haskell and ELM functional reactive programming capabilities : [FRP in Haskell](http://www.haskell.org/haskellwiki/Functional_Reactive_Programming) and [ELM programming language](http://elm-lang.org/learn/What-is-FRP.elm)
+## Explanations
+In classic imperative programming :
+```
+#!java
+Integer a = 0;
+Integer b = 0;
+Integer sum = a + b;
 
-For more details about reactive programming and its benefits in comparison to Observer design pattern, see [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf) with **Scala.React**
+System.out.println("Sum = " + sum); // Sum = 0
+a = 7;
+b = 8;
+System.out.println("Sum = " + sum); // Sum = 0
+```
+Not really is a surprising !
+
+In functional reactive programming this is the same program :
+```
+#!java
+final Var<Integer> a = new Var<>(0);
+final Var<Integer> b = new Var<>(0);
+Operation<Integer> sum = a.merge(b, (arg1, arg2) -> arg1 + arg2); // reactive sum = reactive a + reactive b
+
+System.out.println("Sum = " + sum.getValue()); // Sum = 0
+a.setValue(7);
+b.setValue(8);
+System.out.println("Sum = " + sum.getValue()); // Sum = 15
+```
+
+If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/test/fr/cyann/react/VarOperationTest.java?at=default#cl-65) !
+
+In this example a, b and sum are some state centered reacts. If a and b are changed sum value is automatically updated.
+The sum of a and b is always verifiable, even if its operands have changed after its statement.
 
 ## More details ##
 **React4J** fits in the discrete reactive frameworks familly e.g. it is event based.
@@ -22,66 +54,10 @@ There is two way to design an FRP framework :
 
 Like other FRP frameworks, **React4J** works with two entities : States (can be a variable or an operation between variables) that represent a value that evolve in time. **Var** and **Operation** objects have an initial state. And the behaviours that are resulting of single events emited by a device (or by timers). **Signal** objects does not have value until the event is raised.
 
-## Value centrered (**Var** and **Operation**)##
-This is an example of value centered reaction in **React4J** :
+## Signals ##
+Signal can be used to manage events is a program. Further more, with this framework, events can be transformed, chained, or dependents from another evnets to create a real event framework.
+Idea is to detach programer from low level event and states management to focus it to the essencial : what the program have to do in **reaction** to events.
 
-
-```
-#!java
-
-final Var<Integer> a = new Var<Integer>(1);
-final Var<Integer> b = new Var<Integer>(1);
-
-Operation<Integer> sum = Operation.syncOperation(new Function<Integer>() {
-
-	@Override
-	public Integer invoke() {
-		return a.getValue() + b.getValue();
-	}
-}, a, b);
-
-sum.map(new Function1<String, Integer>() {
-
-	@Override
-	public String invoke(Integer value) {
-		return "Sum result= " + value;
-	}
-}).subscribe(new Procedure1<String>() {
-
-	@Override
-	public void invoke(String value) {
-		System.out.println(value);
-	}
-});
-
-a.setValue(1);
-// nothing appends
-
-a.setValue(2);
-// nothing appends
-
-b.setValue(8);
-// raise event
-// Sum result= 10 e.g. 2 + 8
-
-b.setValue(7);
-// nothing appends
-
-a.setValue(4);
-// nothing appends
-// Sum result= 1 e.g. 4 + 7
-
-```
-
-In this example a, b and sum are some state centered reacts. If a and b are changed sum value is automatically updated and an event is raised.
-
-Operations can work in two modes : merge and sync
-* **merge**: emit if any operande is updated. Consider merge mode like an "or" operation : event is raised if *a* **or** *b* are changed. 
-* **sync**: emit each time the two operandes are updates. Keep only the last value of each operands. Consider sync mode like an "and" operation : event is raise of *a* **and** *b* are changed together.
-
-Naturally, it is possible to subscribe to any react of the program and to create as any combination of operation as needed. Events will be propagated into the obtained calculus binary tree. This behaviour binary tree is the resulting of combination of the differents operation modes.
-
-## Behaviour centered (**Signal**) ##
 Functional reactive programming finds its application in user interactions domains like HMI or video game developpment.
 
 Before describe any reaction, let's create an HMI JLabel component with **Swing**.
@@ -90,19 +66,16 @@ Node: This principle can be applied to any other user interface library.
 #!java
 public class RLabel extends JLabel {
 
+	@override
 	public void setText(Var<String> text) {
-		text.subscribe(new Procedure1<String>() {
-
-			@Override
-			public void invoke(String value) {
-				setText(value);
-			}
-		});
-		setText(text.getValue());
+		text.subscribe(value -> { setText(value); }); // each time text react is changed, the label text is updated
+		setText(text.getValue()); // initialize value
 	}
 
 }
 ```
+If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/demo/fr/cyann/reactdemo/ui/swing/RLabel.java?at=default#cl-28) !
+
 To create reactive JLabel, the new RLabel class must inherits from JLabel and define an overriding setText method. This method accept a Signal as input argument, subscribe to it : each time the react emit, the label text value will be changed.
 
 Now imagine we want to update automatically our JLabel with the mouse click event and its position.
@@ -110,49 +83,40 @@ The RLabel must be updated every time the button is clicked and every time the m
 
 ```
 #!java
-// when mouse is pressed say "pressed" otherwise say "released"
-// concatenate message with mouse position and update each time it is necessary
-
-// declare the mouse reactor
-Var<String> mouseAndTime = MouseReact.hold().filter(MouseReact.BUTTON1).map(new Function1<String, Integer>() {
-
-	@Override
-	public String invoke(Integer value) {
-		// when mouse button is pressed
-		return "button pressed";
-	}
-}).otherwise(new Function1<String, String>() {
-
-	@Override
-	public String invoke(String arg1) {
-		// when it is released
-		return "button released";
-	}
-}).toVar("no button yet !").merge(mouseX, new Function2<String, String, Integer>() {
-
-	@Override
-	public String invoke(String arg1, Integer arg2) {
-		// add mouse x position
-		return arg1 + " ( x=" + arg2;
-	}
-}).merge(mouseY, new Function2<String, String, Integer>() {
-
-	@Override
-	public String invoke(String arg1, Integer arg2) {
-		// add mouse y position
-		return arg1 + ", y=" + arg2 + ")";
-	}
-});
+Var<String> mouseAndTime = MouseReact.button1()
+		.map(arg1 -> arg1 ? "button pressed" : "button released")
+		.toVar("no button yet !")
+		.merge(MouseReact.positionX().toVar(0), (arg1, arg2) -> arg1 + " ( x=" + arg2)
+		.merge(MouseReact.positionY().toVar(0), (arg1, arg2) -> arg1 + ", y=" + arg2 + ")");
 
 label1.setText(mouseAndTime);
+```
+That's it, with a small handful of lines of code ! In fact, only one line, method call are chained !
+
+**Important** : If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/demo/fr/cyann/reactdemo/ReactDemo1.java?at=default#cl-68) !
+
+We can dilute this source code to understand :
+```
+#!java
+Signal<Boolean> button1 = MouseReact.button1(); // emit each time user click on mouse button 1
+Signal<String> btnStr1 = button1.map(btn -> btn ? "button pressed" : "button released"); // "pressed" each time button1 is true otherwise "released"
+Var<String> btnStrVar1 = btnStr1.toVar("no button yet !"); // create a variable with default initial value (before user has clicked on button)
+
+Var<Integer> posX = MouseReact.positionX().toVar(0); // emit each time user move mouse
+Var<String> posStrX = posX.map(x -> "x=" + x);
+
+Var<Integer> posY = MouseReact.positionY().toVar(0); // emit each time user move mouse
+Var<String> posStrY = posY.map(y -> "y=" + y).toVar("y=NaN");
+
+Var<String> posXY = posStrX.merge("", "", posStrY, (px, py) -> "(" + px + ", " + py + ")");
+Var<String> allTogether = btnStrVar1.merge(posXY, (btn, pos) -> btn + " " + pos); // emited each time mouse is clicked or mouved and create resulting string
+
+label1.setText(allTogether); // allTogether dump emitions to the label text
 ```
 
 This is our reactive RLabel in action (updated on each mouse event) :
 
 ![RLabel and merged mouse react](https://bitbucket.org/yann_caron/react4j/downloads/Demo1.png)
-
-That's it, with a small handful of lines of code ! In fact, only one line, method call are chained !
-With **java 8** and **closures**, this code will be drastically reduced. When [Issue#9](https://bitbucket.org/yann_caron/react4j/issue/9/jdk8-lambda-ready) will be resolved, **React4J** will be ready to accept Java 8 closures.
 
 ## Combination framework ##
 
@@ -162,7 +126,7 @@ This is an illustration of differents functions available in React4J :
 ![functions of React4J](https://bitbucket.org/yann_caron/react4j/downloads/React4J%20-%20functions.png)
 
 ## Demo ##
-FRP will bring a great innovation in the GUI frameworks as well as in the field of video games development ! **I am actually minding about robotic applications of FRP to describe the Robot behaviours in case of its sensors events.**
+FRP will bring a great innovation in the **GUI frameworks** as well as in the field of **video games** development ! **I am actually minding about robotic applications of FRP to describe the Robot behaviours in case of its sensors events.**
 
 Try react4j animation demo : [Download demo jar](https://bitbucket.org/yann_caron/react4j/downloads/React4J.jar)
 
@@ -175,3 +139,10 @@ This demo demonstrate the react4j capabilities in the field of graphical interac
 Youtube : [Youtube live demo](https://www.youtube.com/watch?v=0VGU9qcjnbM)
 
 Have fun!
+
+## Credits
+
+**React4J** was inspired by Scala.react library currently developed by [Ingo Maier](https://github.com/ingoem) and [Martin Odersky](http://fr.wikipedia.org/wiki/Martin_Odersky) see https://github.com/ingoem/scala-react.
+Some behaviors have been patterned after Haskell and ELM functional reactive programming capabilities : [FRP in Haskell](http://www.haskell.org/haskellwiki/Functional_Reactive_Programming) and [ELM programming language](http://elm-lang.org/learn/What-is-FRP.elm)
+
+For more details about reactive programming and its benefits in comparison to Observer design pattern, see [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf) with **Scala.React**

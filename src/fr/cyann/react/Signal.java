@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @author Yann Caron
  * @version v0.1
+ * @param <V> The signal type.
  */
 public class Signal<V> {
 
@@ -374,6 +375,7 @@ public class Signal<V> {
 	 * Command react to emit a signal.<br>
 	 * Should be overrided to add automatic behaviours like emit counter time
 	 * management etc.
+	 * @param value the value to emit
 	 */
 	public void emit(V value) {
 		try {
@@ -1083,7 +1085,7 @@ public class Signal<V> {
 	public final Var<V> toVar(V value) {
 		final Var<V> signal = new Var<V>(value, this);
 
-		this.subscribeDiscret(new Procedure1<V>() {
+		this.subscribe(new Procedure1<V>() {
 
 			@Override
 			public void invoke(V value) {
