@@ -99,15 +99,15 @@ public class MouseReact<T> extends AbstractReact<T> {
 
 	}
 
-	public static MouseReact<Boolean> button1() {
+	public static MouseReact<Boolean> onButton1() {
 		return createButtonListener(1);
 	}
 
-	public static MouseReact<Boolean> button2() {
+	public static MouseReact<Boolean> onButton2() {
 		return createButtonListener(2);
 	}
 
-	public static MouseReact<Boolean> button3() {
+	public static MouseReact<Boolean> onButton3() {
 		return createButtonListener(3);
 	}
 
@@ -115,7 +115,7 @@ public class MouseReact<T> extends AbstractReact<T> {
 	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
 	 * @return The corresponding mouse react.
 	 */
-	public static MouseReact<Integer> positionX() {
+	public static MouseReact<Integer> onMoveX() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override
@@ -135,7 +135,7 @@ public class MouseReact<T> extends AbstractReact<T> {
 	 * React that emit event when any mouse is moved, value is the x position of the cursor relative to the application.
 	 * @return The corresponding mouse react.
 	 */
-	public static MouseReact<Integer> positionY() {
+	public static MouseReact<Integer> onMoveY() {
 		return createListener(new Predicate1<MouseEvent>() {
 
 			@Override

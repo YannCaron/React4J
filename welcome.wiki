@@ -6,10 +6,10 @@ It works with **Java 6, 7, and 8** versions. It have a total support or the **Ja
 
 # Purpose
 
-Functional Reactive Programming (FRP) is a high-level functional architecture that aims to work with interactions and time. It provides control flow structures for time. FRP consider states as time-varying values.
+Functional Reactive Programming (FRP) is a high-level functional architecture that aims to work with interactions and time. It provides control flow structures for time. FRP consider states as time-varying values !
 
 ## Explanations
-In classic imperative programming :
+This is an example in classical imperative programming :
 ```
 #!java
 Integer a = 0;
@@ -21,47 +21,110 @@ a = 7;
 b = 8;
 System.out.println("Sum = " + sum); // Sum = 0
 ```
-Not really is a surprising !
+Zero result does not seems to be very surprising! Are you really sure of that ?
 
-In functional reactive programming this is the same program :
+Yet, ask a non-programmer what he thinks about your code. He will tell you "hey dude! You don't know how to calculate ! 7 plus 8 gives 15 !"
+You will probably answer something like that : "Yes !..... Ok !..... You have to recompute the sum and it is ok !"
+
+Reactive Programming try to give a simpler answer to this problem by considering time varying states.
+Imagine a language where you can write :
+
+```
+#!java
+Var a = 0;
+Var b = 0;
+Var sum = a + b;
+
+print("Sum = " + sum); // Sum = 0
+a = 7;
+b = 8;
+print("Sum = " + sum); // Sum = 15
+```
+Now, when **a** or **b** operand have changed, the **sum** result change too !
+That's why **React4J** try to add this time varying states paradigm to Java.
+
+This is what our previous non-Java program gives with Java + React4J
+
 ```
 #!java
 final Var<Integer> a = new Var<>(0);
 final Var<Integer> b = new Var<>(0);
-Operation<Integer> sum = a.merge(b, (arg1, arg2) -> arg1 + arg2); // reactive sum = reactive a + reactive b
+Operation<Integer> sum = Operation.mergeOperation(() -> a.getValue() + b.getValue(), a, b); // reactive sum = reactive a + reactive b
 
 System.out.println("Sum = " + sum.getValue()); // Sum = 0
+
 a.setValue(7);
 b.setValue(8);
+
 System.out.println("Sum = " + sum.getValue()); // Sum = 15
 ```
 
 If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/test/fr/cyann/react/VarOperationTest.java?at=default#cl-65) !
 
-In this example a, b and sum are some state centered reacts. If a and b are changed sum value is automatically updated.
-The sum of a and b is always verifiable, even if its operands have changed after its statement.
+In this example **a**, **b** and **sum** are some state centered reacts. If **a** and **b** are changed **sum** value is automatically updated.
+The sum of the operands **a** and **b** is always verifiable, even if any of its operands have changed after its statement.
 
-## More details ##
-**React4J** fits in the discrete reactive frameworks familly e.g. it is event based.
+## Notifications
 
-There is two way to design an FRP framework :
+Another really cool stuff with **React4J** is that you can be alerted when a state or a compount state have changed.
+```
+#!java
+final Var<Integer> a = new Var<>(0);
+final Var<Integer> b = new Var<>(0);
+Operation<Integer> sum = Operation.mergeOperation(() -> a.getValue() + b.getValue(), a, b); // reactive sum = reactive a + reactive b
 
-* by * **Continuous** reactions, a centralized manager maintains all reactives signals that are periodically actualized. It is an old and cpu consumer way because unnecessary values are computed in a sample time.
+sum.subscribe( (Integer sumValue) -> {
+	System.out.println("Sum = " + sumValue);
+})
 
-* by **Discrete** reactions that are event driver. The values are only updates if an event that change their value has been emiter.
+a.setValue(7); // Sum = 7
+b.setValue(8); // Sum = 15
+```
 
-*React4J go further* than this rule, a value is updated if an event is emit and something is subscribed to it. Everything else is igored, time is suspended and events are inactive.
+## Var and Signals
 
-Like other FRP frameworks, **React4J** works with two entities : States (can be a variable or an operation between variables) that represent a value that evolve in time. **Var** and **Operation** objects have an initial state. And the behaviours that are resulting of single events emited by a device (or by timers). **Signal** objects does not have value until the event is raised.
+Now imagine your computer is totally reactive !
+What data can changed in a computer ? Mouse pointer, key, click, clock and so much more !
 
-## Signals ##
-Signal can be used to manage events is a program. Further more, with this framework, events can be transformed, chained, or dependents from another evnets to create a real event framework.
-Idea is to detach programer from low level event and states management to focus it to the essencial : what the program have to do in **reaction** to events.
+In the following example, we want to display the mouse position in human readable text :
 
-Functional reactive programming finds its application in user interactions domains like HMI or video game developpment.
+```
+#!java
+final Var<Integer> x = MouseReact.positionX().toVar(0); // mouse x reactive position
+final Var<Integer> y = MouseReact.positionY().toVar(0); // mouse y reactive position
 
-Before describe any reaction, let's create an HMI JLabel component with **Swing**.
-Node: This principle can be applied to any other user interface library.
+Operation<String> text = Operation.mergeOperation(() -> "mouse position (" + x.getValue() + ", " + y.getValue() + ")", x, y); // react text = "mouse position (" react x ", " react y ")"
+
+text.subscribe((String textPosition) -> {
+	System.out.println(textPosition);
+});
+```
+
+That's it. You do not needs to manage the mouse event and attach to it some listeners.
+You do not need to recalculate the string concatening, React4J do it for you !
+
+The previous example show of to bring a device signal and compute it in a string Variable. But what the difference between Var and Signal ?
+
+## Variables
+
+In React4J, Var are time varying states. They have a continued state in time (and so a value a t0, e.g. an initial value). That's why we declared it `Var<Integer> a = new Var<>(0)`.
+State or Var can be read every time in program with a getValue method.
+
+![FRP - var](https://bitbucket.org/yann_caron/react4j/downloads/React4J%20-%20variable.png)
+
+## Signals
+
+Signals does not have continued value. A value is just transmeted when the event is emmited.
+
+![FRP - var](https://bitbucket.org/yann_caron/react4j/downloads/React4J%20-%20signal.png)
+
+A mecanism in reactive programming framework give the possibility to obtain Variable from signal easily.
+We just need to specify the initial state of the var `Var<Integer> x = MouseReact.positionX().toVar(0)` and React4J is in charge of maintaint the value up to date according the signal emissions.
+
+# Java Swing
+
+Functional reactive programming finds its best application domain in user interactions like HMI, Web and video game developpment.
+This is how to adapt a swing JLabel to feet with React4J and become a reactive Label :
 ```
 #!java
 public class RLabel extends JLabel {
@@ -74,12 +137,11 @@ public class RLabel extends JLabel {
 
 }
 ```
-If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/demo/fr/cyann/reactdemo/ui/swing/RLabel.java?at=default#cl-28) !
+We overrided the setText method of JLabel to accept a reactive variable.
 
-To create reactive JLabel, the new RLabel class must inherits from JLabel and define an overriding setText method. This method accept a Signal as input argument, subscribe to it : each time the react emit, the label text value will be changed.
+**Of course this strategy can be applied to any framework you want like gwt, javaFX or some object oriented game engines.**
 
-Now imagine we want to update automatically our JLabel with the mouse click event and its position.
-The RLabel must be updated every time the button is clicked and every time the mouse is moved.
+Now we will rewrite our previous example, but in Functional way this time (we can chaine methods calling together like map / filter / fold as in java 8 lists).
 
 ```
 #!java
@@ -91,7 +153,7 @@ Var<String> mouseAndTime = MouseReact.button1()
 
 label1.setText(mouseAndTime);
 ```
-That's it, with a small handful of lines of code ! In fact, only one line, method call are chained !
+That's it, with a small handful of lines of code ! In fact, only one line, remember, method call are chained !
 
 **Important** : If you do not have Java 8, find the Java 6 code source [here](https://bitbucket.org/yann_caron/react4j/src/260d9a8ef99d6b9ae8f7ff2669ed3c44324583f9/demo/fr/cyann/reactdemo/ReactDemo1.java?at=default#cl-68) !
 
@@ -114,31 +176,74 @@ Var<String> allTogether = btnStrVar1.merge(posXY, (btn, pos) -> btn + " " + pos)
 label1.setText(allTogether); // allTogether dump emitions to the label text
 ```
 
-This is our reactive RLabel in action (updated on each mouse event) :
+This is our reactive RLabel in action (updated on each mouse event; button or movement) :
 
 ![RLabel and merged mouse react](https://bitbucket.org/yann_caron/react4j/downloads/Demo1.png)
 
-## Combination framework ##
+# Combination framework #
 
-React4J is based on functional monadic idea and inherit their combination capabilities.
-This is an illustration of differents functions available in React4J :
+As **React4J** is based on functional monadic idea (the source of combination frameworks) it inherit their combination capabilities. We have seen it is possible to chaine map / filter and fold. We also be able to combine signals together with differents combination behaviours. In fact, React4J is a **domain specific language** dedicated to time events and value varying.
+
+This is an illustration of differents combinations methods available in **React4J** :
 
 ![functions of React4J](https://bitbucket.org/yann_caron/react4j/downloads/React4J%20-%20functions.png)
 
+Legend :
+
+* **S** is a Signal (or a Var)
+* **Sf** is a Signal Function (a functor)
+* Different color means the type has changed
+* Vertical bar is a synchronization
+* Horizontal bar is garbaged signal
+
+Explainations :
+
+For High order functions -
+
+* **filter** : The signal S1 is emited to the new signal S2 according the signal function Sf1 return true. Else it is garbaged.
+* **map** : The value of the signal is transformed (in value or in type) by the signal function Sf1 and given to the signal S2.
+* **fold** : The actual signal value and the previous are combined by the signal function Sf1 that give relative value to the new Signal S2.
+* **filterFold** : The actual signal value and the previous are compared to determin if the value is emited to the new signal S2.
+
+For Combination -
+
+An interesting fact with reactive programming is the ability to combine signals together to obtaine new signal.
+
+* **mergeSame** : Merge signal emission, when one signal emit the value is relayed to the S2 signal.
+* **merge** : Merge signal emission, when one signal emit, a combination of the two signals (the emited one and the last emited by the other signal) is emited. The Sf1 function is in charge to "fold" them to a resulting signal.
+* **sync** : Like merge, but the both signals should have emit before the resulting value is emited.
+* **when** : Signal emit S1 value when S2 and S1 have sequentially emited.
+* **when** : Signal emit S2 value when S1 and S2 have sequentially emited.
+* **switchMap** : According the S1 signal value, Sf1 create a new Signal or null otherwise.
+* **edge** : Like a transistor, S2 emit value only if S1 has emited true.
+* **feedbackLoop** : When S1 emit, Sf1 is called that must create a new S2 signal. The S1 sinal is only emited when S1 and S2 emit together. (usefull to create smoothed signal)
+
 ## Demo ##
-FRP will bring a great innovation in the **GUI frameworks** as well as in the field of **video games** development ! **I am actually minding about robotic applications of FRP to describe the Robot behaviours in case of its sensors events.**
+FRP will bring a great innovation in the **GUI frameworks** and web clients programming as well as in the field of **video games** development ! **I am actually minding about robotic applications of FRP to describe the Robot behaviours in case of its sensors events.**
 
 Try react4j animation demo : [Download demo jar](https://bitbucket.org/yann_caron/react4j/downloads/React4J.jar)
 
 Launch it with : `java -jar React4J.jar`
 
-This demo demonstrate the react4j capabilities in the field of graphical interactions. Just a couple of lines of code are necessary to create great behaviors.
+This demo demonstrate the react4j capabilities in the field game developpment. Every sprite is driven by reactions and has its own reactions like exit of display and colisions.
+The concern of the programer become to describe what to do in case of some reactions. Everything else is managed by **React4J**
 
-![Live demo](https://bitbucket.org/yann_caron/react4j/downloads/Demo2.png)
+![Live demo](https://bitbucket.org/yann_caron/react4j/downloads/Demo3.png)
 
 Youtube : [Youtube live demo](https://www.youtube.com/watch?v=0VGU9qcjnbM)
 
-Have fun!
+Have fun with reactive programming !
+
+## How does it works ##
+**React4J** fits in the discrete reactive frameworks familly e.g. it is event based.
+
+There is two way to design an FRP framework :
+
+* by **Continuous** reactions, a centralized manager maintains all reactives signals that are periodically actualized. It is an old and cpu consumer way because unnecessary values are computed in a sample time.
+
+* by **Discrete** reactions that are event driver. The values are only updates if an event that change their value has been emiter.
+
+React4J is based on this second option. When a method like filter is called from a reactive variable, a new signal is created. Then the old signal emit a value, the value is sent to the new signal through the signal function.
 
 ## Credits
 

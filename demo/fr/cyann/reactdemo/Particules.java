@@ -1,6 +1,18 @@
 /*
- * Copyright (C) 2013 CyaNn
- * License modality not yet defined.
+ * Copyright (C) 2013 Yann Caron
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Less General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Less General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 package fr.cyann.reactdemo;
 
@@ -34,33 +46,60 @@ import javax.swing.event.ChangeListener;
  * @author CyaNn
  * @version v0.1
  */
-public class ReactDemo1 {
+public class Particules {
 
 	private static final RLabel label1 = new RLabel();
 	private static final RLabel label2 = new RLabel();
 	private static final StagePanel particule = new StagePanel();
 	private static final Circle cursor = new Circle(25);
-	private static final Var<Integer> mouseX = MouseReact.positionX().map(new Function1<Integer, Integer>() {
+	private static final Var<Integer> mouseX = MouseReact.onMoveX().map(new Function1<Integer, Integer>() {
 
 		@Override
 		public Integer invoke(Integer arg1) {
 			return arg1 - (cursor.getSize() / 2 - 2);
 		}
 	}).toVar(0);
-	private static final Var<Integer> mouseY = MouseReact.positionY().map(new Function1<Integer, Integer>() {
+	private static final Var<Integer> mouseY = MouseReact.onMoveY().map(new Function1<Integer, Integer>() {
 
 		@Override
 		public Integer invoke(Integer arg1) {
 			return arg1 - (cursor.getSize() / 2 + 30);
 		}
 	}).toVar(0);
+	private static Signal<Integer> tab1React;
+
+	public static void launch() {
+
+		JFrame frame = new JFrame();
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+
+		label1.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		frame.add(particule);
+		frame.add(Box.createRigidArea(new Dimension(0, 10)));
+		frame.add(label1);
+		frame.add(Box.createRigidArea(new Dimension(0, 10)));
+		frame.add(label2);
+		frame.add(Box.createRigidArea(new Dimension(0, 10)));
+
+		frame.setPreferredSize(new Dimension(1024, 800));
+		frame.pack();
+		frame.setVisible(true);
+
+		initLabelsReact();
+		initCursor();
+		initAnim();
+
+	}
 
 	public static void initLabelsReact() {
 		// when mouse is pressed say "pressed" otherwise say "released"
 		// concatenate message with mouse position and update each time it is necessary
 
 		// declare the mouse reactor
-		Var<String> mouseAndTime = MouseReact.button1().map(new Function1<Boolean, String>() {
+		Var<String> mouseAndTime = MouseReact.onButton1().map(new Function1<Boolean, String>() {
 
 			@Override
 			public String invoke(Boolean arg1) {
@@ -102,12 +141,11 @@ public class ReactDemo1 {
 		cursor.setX(mouseX);
 		cursor.setY(mouseY);
 	}
-	private static Signal<Integer> tab1React;
 
 	public static void initAnim() {
 
 		// when mouse button is old, then create a new circle every 50 ms
-		tab1React = TimeReact.every(10).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
+		tab1React = TimeReact.every(10).edge(MouseReact.onButton1()).subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer value) {
@@ -190,51 +228,4 @@ public class ReactDemo1 {
 
 	}
 
-	public static void main(String[] args) {
-
-		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		Container pane = frame.getContentPane();
-		pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-
-		Border empty = new EmptyBorder(10, 10, 10, 10);
-
-		label1.setAlignmentX(Component.CENTER_ALIGNMENT);
-		label2.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		final JTabbedPane tab = new JTabbedPane(JTabbedPane.BOTTOM);
-
-		frame.add(particule);
-		frame.add(Box.createRigidArea(new Dimension(0, 10)));
-		frame.add(label1);
-		frame.add(Box.createRigidArea(new Dimension(0, 10)));
-		frame.add(label2);
-		frame.add(Box.createRigidArea(new Dimension(0, 10)));
-
-		frame.setPreferredSize(new Dimension(1024, 800));
-		frame.pack();
-		frame.setVisible(true);
-
-		tab.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (tab1React != null) {
-					tab1React.dispose();
-				}
-
-
-				switch (tab.getSelectedIndex()) {
-					case 0:
-						initAnim();
-						break;
-				}
-			}
-		});
-
-		initLabelsReact();
-		initCursor();
-		initAnim();
-
-	}
 }

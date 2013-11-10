@@ -21,6 +21,8 @@ import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import javax.swing.JTextField;
 
 /**
@@ -29,36 +31,35 @@ import javax.swing.JTextField;
  */
 public class RTextBox extends JTextField {
 
-	private final Var<String> react;
 	private final Signal<String> textChanged;
 
 	public RTextBox() {
-		react = new Var<String>("");
-		textChanged = new Signal<String>() {};
+		textChanged = new Signal<String>() {
+		};
 
-		react.subscribe(new Procedure1<String>() {
+		this.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				textChanged.emit(RTextBox.super.getText());
+			}
+
+		});
+
+	}
+
+	public void setText(Var<String> text) {
+		text.subscribe(new Procedure1<String>() {
 
 			@Override
 			public void invoke(String value) {
 				RTextBox.super.setText(value);
 			}
 		});
-
-		this.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				textChanged.emit(RTextBox.super.getText());
-			}
-		});
 	}
 
-	public void setText(Var<String> value) {
-		value.dump(react);
-	}
-
-	public Var<String> getRText() {
-		return react;
+	public Signal<String> getRText() {
+		return textChanged;
 	}
 
 }

@@ -30,10 +30,11 @@ public class RLabel extends JLabel {
 
 			@Override
 			public void invoke(String value) {
-				setText(value);
+				RLabel.super.setText(value);
 			}
 		});
-		setText(text.getValue());
+
+		super.setText(text.getValue());
 	}
 
 }

@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class Signal<V> {
 
-	protected final React<V> react;
+	protected final Dispatcher<V> react;
 	protected boolean running = true;
 	private boolean enabled = true;
 	protected Signal parent;
@@ -258,7 +258,7 @@ public class Signal<V> {
 			disposed = false;
 		}
 
-		react = new React<V>();
+		react = new Dispatcher<V>();
 		links = new ArrayList<Signal>();
 	}
 

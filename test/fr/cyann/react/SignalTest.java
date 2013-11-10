@@ -191,7 +191,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeCounter() {
 
-		Signal<Boolean> s = MouseReact.button1();
+		Signal<Boolean> s = MouseReact.onButton1();
 		assertEquals(Integer.valueOf(1), ReactManager.getInstance().getReactCounter().getValue());
 
 		s.dispose();
@@ -202,7 +202,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMerge() {
 
-		Signal<Integer> s = MouseReact.button1().toVar(false).merge(TimeReact.every(100).toVar(0), new Function2<Boolean, Integer, Integer>() {
+		Signal<Integer> s = MouseReact.onButton1().toVar(false).merge(TimeReact.every(100).toVar(0), new Function2<Boolean, Integer, Integer>() {
 
 			@Override
 			public Integer invoke(Boolean arg1, Integer arg2) {
@@ -220,7 +220,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeFilter() {
 
-		Signal s = MouseReact.button1().filter(new Predicate1<Boolean>() {
+		Signal s = MouseReact.onButton1().filter(new Predicate1<Boolean>() {
 
 			@Override
 			public boolean invoke(Boolean arg) {
@@ -238,7 +238,7 @@ public class SignalTest extends TestCase {
 
 	public void testDisposeMap() {
 
-		Signal s = MouseReact.button1().map(new Function1<Boolean, String>() {
+		Signal s = MouseReact.onButton1().map(new Function1<Boolean, String>() {
 
 			@Override
 			public String invoke(Boolean arg1) {

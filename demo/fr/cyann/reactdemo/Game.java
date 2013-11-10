@@ -19,7 +19,6 @@ package fr.cyann.reactdemo;
 import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
 import fr.cyann.functional.Procedure1;
-import fr.cyann.react.Constant;
 import fr.cyann.react.MouseReact;
 import fr.cyann.react.ReactManager;
 import fr.cyann.react.Signal;
@@ -46,20 +45,20 @@ import java.util.Random;
  * @author Yann Caron
  * @version v0.1
  */
-public class ReactDemo2 {
+public class Game {
 
 	private final RLabel label1 = new RLabel();
 	private final RLabel label2 = new RLabel();
 	private final StagePanel game = new StagePanel();
 	private final Circle cursor = new Circle(25);
-	private final Var<Integer> mouseX = MouseReact.positionX().map(new Function1<Integer, Integer>() {
+	private final Var<Integer> mouseX = MouseReact.onMoveX().map(new Function1<Integer, Integer>() {
 
 		@Override
 		public Integer invoke(Integer arg1) {
 			return arg1 - (cursor.getSize() / 2 - 2);
 		}
 	}).toVar(0);
-	private final Var<Integer> mouseY = MouseReact.positionY().map(new Function1<Integer, Integer>() {
+	private final Var<Integer> mouseY = MouseReact.onMoveY().map(new Function1<Integer, Integer>() {
 
 		@Override
 		public Integer invoke(Integer arg1) {
@@ -69,8 +68,8 @@ public class ReactDemo2 {
 	private final Signal<Integer> fps = TimeReact.framePerSecond(25);
 	private final Random rnd = new Random();
 
-	public static void main(String[] args) {
-		ReactDemo2 demo = new ReactDemo2();
+	public static void launch() {
+		Game demo = new Game();
 
 		demo.initLabelsReact();
 		demo.createGameBehaviours();
@@ -78,14 +77,11 @@ public class ReactDemo2 {
 	}
 
 	// draw panel
-	public ReactDemo2() {
+	public Game() {
 
 		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-
-		Border empty = new EmptyBorder(10, 10, 10, 10);
 
 		label1.setAlignmentX(Component.CENTER_ALIGNMENT);
 		label2.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -109,7 +105,7 @@ public class ReactDemo2 {
 		// concatenate message with mouse position and update each time it is necessary
 
 		// mouse click and position to label 1
-		Var<String> mouseInfo = MouseReact.button1().map(new Function1<Boolean, String>() {
+		Var<String> mouseInfo = MouseReact.onButton1().map(new Function1<Boolean, String>() {
 
 			@Override
 			public String invoke(Boolean arg1) {
@@ -240,7 +236,7 @@ public class ReactDemo2 {
 		});
 
 		// shoots
-		Signal shoot = TimeReact.every(50).edge(MouseReact.button1()).subscribe(new Procedure1<Integer>() {
+		Signal shoot = TimeReact.every(50).edge(MouseReact.onButton1()).subscribe(new Procedure1<Integer>() {
 
 			@Override
 			public void invoke(Integer value) {

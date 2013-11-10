@@ -25,12 +25,12 @@ import java.util.List;
  *
  * @author Yann Caron
  */
-public class React<A> {
+public class Dispatcher<A> {
 
 	private List<Procedure1<A>> subscribers;
 	private Procedure1<A> afterEmit;
 
-	public React() {
+	public Dispatcher() {
 		subscribers = new ArrayList<Procedure1<A>>();
 	}
 
@@ -58,7 +58,7 @@ public class React<A> {
 	}
 
 	@Package
-	synchronized React<A> emit(A value) {
+	synchronized Dispatcher<A> emit(A value) {
 		for (Procedure1<A> subscriber : subscribers) {
 			subscriber.invoke(value);
 		}
