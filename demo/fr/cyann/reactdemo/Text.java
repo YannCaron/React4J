@@ -18,7 +18,7 @@ package fr.cyann.reactdemo;
 
 import fr.cyann.functional.Function1;
 import fr.cyann.functional.Function2;
-import fr.cyann.react.Operation;
+import fr.cyann.react.Signal;
 import fr.cyann.react.Var;
 import static fr.cyann.reactdemo.Particules.initAnim;
 import static fr.cyann.reactdemo.Particules.initCursor;
@@ -97,7 +97,10 @@ public class Text {
 			}
 		};
 
-		Var<String> res = tb1.getRText().map(convertToInt).merge(0, 0, tb2.getRText().map(convertToInt), new Function2<Integer, Integer, String>() {
+        Signal<Integer> rx = tb1.getRText().map(convertToInt);
+        Signal<Integer> ry = tb2.getRText().map(convertToInt);
+        
+		Var<String> res = rx.merge(0, 0, ry, new Function2<Integer, Integer, String>() {
 
 			@Override
 			public String invoke(Integer a, Integer b) {
